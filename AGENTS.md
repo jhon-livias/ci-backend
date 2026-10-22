@@ -71,6 +71,9 @@ Monorepo NestJS de microservicios para el centro de idiomas. Incluye un API Gate
 - Autentica con tokens de vida corta y refresh tokens rotables, revocables y almacenados de forma segura. Usa Argon2id para contraseñas; no registres ni expongas contraseñas, tokens, claves ni datos personales sensibles.
 - Aplica autorización en el servidor para cada recurso y acción, aun si la interfaz ya la oculta. Usa DTOs de entrada/salida con lista permitida de campos para prevenir mass assignment y exposición excesiva de datos.
 - Valida y transforma toda entrada con DTOs; rechaza campos no permitidos, limita tamaño de cuerpo, paginación, filtros y cargas. Nunca construyas consultas SQL, URLs, rutas de archivos o comandos con datos sin validar.
+- Para cada endpoint nuevo, separa explícitamente las defensas contra XSS y SQL Injection: XSS se mitiga con respuestas JSON, codificación/sanitización contextual de cualquier HTML que se admita y CSP en los orígenes que sirven UI; SQL Injection se mitiga con Prisma y parámetros enlazados. No uses `$queryRawUnsafe`, `$executeRawUnsafe`, interpolación de SQL ni concatenación de filtros/ordenamientos. Toda consulta raw debe ser excepcional, parametrizada, revisada y cubierta por pruebas.
+- No persistas HTML arbitrario. Si un caso de negocio requiere texto enriquecido, define una lista permitida mínima, sanitízala en el servidor antes de guardar y antes de devolverla, conserva el valor original solo si existe una justificación auditada y nunca lo renderices mediante mecanismos de bypass de sanitización.
+- Trata como no confiables body, query, path params, headers, cookies, archivos, mensajes de colas y payloads de webhooks. Define DTOs/contratos de entrada, límites de tamaño y allowlists para campos, filtros, columnas ordenables y relaciones incluibles; no delegues estas decisiones a valores enviados por el cliente.
 - Implementa rate limiting distribuido con Redis en el Gateway y límites adicionales en inicio de sesión, recuperación de contraseña, pagos, matrícula, carga de archivos, búsquedas y exportaciones. Devuelve `429` al superar los límites.
 - No coloques secretos en código, imágenes Docker, logs, URLs ni repositorio. Usa variables de entorno o un gestor de secretos, valida su presencia al iniciar y rota secretos comprometidos.
 - Para archivos: permite solo extensiones y tipos reales necesarios, valida tipo y tamaño, renombra en servidor, almacena fuera del webroot/S3 privado, analiza malware y entrega acceso mediante autorización y URL firmada de corta vida. No confíes solo en `Content-Type`.
@@ -83,6 +86,7 @@ Monorepo NestJS de microservicios para el centro de idiomas. Incluye un API Gate
 ## Verificación de seguridad
 
 - Incluye pruebas automatizadas para autenticación, permisos por recurso/rol, CORS, rate limiting, validación, webhooks y cargas de archivos.
+- Por cada endpoint que acceda a datos, incluye pruebas negativas de validación, mass assignment, autorización por objeto y parámetros de búsqueda/ordenamiento; cuando haya SQL raw o contenido HTML permitido, añade casos de prueba específicos contra inyección y XSS.
 - Antes de desplegar, ejecuta lint, pruebas unitarias/e2e, auditoría de dependencias y revisión de configuración de producción. Registra y corrige hallazgos de severidad alta o crítica antes del despliegue.
 - Revisa periódicamente permisos, dependencias, registros de auditoría, copias de seguridad y reglas de CORS/CSP. Mantén un inventario de endpoints, servicios y versiones expuestas.
 
