@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import fastifyCors from '@fastify/cors';
+import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyRateLimit from '@fastify/rate-limit';
 
@@ -28,6 +29,7 @@ const parseAllowedOrigins = (): string[] =>
 export const bootstrapRestApplication = async (
   rootModule: Type<unknown>,
   service: ServiceName,
+  configure?: (application: NestFastifyApplication) => Promise<void>,
 ): Promise<void> => {
   const app = await NestFactory.create<NestFastifyApplication>(
     rootModule,
@@ -42,6 +44,7 @@ export const bootstrapRestApplication = async (
     credentials: allowedOrigins.length > 0,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
+  await app.register(fastifyCookie);
   await app.register(fastifyHelmet, {
     contentSecurityPolicy: isDevelopment
       ? false
@@ -65,6 +68,10 @@ export const bootstrapRestApplication = async (
     }),
   );
   app.enableShutdownHooks();
+
+  if (configure) {
+    await configure(app);
+  }
 
   if (isDevelopment) {
     const document = SwaggerModule.createDocument(

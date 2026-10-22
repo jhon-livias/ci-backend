@@ -3,6 +3,11 @@
 /node_modules
 /build
 
+# Prisma client generated from apps/auth/prisma/schema.prisma
+/apps/auth/src/infrastructure/persistence/generated
+/apps/students/src/infrastructure/persistence/generated
+/apps/academic/src/infrastructure/persistence/generated
+
 # TypeScript build cache
 *.tsbuildinfo
 
