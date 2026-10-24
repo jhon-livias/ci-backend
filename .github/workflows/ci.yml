@@ -20,6 +20,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm audit --audit-level=high
+      - name: Generate Prisma client for TypeScript compilation
+        env:
+          AUTH_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=auth
+        run: npm run auth:db:generate
       - run: npm run build
       - run: npm run lint
       - run: npm run test
