@@ -55,6 +55,7 @@ model User {
   roles               UserRole[]
   sessions            AuthSession[]
   passwordResetTokens PasswordResetToken[]
+  notifications       UserNotification[]
 
   @@index([status])
   @@map("users")
@@ -123,4 +124,19 @@ model PasswordResetToken {
   @@index([userId, expiresAt])
   @@index([expiresAt])
   @@map("password_reset_tokens")
+}
+
+/// Aviso dirigido a una cuenta. El id del evento es la clave de idempotencia.
+model UserNotification {
+  id            String    @id @db.Uuid
+  userId        String    @db.Uuid
+  title         String    @db.VarChar(120)
+  body          String    @db.VarChar(500)
+  correlationId String    @db.VarChar(64)
+  createdAt     DateTime  @default(now())
+  readAt        DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("user_notifications")
 }

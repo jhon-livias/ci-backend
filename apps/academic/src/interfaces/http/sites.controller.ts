@@ -1,10 +1,10 @@
-import { BadRequestException, Body, ConflictException, Controller, Delete, Get, Header, HttpCode, Injectable, NotFoundException, Param, ParseUUIDPipe, Post, Put, Query, UnauthorizedException, UseGuards, type CanActivate, type ExecutionContext } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, HttpCode, Injectable, Param, ParseUUIDPipe, Post, Put, Query, UnauthorizedException, UseGuards, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { timingSafeEqual } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
-import { AcademicPrismaService } from '../../infrastructure/persistence/academic-prisma.service.js';
-import { SiteDto } from './site.dto.js';
+import { SiteDto } from '../../../../../libs/contracts/src/site.dto.js';
+import { SitesService } from '../../application/sites.service.js';
 
 @Injectable()
 export class InternalSitesGuard implements CanActivate {
@@ -27,81 +27,48 @@ class GeographyParentDto {
 @Controller('internal/sites')
 @UseGuards(InternalSitesGuard)
 export class SitesController {
-  constructor(private readonly db: AcademicPrismaService) {}
+  constructor(private readonly sites: SitesService) {}
 
   @Get()
   @Header('Cache-Control', 'no-store')
-  async list() {
-    return this.db.site.findMany({ where: { deletedAt: null }, select: { id: true, code: true, name: true, location: true, active: true, districtCode: true }, orderBy: { name: 'asc' }, take: 500 });
+  list() {
+    return this.sites.list();
+  }
+
+  @Get('geography/departments')
+  departments() {
+    return this.sites.departments();
+  }
+
+  @Get('geography/provinces')
+  provinces(@Query() query: GeographyParentDto) {
+    return this.sites.provinces(query.code);
+  }
+
+  @Get('geography/districts')
+  districts(@Query() query: GeographyParentDto) {
+    return this.sites.districts(query.code);
   }
 
   @Get(':id')
   @Header('Cache-Control', 'no-store')
-  async detail(@Param('id', ParseUUIDPipe) id: string) {
-    const site = await this.db.site.findFirst({
-      where: { id, deletedAt: null },
-      select: {
-        ...siteSelection,
-        geographicDistrict: {
-          select: {
-            code: true,
-            name: true,
-            province: { select: { code: true, name: true, department: { select: { code: true, name: true } } } },
-          },
-        },
-      },
-    });
-    if (!site) throw new NotFoundException();
-    return site;
+  detail(@Param('id', ParseUUIDPipe) id: string) {
+    return this.sites.detail(id);
   }
 
-  @Get('geography/departments')
-  departments() { return this.db.peruDepartment.findMany({ select: { code: true, name: true }, orderBy: { name: 'asc' } }); }
-
-  @Get('geography/provinces')
-  provinces(@Query() query: GeographyParentDto) { return this.db.peruProvince.findMany({ where: { departmentCode: query.code }, select: { code: true, name: true }, orderBy: { name: 'asc' } }); }
-
-  @Get('geography/districts')
-  districts(@Query() query: GeographyParentDto) { return this.db.peruDistrict.findMany({ where: { provinceCode: query.code }, select: { code: true, name: true }, orderBy: { name: 'asc' } }); }
-
   @Post()
-  async create(@Body() dto: SiteDto) {
-    try { return await this.db.site.create({ data: siteData(dto), select: siteSelection }); }
-    catch (error) { if (isUniqueConflict(error)) throw new ConflictException('El código ya está registrado.'); if (isForeignKeyConflict(error)) throw new BadRequestException('El distrito no es válido.'); throw error; }
+  create(@Body() dto: SiteDto) {
+    return this.sites.create(dto);
   }
 
   @Put(':id')
-  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SiteDto) {
-    try {
-      const result = await this.db.site.updateMany({ where: { id, deletedAt: null }, data: siteData(dto) });
-      if (!result.count) throw new NotFoundException();
-      return await this.db.site.findFirstOrThrow({ where: { id, deletedAt: null }, select: siteSelection });
-    } catch (error) { if (isUniqueConflict(error)) throw new ConflictException('El código ya está registrado.'); if (isForeignKeyConflict(error)) throw new BadRequestException('El distrito no es válido.'); throw error; }
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SiteDto) {
+    return this.sites.update(id, dto);
   }
 
-  @Delete(':id') @HttpCode(204)
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    const result = await this.db.site.updateMany({ where: { id, deletedAt: null }, data: { active: false, deletedAt: new Date() } });
-    if (!result.count) throw new NotFoundException();
+  @Delete(':id')
+  @HttpCode(204)
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.sites.remove(id);
   }
 }
-
-function isUniqueConflict(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
-}
-
-function isForeignKeyConflict(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2003';
-}
-
-const siteSelection = {
-  id: true, code: true, name: true, location: true, active: true, districtCode: true,
-  street: true, postalCode: true, phone: true, email: true, contactName: true, contactPhone: true,
-} as const;
-
-const siteData = (dto: SiteDto) => ({
-  code: dto.code, name: dto.name, location: dto.location || null, active: dto.active,
-  street: dto.street || null, postalCode: dto.postalCode || null, phone: dto.phone || null,
-  email: dto.email || null, contactName: dto.contactName || null, contactPhone: dto.contactPhone || null,
-  districtCode: dto.districtCode || null,
-});

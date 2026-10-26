@@ -6,8 +6,11 @@ import fastifyCors from '@fastify/cors';
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyRateLimit from '@fastify/rate-limit';
+import { Redis } from 'ioredis';
 
 import type { ServiceName } from '../../contracts/src/index.js';
+import { resolveRedisEndpoint } from './redis-endpoint.js';
+import { shutdownTelemetry, startTelemetry } from './telemetry.js';
 
 const ports: Record<ServiceName, number> = {
   gateway: 3000,
@@ -31,13 +34,38 @@ export const bootstrapRestApplication = async (
   service: ServiceName,
   configure?: (application: NestFastifyApplication) => Promise<void>,
 ): Promise<void> => {
+  startTelemetry(service);
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const redisEndpoint = resolveRedisEndpoint(process.env);
+  const redis = redisEndpoint
+    ? new Redis({
+        host: redisEndpoint.host,
+        port: redisEndpoint.port,
+        password: redisEndpoint.password,
+        maxRetriesPerRequest: 2,
+        enableReadyCheck: true,
+      })
+    : undefined;
   const app = await NestFactory.create<NestFastifyApplication>(
     rootModule,
-    new FastifyAdapter({ logger: false }),
+    new FastifyAdapter({
+      logger: {
+        level: process.env.LOG_LEVEL ?? (isDevelopment ? 'debug' : 'info'),
+        redact: {
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.headers["x-csrf-token"]',
+            'req.headers["x-internal-secret"]',
+            'req.body.password',
+          ],
+          censor: '[redacted]',
+        },
+      },
+    }),
     { bufferLogs: true },
   );
   const allowedOrigins = parseAllowedOrigins();
-  const isDevelopment = process.env.NODE_ENV === 'development';
 
   await app.register(fastifyCors, {
     origin: allowedOrigins.length === 0 ? false : allowedOrigins,
@@ -51,11 +79,23 @@ export const bootstrapRestApplication = async (
       : { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
     referrerPolicy: { policy: 'no-referrer' },
   });
+  app.getHttpAdapter().getInstance().addHook('onSend', async (_request, reply, payload) => {
+    void reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+    return payload;
+  });
   await app.register(fastifyRateLimit, {
     global: true,
     max: 100,
     timeWindow: '1 minute',
+    ...(redis ? { redis, nameSpace: `ci-${service}-` } : {}),
   });
+  if (redis) {
+    app.getHttpAdapter().getInstance().addHook('onClose', async () => {
+      await redis.quit();
+    });
+  } else {
+    app.getHttpAdapter().getInstance().log.warn('REDIS_HOST no está definido: el límite de peticiones queda en memoria de este proceso.');
+  }
 
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
@@ -68,6 +108,9 @@ export const bootstrapRestApplication = async (
     }),
   );
   app.enableShutdownHooks();
+  app.getHttpAdapter().getInstance().addHook('onClose', async () => {
+    await shutdownTelemetry();
+  });
 
   if (configure) {
     await configure(app);

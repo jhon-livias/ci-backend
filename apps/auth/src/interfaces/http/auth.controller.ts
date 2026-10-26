@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { RouteConfig } from '@nestjs/platform-fastify';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
@@ -14,6 +15,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @RouteConfig({ rateLimit: { max: 10, timeWindow: '1 minute' } })
   async login(@Body() input: LoginDto, @Req() request: FastifyRequest, @Res({ passthrough: true }) response: FastifyReply) {
     const session = await this.authenticationService.login(input, request.headers['user-agent']);
     this.setSessionCookies(response, session.accessToken, session.refreshToken);

@@ -2,7 +2,7 @@ import { Body, Controller, Delete, ForbiddenException, Get, Header, HttpCode, Ht
 import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import type { FastifyRequest } from 'fastify';
-import { SiteDto } from '../../../../academic/src/interfaces/http/site.dto.js';
+import { SiteDto } from '../../../../../libs/contracts/src/site.dto.js';
 import { AuthenticationService } from '../../application/authentication.service.js';
 import { hasAccessPermission, type AccessPermission } from '../../domain/access-policy.js';
 

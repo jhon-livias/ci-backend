@@ -1,11 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 import { UserRoleName, UserStatus } from '../infrastructure/persistence/generated/client.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
 import type { LoginDto } from '../interfaces/http/dto/login.dto.js';
+import { NotificationService } from './notification.service.js';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
@@ -30,6 +31,7 @@ export class AuthenticationService {
   constructor(
     private readonly prisma: AuthPrismaService,
     private readonly jwtService: JwtService,
+    private readonly notifications: NotificationService,
   ) {}
 
   async login(input: LoginDto, userAgent?: string | string[]): Promise<AuthenticatedSession> {
@@ -60,6 +62,15 @@ export class AuthenticationService {
       data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
     });
 
+    const event = {
+      id: randomUUID(),
+      recipientUserId: user.id,
+      title: 'Sesión iniciada',
+      body: 'Se inició una sesión en tu cuenta.',
+      createdAt: new Date().toISOString(),
+      correlationId: randomUUID(),
+    };
+    void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
     return this.issueTokens(authenticatedUser, session.refreshToken);
   }
 

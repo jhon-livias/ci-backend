@@ -8,5 +8,6 @@ void bootstrapRestApplication(AppModule, 'gateway', async (application) => {
     upstream: process.env.AUTH_UPSTREAM ?? 'http://auth:3001',
     prefix: '/api/v1/auth',
     rewritePrefix: '/api/v1/auth',
+    websocket: true,
   });
 });

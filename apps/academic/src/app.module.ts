@@ -4,8 +4,9 @@ import { createHealthController } from '../../../libs/common/src/index.js';
 import { AcademicPrismaService } from './infrastructure/persistence/academic-prisma.service.js';
 import { InternalSitesGuard, SitesController } from './interfaces/http/sites.controller.js';
 import { PeruGeographySeeder } from './application/peru-geography-seeder.service.js';
+import { SitesService } from './application/sites.service.js';
 
 const HealthController = createHealthController('academic');
 
-@Module({ controllers: [HealthController, SitesController], providers: [AcademicPrismaService, InternalSitesGuard, PeruGeographySeeder] })
+@Module({ controllers: [HealthController, SitesController], providers: [AcademicPrismaService, InternalSitesGuard, PeruGeographySeeder, SitesService] })
 export class AppModule {}
