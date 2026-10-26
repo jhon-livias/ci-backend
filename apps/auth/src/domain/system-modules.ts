@@ -1,16 +1,58 @@
-/** Versioned, read-only inventory. Status describes implementation, not authorization. */
-export const SYSTEM_MODULES = [
-  { code: 'auth', name: 'Autenticación y sesión', description: 'Inicio, restauración y cierre de sesión.', status: 'IN_PROGRESS' },
-  { code: 'users', name: 'Usuarios y perfiles', description: 'Cuentas y datos generales vinculados a cada persona.', status: 'IN_PROGRESS' },
-  { code: 'roles', name: 'Roles y permisos', description: 'Roles fijos y autorización granular por acción y recurso.', status: 'IN_PROGRESS' },
-  { code: 'sites', name: 'Sedes', description: 'Organización de la sede Trujillo y futuras sedes.', status: 'IN_PROGRESS' },
-  { code: 'people', name: 'Estudiantes y docentes', description: 'Datos de alumnos y docentes del Centro de Idiomas.', status: 'PLANNED' },
-  { code: 'academic', name: 'Oferta académica', description: 'Idiomas, niveles, equivalencias, grupos y horarios.', status: 'PLANNED' },
-  { code: 'enrollment', name: 'Matrículas', description: 'Matrículas web y manuales e historial académico.', status: 'PLANNED' },
-  { code: 'attendance', name: 'Asistencias y justificaciones', description: 'Control de asistencia y sustento de faltas.', status: 'PLANNED' },
-  { code: 'grades', name: 'Notas y actas', description: 'Registro de calificaciones y generación de actas.', status: 'PLANNED' },
-  { code: 'exams', name: 'Exámenes de suficiencia', description: 'Inscripciones, programación y resultados de exámenes.', status: 'PLANNED' },
-  { code: 'payments', name: 'Pagos y comprobantes', description: 'Pagos, historial y comprobantes del estudiante.', status: 'PLANNED' },
-  { code: 'reports', name: 'Reportes y auditoría', description: 'Seguimiento de operaciones y eventos de seguridad.', status: 'PLANNED' },
-  { code: 'integrations', name: 'Integraciones', description: 'Conexiones institucionales y proveedores externos.', status: 'PLANNED' },
+/** Grupos de personas del directorio. El conteo no concede permisos. */
+export const DIRECTORY_MODULES = [
+  { code: 'TEACHER', name: 'Docente' },
+  { code: 'STUDENT', name: 'Alumnos' },
+  { code: 'ADVISOR', name: 'Asesora' },
+  { code: 'DIRECTOR', name: 'Director' },
+  { code: 'ADMINISTRATOR', name: 'Administrador' },
 ] as const;
+
+export interface DirectoryModuleCount {
+  readonly role: string;
+  readonly active: number;
+  readonly inactive: number;
+}
+
+export interface DirectoryModuleQuery {
+  readonly search?: string;
+  readonly occupied?: boolean;
+  readonly page: number;
+  readonly pageSize: 5 | 10 | 20;
+  readonly sort?: 'name' | 'users' | 'active' | 'inactive';
+  readonly direction?: 'asc' | 'desc';
+}
+
+export interface DirectoryModuleRow {
+  readonly code: string;
+  readonly name: string;
+  readonly users: number;
+  readonly active: number;
+  readonly inactive: number;
+}
+
+export const presentModuleDirectory = (counts: readonly DirectoryModuleCount[], query: DirectoryModuleQuery) => {
+  const byRole = new Map(counts.map((count) => [count.role, count]));
+  let rows: DirectoryModuleRow[] = DIRECTORY_MODULES.map((module) => {
+    const count = byRole.get(module.code);
+    const active = count?.active ?? 0;
+    const inactive = count?.inactive ?? 0;
+    return { code: module.code, name: module.name, users: active + inactive, active, inactive };
+  });
+  const search = query.search?.trim().toLocaleLowerCase('es') ?? '';
+  if (search) rows = rows.filter((row) => row.name.toLocaleLowerCase('es').includes(search));
+  if (query.occupied) rows = rows.filter((row) => row.users > 0);
+  if (query.sort) {
+    const direction = query.direction === 'desc' ? -1 : 1;
+    const sort = query.sort;
+    rows = [...rows].sort((left, right) => sort === 'name'
+      ? left.name.localeCompare(right.name, 'es') * direction
+      : (left[sort] - right[sort]) * direction);
+  }
+  const start = (query.page - 1) * query.pageSize;
+  return {
+    page: query.page,
+    pageSize: query.pageSize,
+    total: rows.length,
+    modules: rows.slice(start, start + query.pageSize),
+  };
+};

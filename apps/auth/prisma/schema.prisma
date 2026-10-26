@@ -48,16 +48,23 @@ model User {
   lastLoginAt         DateTime?
   failedLoginAttempts Int                  @default(0)
   lockedUntil         DateTime?
+  /// La cuenta debe definir una contraseña propia en el próximo inicio de sesión.
+  mustChangePassword  Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   deletedAt           DateTime?
+  /// Sede del directorio administrativo. No representa matrícula ni grupo.
+  siteId              String?              @db.Uuid
   profile             UserProfile?
   roles               UserRole[]
   sessions            AuthSession[]
   passwordResetTokens PasswordResetToken[]
   notifications       UserNotification[]
+  grants              UserFunctionalityGrant[]
+  auditEvents         AuditEvent[]
 
   @@index([status])
+  @@index([siteId])
   @@map("users")
 }
 
@@ -71,6 +78,8 @@ model UserProfile {
   paternalLastName String               @db.VarChar(100)
   maternalLastName String?              @db.VarChar(100)
   phone            String?              @db.VarChar(30)
+  mobileCountry    String?              @db.VarChar(6)
+  mobile           String?              @db.VarChar(20)
   avatarObjectKey  String?              @db.VarChar(512)
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
@@ -139,4 +148,104 @@ model UserNotification {
 
   @@index([userId, createdAt])
   @@map("user_notifications")
+}
+
+/// Catálogo administrativo por módulo. No reemplaza los permisos fijos que autorizan cada acción.
+model PermissionDefinition {
+  id              String                     @id @default(uuid()) @db.Uuid
+  moduleCode      String                     @db.VarChar(64)
+  name            String                     @db.VarChar(120)
+  enabled         Boolean                    @default(true)
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  deletedAt       DateTime?
+  functionalities PermissionFunctionality[]
+
+  @@index([moduleCode, deletedAt])
+  @@map("permission_definitions")
+}
+
+model PermissionFunctionality {
+  id           String               @id @default(uuid()) @db.Uuid
+  permissionId String               @db.Uuid
+  name         String               @db.VarChar(120)
+  position     Int
+  enabled      Boolean              @default(true)
+  permission   PermissionDefinition @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([permissionId, position])
+  @@unique([permissionId, name])
+  @@map("permission_functionalities")
+}
+
+/// Catálogo de tipos de usuario para la pantalla de administración. No cambia los roles fijos que autorizan cada acción.
+model UserTypeDefinition {
+  id          String               @id @default(uuid()) @db.Uuid
+  name        String               @db.VarChar(120)
+  moduleCode  String               @db.VarChar(64)
+  enabled     Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  deletedAt   DateTime?
+  permissions UserTypePermission[]
+  modules     UserTypeModule[]
+
+  @@index([deletedAt])
+  @@map("user_type_definitions")
+}
+
+model UserTypeModule {
+  id         String             @id @default(uuid()) @db.Uuid
+  userTypeId String             @db.Uuid
+  moduleCode String             @db.VarChar(64)
+  enabled    Boolean            @default(true)
+  position   Int
+  userType   UserTypeDefinition @relation(fields: [userTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([userTypeId, moduleCode])
+  @@unique([userTypeId, position])
+  @@map("user_type_modules")
+}
+
+model UserTypePermission {
+  id         String             @id @default(uuid()) @db.Uuid
+  userTypeId String             @db.Uuid
+  name       String             @db.VarChar(120)
+  position   Int
+  userType   UserTypeDefinition @relation(fields: [userTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([userTypeId, position])
+  @@unique([userTypeId, name])
+  @@map("user_type_permissions")
+}
+
+/// Funcionalidades asignadas en el alta de una cuenta. No reemplazan los permisos fijos del rol.
+model UserFunctionalityGrant {
+  id                String  @id @default(uuid()) @db.Uuid
+  userId            String  @db.Uuid
+  permissionId      String  @db.Uuid
+  functionalityName String  @db.VarChar(120)
+  enabled           Boolean @default(true)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId, functionalityName])
+  @@index([userId])
+  @@map("user_functionality_grants")
+}
+
+/// Bitácora de acciones del sistema. Conserva el nombre y el rol aunque la cuenta cambie después.
+model AuditEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  occurredAt DateTime @default(now())
+  actorId    String?  @db.Uuid
+  actorName  String   @db.VarChar(200)
+  actorRole  String   @db.VarChar(32)
+  module     String   @db.VarChar(40)
+  action     String   @db.VarChar(240)
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([occurredAt])
+  @@index([actorRole])
+  @@index([module])
+  @@map("audit_events")
 }

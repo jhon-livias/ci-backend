@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
-import { AccessPolicyGuard, ModulesReadGuard, UsersReadGuard } from './access-policy.guard.js';
+import { AccessPolicyGuard, ModulesReadGuard, PermissionsUpdateGuard, UsersReadGuard } from './access-policy.guard.js';
 
 describe('AccessPolicyGuard', () => {
   const restore = vi.fn();
@@ -57,5 +57,18 @@ describe('AccessPolicyGuard', () => {
     await expect(modulesGuard.canActivate(context('valid'))).rejects.toBeInstanceOf(ForbiddenException);
     restore.mockResolvedValue({ user: { roles: ['ADMINISTRATOR'] } });
     await expect(modulesGuard.canActivate(context('valid'))).resolves.toBe(true);
+  });
+
+  it('requires the administrator permission and a matching CSRF token to change the catalog', async () => {
+    const module = await Test.createTestingModule({
+      providers: [PermissionsUpdateGuard, { provide: AuthenticationService, useValue: { restore } }],
+    }).compile();
+    const guard = module.get(PermissionsUpdateGuard);
+    const request = (csrf?: string) => new ExecutionContextHost([{ cookies: { ci_access: 'valid' }, headers: { 'x-csrf-token': csrf } }]);
+    restore.mockResolvedValue({ user: { roles: ['TEACHER'] }, csrfToken: 'expected' });
+    await expect(guard.canActivate(request('expected'))).rejects.toBeInstanceOf(ForbiddenException);
+    restore.mockResolvedValue({ user: { roles: ['ADMINISTRATOR'] }, csrfToken: 'expected' });
+    await expect(guard.canActivate(request('wrong'))).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(guard.canActivate(request('expected'))).resolves.toBe(true);
   });
 });

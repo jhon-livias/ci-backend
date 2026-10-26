@@ -1,14 +1,17 @@
-import { Controller, Get, Header, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, Query, UseGuards } from '@nestjs/common';
 
-import { SYSTEM_MODULES } from '../../domain/system-modules.js';
+import { ModuleDirectoryService } from '../../application/module-directory.service.js';
 import { ModulesReadGuard } from './access-policy.guard.js';
+import { ListModulesDto } from './dto/list-modules.dto.js';
 
 @Controller('auth/admin/modules')
 @UseGuards(ModulesReadGuard)
 export class SystemModulesController {
+  constructor(private readonly modules: ModuleDirectoryService) {}
+
   @Get()
   @Header('Cache-Control', 'no-store')
-  list() {
-    return { modules: SYSTEM_MODULES };
+  list(@Query() query: ListModulesDto) {
+    return this.modules.list(query);
   }
 }

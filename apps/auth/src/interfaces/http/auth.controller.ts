@@ -3,6 +3,7 @@ import { RouteConfig } from '@nestjs/platform-fastify';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 
 const accessCookieName = 'ci_access';
@@ -39,6 +40,17 @@ export class AuthController {
     const session = await this.authenticationService.refresh(refreshToken, request.headers['user-agent']);
     this.setSessionCookies(response, session.accessToken, session.refreshToken);
     return { user: session.user, csrfToken: session.csrfToken };
+  }
+
+  @Post('password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(@Body() dto: ChangePasswordDto, @Req() request: FastifyRequest): Promise<void> {
+    const accessToken = request.cookies[accessCookieName];
+    if (!accessToken) throw new UnauthorizedException();
+    const session = await this.authenticationService.restore(accessToken);
+    const csrf = Array.isArray(request.headers['x-csrf-token']) ? request.headers['x-csrf-token'][0] : request.headers['x-csrf-token'];
+    if (!csrf || csrf !== session.csrfToken) throw new UnauthorizedException();
+    await this.authenticationService.replacePassword(session.user.id, dto.password);
   }
 
   @Post('logout')

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -6,6 +6,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { UserRoleName, UserStatus } from '../infrastructure/persistence/generated/client.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
 import type { LoginDto } from '../interfaces/http/dto/login.dto.js';
+import { AuditLogService } from './audit-log.service.js';
 import { NotificationService } from './notification.service.js';
 
 const MAX_FAILED_ATTEMPTS = 5;
@@ -23,6 +24,7 @@ export interface AuthenticatedUser {
   readonly id: string;
   readonly username: string;
   readonly roles: readonly UserRoleName[];
+  readonly mustChangePassword: boolean;
   readonly profile: { readonly firstName: string; readonly paternalLastName: string } | null;
 }
 
@@ -32,6 +34,7 @@ export class AuthenticationService {
     private readonly prisma: AuthPrismaService,
     private readonly jwtService: JwtService,
     private readonly notifications: NotificationService,
+    @Optional() private readonly audit: AuditLogService | null = null,
   ) {}
 
   async login(input: LoginDto, userAgent?: string | string[]): Promise<AuthenticatedSession> {
@@ -71,6 +74,7 @@ export class AuthenticationService {
       correlationId: randomUUID(),
     };
     void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
+    await this.audit?.recordFor(user.id, 'Sesión', 'Inició sesión.');
     return this.issueTokens(authenticatedUser, session.refreshToken);
   }
 
@@ -106,10 +110,27 @@ export class AuthenticationService {
     return this.issueTokens(this.toAuthenticatedUser(existing.user), replacement.refreshToken);
   }
 
+  async replacePassword(userId: string, password: string): Promise<void> {
+    if (!/^[^<>]{8,72}$/u.test(password)) throw new BadRequestException('La contraseña debe tener al menos 8 caracteres.');
+    const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash,
+        passwordChangedAt: new Date(),
+        mustChangePassword: false,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+    await this.audit?.recordFor(userId, 'Sesión', 'Cambió su contraseña.');
+  }
+
   async logout(accessToken: string | undefined, refreshToken: string | undefined, csrfToken: string | undefined): Promise<void> {
     if (accessToken) {
       const restored = await this.restore(accessToken);
       if (!csrfToken || csrfToken !== restored.csrfToken) throw new UnauthorizedException();
+      await this.audit?.recordFor(restored.user.id, 'Sesión', 'Cerró sesión.');
     }
     const sessionId = refreshToken?.split('.', 1)[0];
     if (sessionId) await this.prisma.authSession.deleteMany({ where: { id: sessionId } });
@@ -143,6 +164,7 @@ export class AuthenticationService {
   private toAuthenticatedUser(user: {
     id: string;
     username: string;
+    mustChangePassword: boolean;
     roles: readonly { role: UserRoleName }[];
     profile: { firstName: string; paternalLastName: string } | null;
   }): AuthenticatedUser {
@@ -150,6 +172,7 @@ export class AuthenticationService {
       id: user.id,
       username: user.username,
       roles: user.roles.map(({ role }) => role),
+      mustChangePassword: user.mustChangePassword,
       profile: user.profile ? { firstName: user.profile.firstName, paternalLastName: user.profile.paternalLastName } : null,
     };
   }
