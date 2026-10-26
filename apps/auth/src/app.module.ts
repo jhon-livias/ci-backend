@@ -17,6 +17,7 @@ import { PermissionCatalogService } from './application/permission-catalog.servi
 import { UserTypesController } from './interfaces/http/user-types.controller.js';
 import { UserTypeCatalogService } from './application/user-type-catalog.service.js';
 import { SystemModulesController } from './interfaces/http/system-modules.controller.js';
+import { AcademicConfigProxyController } from './interfaces/http/academic-config-proxy.controller.js';
 import { SitesProxyController } from './interfaces/http/sites-proxy.controller.js';
 import { NotificationsController } from './interfaces/http/notifications.controller.js';
 import { NotificationService } from './application/notification.service.js';
@@ -41,7 +42,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
       signOptions: { algorithm: 'HS256', expiresIn: '15m' },
     }),
   ],
-  controllers: [HealthController, AuthController, AccessPolicyController, UserDirectoryController, SystemModulesController, AuditController, SitesProxyController, NotificationsController, PermissionsController, UserTypesController],
+  controllers: [HealthController, AuthController, AccessPolicyController, UserDirectoryController, SystemModulesController, AuditController, SitesProxyController, AcademicConfigProxyController, NotificationsController, PermissionsController, UserTypesController],
   providers: [AuthPrismaService, AuthenticationService, AccessPolicyGuard, UsersReadGuard, UsersCreateGuard, UsersUpdateGuard, UsersDeleteGuard, ModulesReadGuard, AuditReadGuard, PermissionsReadGuard, PermissionsCreateGuard, PermissionsUpdateGuard, PermissionsDeleteGuard, UserDirectoryService, ModuleDirectoryService, AuditLogService, PermissionCatalogService, UserTypeCatalogService, NotificationHub, WebhookNotificationChannel, NonceStore, NotificationService, NotificationDeliveryWorker, RabbitNotificationBridge],
 })
 export class AppModule {}

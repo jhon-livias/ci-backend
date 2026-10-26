@@ -82,3 +82,38 @@ model TeacherProfile {
   @@index([status])
   @@map("teacher_profiles")
 }
+
+enum AcademicCatalogKind {
+  LANGUAGE
+  LEVEL
+  STUDY_TYPE
+  MODALITY
+  GROUP_TYPE
+}
+
+/// Opciones que el administrador ofrece al director para armar grupos y matrículas.
+model AcademicCatalogItem {
+  id        String               @id @default(uuid()) @db.Uuid
+  kind      AcademicCatalogKind
+  name      String               @db.VarChar(80)
+  position  Int
+  createdAt DateTime             @default(now())
+  deletedAt DateTime?
+
+  @@index([kind, position])
+  @@map("academic_catalog_items")
+}
+
+/// Una sola fila con las reglas que aplican a todos los grupos.
+model AcademicRules {
+  id                    String   @id @db.Uuid
+  minStudents           Int
+  maxStudents           Int
+  absencePercent        Int
+  passingGrade          Int
+  evaluationsPerGroup   Int
+  maxScorePerEvaluation Int
+  updatedAt             DateTime @updatedAt
+
+  @@map("academic_rules")
+}

@@ -11,6 +11,8 @@ export const ACCESS_PERMISSIONS = [
   { code: 'sites.create', description: 'Crear sedes.' },
   { code: 'sites.update', description: 'Modificar sedes.' },
   { code: 'sites.delete', description: 'Eliminar sedes.' },
+  { code: 'academic_config.read', description: 'Consultar catálogos y reglas académicas.' },
+  { code: 'academic_config.update', description: 'Modificar catálogos y reglas académicas.' },
   { code: 'permissions.read', description: 'Consultar el catálogo de permisos.' },
   { code: 'permissions.create', description: 'Crear permisos del catálogo.' },
   { code: 'permissions.update', description: 'Modificar permisos del catálogo.' },
@@ -33,7 +35,7 @@ const ROLE_PERMISSIONS: Readonly<Record<FixedRole, readonly AccessPermission[]>>
   TEACHER: [],
   ADVISOR: [],
   DIRECTOR: [],
-  ADMINISTRATOR: ['access_policy.read', 'users.read', 'users.create', 'users.update', 'users.delete', 'modules.read', 'audit.read', 'sites.read', 'sites.create', 'sites.update', 'sites.delete', 'permissions.read', 'permissions.create', 'permissions.update', 'permissions.delete'],
+  ADMINISTRATOR: ['access_policy.read', 'users.read', 'users.create', 'users.update', 'users.delete', 'modules.read', 'audit.read', 'sites.read', 'sites.create', 'sites.update', 'sites.delete', 'academic_config.read', 'academic_config.update', 'permissions.read', 'permissions.create', 'permissions.update', 'permissions.delete'],
 };
 
 export const hasAccessPermission = (roles: readonly FixedRole[], permission: AccessPermission): boolean =>
