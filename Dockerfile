@@ -6,6 +6,7 @@ RUN npm ci
 FROM dependencies AS build
 COPY . .
 RUN AUTH_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=auth' npm run auth:db:generate \
+  && ACADEMIC_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=academic' npm run academic:db:generate \
   && npm run build
 
 FROM node:22-alpine AS production-dependencies

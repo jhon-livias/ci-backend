@@ -64,7 +64,12 @@ export class AuthenticationService {
   }
 
   async restore(accessToken: string): Promise<{ user: AuthenticatedUser; csrfToken: string }> {
-    const payload = await this.jwtService.verifyAsync<AccessTokenPayload>(accessToken);
+    let payload: AccessTokenPayload;
+    try {
+      payload = await this.jwtService.verifyAsync<AccessTokenPayload>(accessToken);
+    } catch {
+      throw new UnauthorizedException();
+    }
     if (!payload.sub || !payload.csrf || !Array.isArray(payload.roles)) throw new UnauthorizedException();
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },

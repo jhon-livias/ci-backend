@@ -59,6 +59,12 @@ Monorepo NestJS de microservicios para el centro de idiomas. Incluye un API Gate
 - Cada servicio delimita sus responsabilidades, contratos, configuración y datos; no comparte su base de datos con otro servicio.
 - Este repositorio provee su `Dockerfile`; `ci-deploy` es el único repositorio que orquesta la plataforma completa mediante Docker Compose.
 
+## Regla de cierre de notas
+
+- Al culminar un grupo, el docente asignado dispone de dos semanas (14 días) desde la fecha y hora efectivas de culminación para registrar y guardar sus notas. La culminación y su fecha deben persistirse en el servidor.
+- Cumplido el plazo, rechaza en el backend todo registro o modificación de notas por el docente; ocultar el botón en el frontend no constituye autorización. El servidor verifica el docente asignado, el estado del grupo y el plazo en cada solicitud, usando fechas y horas consistentes en UTC.
+- Cubre con pruebas el grupo activo, el inicio y final del plazo, solicitudes fuera de plazo y el acceso de docentes no asignados. Cualquier reapertura o excepción requiere una regla de negocio y autorización explícitas antes de implementarse.
+
 ## Seguridad obligatoria
 
 - Diseña, implementa y revisa la plataforma contra el [OWASP Top 10:2025](https://top10.owasp.org/2025/0x00_2025-Introduction/) y los endpoints contra el [OWASP API Security Top 10:2023](https://api-security.owasp.org/editions/2023/en/0x00-header/), con especial atención a autorización por objeto, función y propiedad.

@@ -12,6 +12,64 @@ enum TeacherStatus {
   INACTIVE
 }
 
+/// Sede académica. La ubicación puede registrarse cuando se confirme.
+model Site {
+  id        String    @id @default(uuid()) @db.Uuid
+  code      String    @unique @db.VarChar(32)
+  name      String    @db.VarChar(100)
+  location  String?   @db.VarChar(255)
+  department String?  @db.VarChar(100)
+  province String?    @db.VarChar(100)
+  district String?    @db.VarChar(100)
+  street String?      @db.VarChar(255)
+  postalCode String?  @db.VarChar(10)
+  phone String?       @db.VarChar(30)
+  email String?       @db.VarChar(254)
+  contactName String? @db.VarChar(100)
+  contactPhone String? @db.VarChar(30)
+  districtCode String? @db.Char(7)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  geographicDistrict PeruDistrict? @relation(fields: [districtCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+
+  @@index([active, deletedAt])
+  @@map("sites")
+}
+
+/// Read-only official geographical catalog for Peru. Codes are preserved from
+/// the supplied source dataset and never generated from labels.
+model PeruDepartment {
+  code      String         @id @db.Char(3)
+  name      String         @db.VarChar(100)
+  provinces PeruProvince[]
+
+  @@map("peru_departments")
+}
+
+model PeruProvince {
+  code           String          @id @db.Char(5)
+  name           String          @db.VarChar(100)
+  departmentCode String          @db.Char(3)
+  department     PeruDepartment  @relation(fields: [departmentCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+  districts      PeruDistrict[]
+
+  @@index([departmentCode, name])
+  @@map("peru_provinces")
+}
+
+model PeruDistrict {
+  code         String       @id @db.Char(7)
+  name         String       @db.VarChar(100)
+  provinceCode String       @db.Char(5)
+  province     PeruProvince @relation(fields: [provinceCode], references: [code], onUpdate: Cascade, onDelete: Restrict)
+  sites        Site[]
+
+  @@index([provinceCode, name])
+  @@map("peru_districts")
+}
+
 /// Datos docentes mínimos. userId referencia la identidad de auth, sin FK entre microservicios.
 model TeacherProfile {
   id          String        @id @default(uuid()) @db.Uuid
