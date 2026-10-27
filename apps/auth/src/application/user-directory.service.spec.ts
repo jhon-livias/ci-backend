@@ -47,6 +47,43 @@ describe('UserDirectoryService', () => {
     expect(result.types.map((type) => type.name)).toEqual(['Estudiante', 'Docente', 'Asesora', 'Director', 'Administrador']);
   });
 
+  it('names a repeated document and a repeated email before inserting', async () => {
+    const findMany = vi.fn()
+      .mockResolvedValueOnce([{ username: '74034567', email: 'otra@uprit.edu.pe', profile: { documentNumber: '74034567' } }])
+      .mockResolvedValueOnce([{ username: '87654321', email: 'carlos@uprit.edu.pe', profile: { documentNumber: '87654321' } }]);
+    const create = vi.fn();
+    const module = await Test.createTestingModule({
+      providers: [UserDirectoryService, { provide: AuthPrismaService, useValue: { user: { findMany, create } } }],
+    }).compile();
+    const directory = module.get(UserDirectoryService);
+    const input = {
+      documentType: 'DNI',
+      documentNumber: '74034567',
+      firstName: 'Carlos',
+      paternalLastName: 'Haro',
+      maternalLastName: 'Polo',
+      siteId: '6f1c2a40-7b2e-4c1a-9d11-0a1b2c3d6a02',
+      phone: '',
+      mobileCountry: '+51',
+      mobile: '946869590',
+      email: 'carlos@uprit.edu.pe',
+      password: 'clave-segura',
+      enabled: true,
+      grants: [{ permissionId: '6f1c2a40-7b2e-4c1a-9d11-0a1b2c3d4a01', name: 'Seleccionar idioma', enabled: true }],
+    };
+
+    await expect(directory.create(input)).rejects.toThrow('Ese documento ya está registrado.');
+    await expect(directory.create(input)).rejects.toThrow('Ese correo ya está registrado.');
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('reads the document from a unique constraint that does not name the column directly', () => {
+    expect(() => service['rethrowPersistence']({
+      code: 'P2002',
+      meta: { driverAdapterError: { cause: { constraint: { fields: ['username'] } } } },
+    })).toThrow('Ese documento ya está registrado.');
+  });
+
   it('escribe en el historial cuando el servicio de auditoría está registrado', async () => {
     const recordFor = vi.fn().mockResolvedValue(undefined);
     const module = await Test.createTestingModule({

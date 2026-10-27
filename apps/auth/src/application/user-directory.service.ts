@@ -94,6 +94,7 @@ export class UserDirectoryService {
 
   async create(dto: Parameters<typeof normalizeUserAccount>[0], actorId?: string) {
     const draft = this.normalize(dto, true);
+    await this.ensureAvailable(draft);
     const resolved = await this.resolveGrants(draft.grants);
     const passwordHash = await argon2.hash(draft.password ?? '', { type: argon2.argon2id });
     try {
@@ -120,6 +121,7 @@ export class UserDirectoryService {
 
   async update(id: string, dto: Parameters<typeof normalizeUserAccount>[0], actorId: string) {
     const draft = this.normalize(dto, false);
+    await this.ensureAvailable(draft, id);
     const resolved = draft.grants.length > 0 ? await this.resolveGrants(draft.grants) : null;
     if (actorId === id && (!draft.enabled || (resolved !== null && !resolved.roles.includes(UserRoleName.ADMINISTRATOR)))) {
       throw new BadRequestException('No puedes quitar tu propio acceso de administrador.');
@@ -132,6 +134,7 @@ export class UserDirectoryService {
         const updated = await tx.user.update({
           where: { id },
           data: {
+            username: draft.documentNumber.toLowerCase(),
             email: draft.email,
             status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
             siteId: draft.siteId || null,
@@ -326,17 +329,64 @@ export class UserDirectoryService {
     };
   }
 
+  private async ensureAvailable(draft: NormalizedUserAccount, ignoreUserId?: string): Promise<void> {
+    const username = draft.documentNumber.toLowerCase();
+    const matches = await this.prisma.user.findMany({
+      where: {
+        ...(ignoreUserId ? { id: { not: ignoreUserId } } : {}),
+        OR: [
+          { username },
+          { email: draft.email },
+          { profile: { is: { documentNumber: { equals: draft.documentNumber, mode: 'insensitive' } } } },
+        ],
+      },
+      select: { username: true, email: true, profile: { select: { documentNumber: true } } },
+      take: 5,
+    });
+    const documentTaken = matches.some((user) => user.username === username || user.profile?.documentNumber.toLowerCase() === username);
+    const emailTaken = matches.some((user) => user.email.toLowerCase() === draft.email);
+    if (documentTaken && emailTaken) throw new ConflictException('Ese documento y ese correo ya están registrados.');
+    if (documentTaken) throw new ConflictException('Ese documento ya está registrado.');
+    if (emailTaken) throw new ConflictException('Ese correo ya está registrado.');
+  }
+
   private rethrowPersistence(error: unknown): never {
     if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ConflictException) throw error;
     if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
-      const target = 'meta' in error && typeof error.meta === 'object' && error.meta !== null && 'target' in error.meta ? String(error.meta.target) : '';
-      if (target.includes('email')) throw new ConflictException('Ese correo ya está registrado.');
-      if (target.includes('document') || target.includes('username')) throw new ConflictException('Ese documento ya está registrado.');
-      throw new ConflictException('Ese usuario ya está registrado.');
+      const target = uniqueTarget(error);
+      const documentTaken = target.includes('document') || target.includes('username');
+      const emailTaken = target.includes('email');
+      if (documentTaken && emailTaken) throw new ConflictException('Ese documento y ese correo ya están registrados.');
+      if (documentTaken) throw new ConflictException('Ese documento ya está registrado.');
+      if (emailTaken) throw new ConflictException('Ese correo ya está registrado.');
+      throw new ConflictException('Ese documento o ese correo ya están registrados.');
     }
     throw error;
   }
 }
+
+const uniqueTarget = (error: object): string => {
+  const chunks: string[] = [];
+  const visit = (value: unknown, depth: number): void => {
+    if (depth > 6 || value == null) return;
+    if (typeof value === 'string' || typeof value === 'number') {
+      chunks.push(String(value).toLowerCase());
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item) => visit(item, depth + 1));
+      return;
+    }
+    if (typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      for (const key of ['target', 'constraint', 'fields', 'message', 'driverAdapterError', 'cause', 'meta']) {
+        if (key in record) visit(record[key], depth + 1);
+      }
+    }
+  };
+  visit(error, 0);
+  return chunks.join(' ');
+};
 
 const accountMessage = (rule: UserAccountRuleError['rule']): string => {
   switch (rule) {
