@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -6,6 +6,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { UserRoleName, UserStatus } from '../infrastructure/persistence/generated/client.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
 import type { LoginDto } from '../interfaces/http/dto/login.dto.js';
+import { loginIdentifier } from '../domain/institutional-email.js';
 import { AuditLogService } from './audit-log.service.js';
 import { NotificationService } from './notification.service.js';
 
@@ -34,11 +35,12 @@ export class AuthenticationService {
     private readonly prisma: AuthPrismaService,
     private readonly jwtService: JwtService,
     private readonly notifications: NotificationService,
-    @Optional() private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
   ) {}
 
   async login(input: LoginDto, userAgent?: string | string[]): Promise<AuthenticatedSession> {
-    const identifier = input.username.trim().toLowerCase();
+    const identifier = loginIdentifier(input.username);
+    if (!identifier) throw new UnauthorizedException('Credenciales inválidas.');
     const user = await this.prisma.user.findFirst({
       where: {
         deletedAt: null,

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 
 import { AuditLogService } from './audit-log.service.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
@@ -40,7 +40,7 @@ const selection = {
 export class UserTypeCatalogService {
   constructor(
     private readonly prisma: AuthPrismaService,
-    @Optional() private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
   ) {}
 
   async list(query: UserTypeListQuery) {

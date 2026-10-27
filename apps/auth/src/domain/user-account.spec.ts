@@ -30,8 +30,13 @@ describe('user account rules', () => {
     expect(account.phone).toBeNull();
   });
 
-  it('allows an edit to keep the current password', () => {
+  it('allows an edit to keep the current password and an incomplete profile', () => {
     expect(normalizeUserAccount(draft({ password: ' ' }), false).password).toBeNull();
+    const account = normalizeUserAccount(draft({ maternalLastName: '', siteId: '', mobile: '', grants: [] }), false);
+    expect(account.maternalLastName).toBe('');
+    expect(account.siteId).toBe('');
+    expect(account.mobile).toBe('');
+    expect(account.grants).toEqual([]);
   });
 
   it('builds a temporary password the account can store', () => {
@@ -40,6 +45,11 @@ describe('user account rules', () => {
     expect(password).toMatch(/[A-Z]/u);
     expect(password).toMatch(/[a-z]/u);
     expect(password).toMatch(/[0-9]/u);
+  });
+
+  it('rejects an email outside the institutional domain', () => {
+    expect(() => normalizeUserAccount(draft({ email: 'carlos@gmail.com' }), true)).toThrow(UserAccountRuleError);
+    expect(() => normalizeUserAccount(draft({ email: 'carlos@uprit.edu.pe.evil.com' }), false)).toThrow(UserAccountRuleError);
   });
 
   it('rejects a short password, a DNI of the wrong length and an account without access', () => {

@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 import { createHealthController } from '../../../libs/common/src/index.js';
 import { AuthenticationService } from './application/authentication.service.js';
+import { PasswordRecoveryService } from './application/password-recovery.service.js';
 import { AuthController } from './interfaces/http/auth.controller.js';
 import { AuthPrismaService } from './infrastructure/persistence/auth-prisma.service.js';
 import { AccessPolicyController } from './interfaces/http/access-policy.controller.js';
@@ -22,6 +23,7 @@ import { SitesProxyController } from './interfaces/http/sites-proxy.controller.j
 import { NotificationsController } from './interfaces/http/notifications.controller.js';
 import { NotificationService } from './application/notification.service.js';
 import { NotificationHub } from './infrastructure/notifications/notification-hub.js';
+import { SmtpMailChannel } from './infrastructure/mail/smtp-mail.channel.js';
 import { WebhookNotificationChannel } from './infrastructure/notifications/webhook-notification.channel.js';
 import { NotificationDeliveryWorker } from './infrastructure/notifications/notification-delivery.worker.js';
 import { RabbitNotificationBridge } from './infrastructure/notifications/rabbit-notification.bridge.js';
@@ -43,6 +45,6 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     }),
   ],
   controllers: [HealthController, AuthController, AccessPolicyController, UserDirectoryController, SystemModulesController, AuditController, SitesProxyController, AcademicConfigProxyController, NotificationsController, PermissionsController, UserTypesController],
-  providers: [AuthPrismaService, AuthenticationService, AccessPolicyGuard, UsersReadGuard, UsersCreateGuard, UsersUpdateGuard, UsersDeleteGuard, ModulesReadGuard, AuditReadGuard, PermissionsReadGuard, PermissionsCreateGuard, PermissionsUpdateGuard, PermissionsDeleteGuard, UserDirectoryService, ModuleDirectoryService, AuditLogService, PermissionCatalogService, UserTypeCatalogService, NotificationHub, WebhookNotificationChannel, NonceStore, NotificationService, NotificationDeliveryWorker, RabbitNotificationBridge],
+  providers: [AuthPrismaService, AuthenticationService, PasswordRecoveryService, SmtpMailChannel, AccessPolicyGuard, UsersReadGuard, UsersCreateGuard, UsersUpdateGuard, UsersDeleteGuard, ModulesReadGuard, AuditReadGuard, PermissionsReadGuard, PermissionsCreateGuard, PermissionsUpdateGuard, PermissionsDeleteGuard, UserDirectoryService, ModuleDirectoryService, AuditLogService, PermissionCatalogService, UserTypeCatalogService, NotificationHub, WebhookNotificationChannel, NonceStore, NotificationService, NotificationDeliveryWorker, RabbitNotificationBridge],
 })
 export class AppModule {}

@@ -3,8 +3,10 @@ import { RouteConfig } from '@nestjs/platform-fastify';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
+import { PasswordRecoveryService } from '../../application/password-recovery.service.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { LoginDto } from './dto/login.dto.js';
+import { ConfirmPasswordRecoveryDto, RequestPasswordRecoveryDto } from './dto/password-recovery.dto.js';
 
 const accessCookieName = 'ci_access';
 const refreshCookieName = 'ci_refresh';
@@ -12,7 +14,10 @@ const useSecureCookies = process.env.AUTH_COOKIE_SECURE !== 'false';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authenticationService: AuthenticationService) {}
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly recovery: PasswordRecoveryService,
+  ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -40,6 +45,20 @@ export class AuthController {
     const session = await this.authenticationService.refresh(refreshToken, request.headers['user-agent']);
     this.setSessionCookies(response, session.accessToken, session.refreshToken);
     return { user: session.user, csrfToken: session.csrfToken };
+  }
+
+  @Post('password-recovery')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RouteConfig({ rateLimit: { max: 5, timeWindow: '15 minutes' } })
+  async requestPasswordRecovery(@Body() dto: RequestPasswordRecoveryDto): Promise<void> {
+    await this.recovery.request(dto.email);
+  }
+
+  @Post('password-recovery/confirm')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RouteConfig({ rateLimit: { max: 10, timeWindow: '15 minutes' } })
+  async confirmPasswordRecovery(@Body() dto: ConfirmPasswordRecoveryDto): Promise<void> {
+    await this.recovery.confirm(dto.email, dto.code, dto.password);
   }
 
   @Post('password')

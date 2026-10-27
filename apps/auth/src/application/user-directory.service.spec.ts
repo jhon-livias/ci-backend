@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
+import { AuditLogService } from './audit-log.service.js';
 import { UserDirectoryService } from './user-directory.service.js';
 
 describe('UserDirectoryService', () => {
@@ -44,6 +45,20 @@ describe('UserDirectoryService', () => {
     expect(result.users[0]).not.toHaveProperty('email');
     expect(result.users[0]).not.toHaveProperty('passwordHash');
     expect(result.types.map((type) => type.name)).toEqual(['Estudiante', 'Docente', 'Asesora', 'Director', 'Administrador']);
+  });
+
+  it('escribe en el historial cuando el servicio de auditoría está registrado', async () => {
+    const recordFor = vi.fn().mockResolvedValue(undefined);
+    const module = await Test.createTestingModule({
+      providers: [
+        UserDirectoryService,
+        { provide: AuthPrismaService, useValue: {} },
+        { provide: AuditLogService, useValue: { recordFor } },
+      ],
+    }).compile();
+    const directory = module.get(UserDirectoryService);
+    await directory['note']('actor-1', 'Modificó la cuenta de Jhon Livias.');
+    expect(recordFor).toHaveBeenCalledWith('actor-1', 'Usuarios', 'Modificó la cuenta de Jhon Livias.');
   });
 
   it('filters by search, role, status and sede', async () => {

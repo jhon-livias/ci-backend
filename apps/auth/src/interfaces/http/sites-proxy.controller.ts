@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Header, HttpCode, HttpException, Optional, Param, ParseUUIDPipe, Post, Put, Query, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Header, HttpCode, HttpException, Inject, Optional, Param, ParseUUIDPipe, Post, Put, Query, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import type { FastifyRequest } from 'fastify';
@@ -17,7 +17,7 @@ class GeographyQueryDto {
 export class SitesProxyController {
   constructor(
     private readonly auth: AuthenticationService,
-    @Optional() private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
   ) {}
 
   @Get() @Header('Cache-Control', 'no-store') async list(@Req() req: FastifyRequest) { await this.authorize(req, 'sites.read'); return this.forward('GET'); }

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import * as argon2 from 'argon2';
 
 import { FIXED_ROLES, type FixedRole } from '../domain/access-policy.js';
@@ -65,7 +65,7 @@ const selection = {
 export class UserDirectoryService {
   constructor(
     private readonly prisma: AuthPrismaService,
-    @Optional() private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
   ) {}
 
   async list(query: UserDirectoryQuery) {
@@ -120,8 +120,8 @@ export class UserDirectoryService {
 
   async update(id: string, dto: Parameters<typeof normalizeUserAccount>[0], actorId: string) {
     const draft = this.normalize(dto, false);
-    const resolved = await this.resolveGrants(draft.grants);
-    if (actorId === id && (!draft.enabled || !resolved.roles.includes(UserRoleName.ADMINISTRATOR))) {
+    const resolved = draft.grants.length > 0 ? await this.resolveGrants(draft.grants) : null;
+    if (actorId === id && (!draft.enabled || (resolved !== null && !resolved.roles.includes(UserRoleName.ADMINISTRATOR)))) {
       throw new BadRequestException('No puedes quitar tu propio acceso de administrador.');
     }
     const passwordHash = draft.password ? await argon2.hash(draft.password, { type: argon2.argon2id }) : null;
@@ -134,11 +134,13 @@ export class UserDirectoryService {
           data: {
             email: draft.email,
             status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
-            siteId: draft.siteId,
+            siteId: draft.siteId || null,
             ...(passwordHash ? { passwordHash, passwordChangedAt: new Date() } : {}),
             profile: { upsert: { create: this.profileData(draft), update: this.profileData(draft) } },
-            roles: { deleteMany: {}, create: resolved.roles.map((role) => ({ role })) },
-            grants: { deleteMany: {}, create: resolved.grants },
+            ...(resolved ? {
+              roles: { deleteMany: {}, create: resolved.roles.map((role) => ({ role })) },
+              grants: { deleteMany: {}, create: resolved.grants },
+            } : {}),
           },
           select: detailSelection,
         });
@@ -317,10 +319,10 @@ export class UserDirectoryService {
       documentNumber: draft.documentNumber,
       firstName: draft.firstName,
       paternalLastName: draft.paternalLastName,
-      maternalLastName: draft.maternalLastName,
+      maternalLastName: draft.maternalLastName || null,
       phone: draft.phone,
-      mobileCountry: draft.mobileCountry,
-      mobile: draft.mobile,
+      mobileCountry: draft.mobile ? draft.mobileCountry : null,
+      mobile: draft.mobile || null,
     };
   }
 
@@ -341,6 +343,7 @@ const accountMessage = (rule: UserAccountRuleError['rule']): string => {
     case 'name': return 'Revisa los nombres.';
     case 'document': return 'Revisa el documento.';
     case 'contact': return 'Revisa el correo o el teléfono.';
+    case 'email': return 'Solo se acepta el dominio @uprit.edu.pe.';
     case 'password': return 'La contraseña debe tener al menos 8 caracteres.';
     case 'site': return 'Selecciona una sede.';
     default: return 'Activa al menos una funcionalidad.';

@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength, MinLength, ValidateBy, ValidateNested } from 'class-validator';
 
+import { INSTITUTIONAL_EMAIL_MESSAGE, isInstitutionalEmail } from '../../../domain/institutional-email.js';
 import { DOCUMENT_TYPES, MOBILE_COUNTRIES } from '../../../domain/user-account.js';
 
 const NAME = /^[^<>]{1,100}$/u;
@@ -71,7 +72,13 @@ export class SaveUserDto {
   @Transform(lowerEmail)
   @IsString()
   @MaxLength(254)
-  @Matches(/^[^\s<>]{1,64}@[^\s<>]{1,188}\.[^\s<>]{2,20}$/u)
+  @ValidateBy({
+    name: 'institutionalEmail',
+    validator: {
+      validate: (value: unknown) => typeof value === 'string' && isInstitutionalEmail(value),
+      defaultMessage: () => INSTITUTIONAL_EMAIL_MESSAGE,
+    },
+  })
   email!: string;
 
   @IsOptional()
@@ -91,4 +98,82 @@ export class SaveUserDto {
   @ValidateNested({ each: true })
   @Type(() => UserGrantDto)
   grants!: UserGrantDto[];
+}
+
+export class UpdateUserDto {
+  @IsIn(DOCUMENT_TYPES)
+  documentType!: (typeof DOCUMENT_TYPES)[number];
+
+  @Transform(trimText)
+  @IsString()
+  @Matches(/^[A-Za-z0-9]{6,12}$/u)
+  documentNumber!: string;
+
+  @Transform(trimText)
+  @IsString()
+  @Matches(NAME)
+  firstName!: string;
+
+  @Transform(trimText)
+  @IsString()
+  @Matches(NAME)
+  paternalLastName!: string;
+
+  @Transform(emptyToUndefined)
+  @IsOptional()
+  @IsString()
+  @Matches(NAME)
+  maternalLastName?: string;
+
+  @Transform(emptyToUndefined)
+  @IsOptional()
+  @IsUUID('all')
+  siteId?: string;
+
+  @IsOptional()
+  @Transform(emptyToUndefined)
+  @IsString()
+  @MaxLength(30)
+  @Matches(/^[0-9+\s()-]{6,30}$/u)
+  phone?: string;
+
+  @IsOptional()
+  @IsIn(MOBILE_COUNTRIES)
+  mobileCountry?: (typeof MOBILE_COUNTRIES)[number];
+
+  @Transform(emptyToUndefined)
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{6,15}$/u)
+  mobile?: string;
+
+  @Transform(lowerEmail)
+  @IsString()
+  @MaxLength(254)
+  @ValidateBy({
+    name: 'institutionalEmail',
+    validator: {
+      validate: (value: unknown) => typeof value === 'string' && isInstitutionalEmail(value),
+      defaultMessage: () => INSTITUTIONAL_EMAIL_MESSAGE,
+    },
+  })
+  email!: string;
+
+  @IsOptional()
+  @Transform(emptyToUndefined)
+  @IsString()
+  @MinLength(8)
+  @MaxLength(72)
+  @Matches(/^[^<>]{8,72}$/u)
+  password?: string;
+
+  @IsBoolean()
+  enabled!: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => UserGrantDto)
+  grants?: UserGrantDto[];
 }

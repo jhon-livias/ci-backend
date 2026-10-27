@@ -1,7 +1,8 @@
 import { randomInt } from 'node:crypto';
 
+import { normalizeInstitutionalEmail } from './institutional-email.js';
+
 const NAME = /^[^<>]{1,100}$/u;
-const EMAIL = /^[^\s<>]{1,64}@[^\s<>]{1,188}\.[^\s<>]{2,20}$/u;
 const DNI = /^\d{8}$/u;
 const FOREIGN_DOCUMENT = /^[A-Za-z0-9]{6,12}$/u;
 const PHONE = /^[0-9+\s()-]{6,30}$/u;
@@ -18,7 +19,7 @@ export const MOBILE_COUNTRIES = ['+51', '+1', '+52', '+54', '+56', '+57', '+58',
 export const DOCUMENT_TYPES = ['DNI', 'CE', 'PASSPORT'] as const;
 
 export class UserAccountRuleError extends Error {
-  constructor(readonly rule: 'name' | 'document' | 'contact' | 'password' | 'site' | 'permission') {
+  constructor(readonly rule: 'name' | 'document' | 'contact' | 'email' | 'password' | 'site' | 'permission') {
     super(rule);
   }
 }
@@ -83,28 +84,36 @@ export const normalizeUserAccount = (input: {
   const firstName = clean(input.firstName);
   const paternalLastName = clean(input.paternalLastName);
   const maternalLastName = clean(input.maternalLastName);
-  if (!NAME.test(firstName) || !NAME.test(paternalLastName) || !NAME.test(maternalLastName)) throw new UserAccountRuleError('name');
+  if (!NAME.test(firstName) || !NAME.test(paternalLastName)) throw new UserAccountRuleError('name');
+  if (requirePassword ? !NAME.test(maternalLastName) : maternalLastName.length > 0 && !NAME.test(maternalLastName)) throw new UserAccountRuleError('name');
   if (!DOCUMENT_TYPES.includes(input.documentType as (typeof DOCUMENT_TYPES)[number])) throw new UserAccountRuleError('document');
   const documentType = input.documentType as (typeof DOCUMENT_TYPES)[number];
   const documentNumber = clean(input.documentNumber);
   if (documentType === 'DNI' ? !DNI.test(documentNumber) : !FOREIGN_DOCUMENT.test(documentNumber)) throw new UserAccountRuleError('document');
 
-  const email = clean(input.email).toLowerCase();
-  if (!EMAIL.test(email)) throw new UserAccountRuleError('contact');
+  const email = normalizeInstitutionalEmail(input.email);
+  if (!email) throw new UserAccountRuleError('email');
   const phone = clean(input.phone ?? '');
   if (phone && !PHONE.test(phone)) throw new UserAccountRuleError('contact');
-  if (!MOBILE_COUNTRIES.includes(input.mobileCountry as (typeof MOBILE_COUNTRIES)[number])) throw new UserAccountRuleError('contact');
+  const mobileCountry = input.mobileCountry;
   const mobile = clean(input.mobile);
-  if (!MOBILE.test(mobile)) throw new UserAccountRuleError('contact');
+  if (mobile && !MOBILE_COUNTRIES.includes(mobileCountry as (typeof MOBILE_COUNTRIES)[number])) throw new UserAccountRuleError('contact');
+  if (requirePassword && !MOBILE_COUNTRIES.includes(mobileCountry as (typeof MOBILE_COUNTRIES)[number])) throw new UserAccountRuleError('contact');
+  if (mobile && !MOBILE.test(mobile)) throw new UserAccountRuleError('contact');
+  if (requirePassword && !MOBILE.test(mobile)) throw new UserAccountRuleError('contact');
 
   const password = clean(input.password ?? '');
   if (requirePassword && !password) throw new UserAccountRuleError('password');
   if (password && !PASSWORD.test(password)) throw new UserAccountRuleError('password');
-  if (!PERMISSION_ID.test(input.siteId)) throw new UserAccountRuleError('site');
-  if (input.grants.length < 1 || input.grants.length > 200) throw new UserAccountRuleError('permission');
+  const siteId = clean(input.siteId);
+  if (siteId && !PERMISSION_ID.test(siteId)) throw new UserAccountRuleError('site');
+  if (requirePassword && !PERMISSION_ID.test(siteId)) throw new UserAccountRuleError('site');
+  const incomingGrants = input.grants ?? [];
+  if (requirePassword && (incomingGrants.length < 1 || incomingGrants.length > 200)) throw new UserAccountRuleError('permission');
+  if (!requirePassword && incomingGrants.length > 200) throw new UserAccountRuleError('permission');
 
   const seen = new Set<string>();
-  const grants = input.grants.map((item) => {
+  const grants = incomingGrants.map((item) => {
     const permissionId = item.permissionId.toLowerCase();
     const name = clean(item.name);
     const key = `${permissionId}:${name.toLocaleLowerCase('es')}`;
@@ -112,7 +121,8 @@ export const normalizeUserAccount = (input: {
     seen.add(key);
     return { permissionId, name, enabled: item.enabled };
   });
-  if (!grants.some((item) => item.enabled)) throw new UserAccountRuleError('permission');
+  if (requirePassword && !grants.some((item) => item.enabled)) throw new UserAccountRuleError('permission');
+  if (!requirePassword && grants.length > 0 && !grants.some((item) => item.enabled)) throw new UserAccountRuleError('permission');
 
   return {
     documentType,
@@ -120,9 +130,9 @@ export const normalizeUserAccount = (input: {
     firstName,
     paternalLastName,
     maternalLastName,
-    siteId: input.siteId.toLowerCase(),
+    siteId: siteId.toLowerCase(),
     phone: phone || null,
-    mobileCountry: input.mobileCountry as (typeof MOBILE_COUNTRIES)[number],
+    mobileCountry: mobile ? mobileCountry as (typeof MOBILE_COUNTRIES)[number] : '+51',
     mobile,
     email,
     password: password || null,

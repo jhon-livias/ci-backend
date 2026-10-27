@@ -1,6 +1,7 @@
 import * as argon2 from 'argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 
+import { INSTITUTIONAL_EMAIL_MESSAGE, normalizeInstitutionalEmail } from '../apps/auth/src/domain/institutional-email.js';
 import { PrismaClient, UserRoleName, UserStatus } from '../apps/auth/src/infrastructure/persistence/generated/client.js';
 
 const required = (name: string): string => {
@@ -14,7 +15,8 @@ const required = (name: string): string => {
 const main = async (): Promise<void> => {
   const databaseUrl = required('AUTH_DATABASE_URL');
   const username = required('ADMIN_USERNAME').toLowerCase();
-  const email = required('ADMIN_EMAIL').toLowerCase();
+  const email = normalizeInstitutionalEmail(required('ADMIN_EMAIL'));
+  if (!email) throw new Error(INSTITUTIONAL_EMAIL_MESSAGE);
   const password = required('ADMIN_PASSWORD');
 
   if (password.length < 12) {

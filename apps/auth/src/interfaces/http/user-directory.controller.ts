@@ -6,7 +6,7 @@ import { UserDirectoryService } from '../../application/user-directory.service.j
 import { UsersCreateGuard, UsersDeleteGuard, UsersReadGuard, UsersUpdateGuard } from './access-policy.guard.js';
 import { ListUsersDto } from './dto/list-users.dto.js';
 import { RequirePasswordChangeDto } from './dto/require-password-change.dto.js';
-import { SaveUserDto } from './dto/save-user.dto.js';
+import { SaveUserDto, UpdateUserDto } from './dto/save-user.dto.js';
 
 @Controller('auth/admin/users')
 export class UserDirectoryController {
@@ -63,10 +63,24 @@ export class UserDirectoryController {
   @Patch(':id')
   @UseGuards(UsersUpdateGuard)
   @Header('Cache-Control', 'no-store')
-  async update(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: SaveUserDto) {
+  async update(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
     const token = request.cookies?.['ci_access'];
     const session = await this.authentication.restore(token ?? '');
-    return this.directory.update(id, dto, session.user.id);
+    return this.directory.update(id, {
+      documentType: dto.documentType,
+      documentNumber: dto.documentNumber,
+      firstName: dto.firstName,
+      paternalLastName: dto.paternalLastName,
+      maternalLastName: dto.maternalLastName ?? '',
+      siteId: dto.siteId ?? '',
+      phone: dto.phone,
+      mobileCountry: dto.mobileCountry ?? '+51',
+      mobile: dto.mobile ?? '',
+      email: dto.email,
+      password: dto.password,
+      enabled: dto.enabled,
+      grants: dto.grants ?? [],
+    }, session.user.id);
   }
 
   private async actorId(request: FastifyRequest): Promise<string> {
