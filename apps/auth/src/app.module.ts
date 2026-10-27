@@ -7,7 +7,19 @@ import { PasswordRecoveryService } from './application/password-recovery.service
 import { AuthController } from './interfaces/http/auth.controller.js';
 import { AuthPrismaService } from './infrastructure/persistence/auth-prisma.service.js';
 import { AccessPolicyController } from './interfaces/http/access-policy.controller.js';
-import { AccessPolicyGuard, AuditReadGuard, ModulesReadGuard, PermissionsCreateGuard, PermissionsDeleteGuard, PermissionsReadGuard, PermissionsUpdateGuard, UsersCreateGuard, UsersDeleteGuard, UsersReadGuard, UsersUpdateGuard } from './interfaces/http/access-policy.guard.js';
+import {
+  AccessPolicyGuard,
+  AuditReadGuard,
+  ModulesReadGuard,
+  PermissionsCreateGuard,
+  PermissionsDeleteGuard,
+  PermissionsReadGuard,
+  PermissionsUpdateGuard,
+  UsersCreateGuard,
+  UsersDeleteGuard,
+  UsersReadGuard,
+  UsersUpdateGuard,
+} from './interfaces/http/access-policy.guard.js';
 import { AuditLogService } from './application/audit-log.service.js';
 import { AuditController } from './interfaces/http/audit.controller.js';
 import { ModuleDirectoryService } from './application/module-directory.service.js';
@@ -28,6 +40,7 @@ import { WebhookNotificationChannel } from './infrastructure/notifications/webho
 import { NotificationDeliveryWorker } from './infrastructure/notifications/notification-delivery.worker.js';
 import { RabbitNotificationBridge } from './infrastructure/notifications/rabbit-notification.bridge.js';
 import { NonceStore } from './infrastructure/notifications/nonce-store.js';
+import { RecaptchaService } from './infrastructure/security/recaptcha.service.js';
 
 const HealthController = createHealthController('auth');
 const accessTokenSecret = process.env.AUTH_JWT_ACCESS_SECRET;
@@ -44,7 +57,47 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
       signOptions: { algorithm: 'HS256', expiresIn: '15m' },
     }),
   ],
-  controllers: [HealthController, AuthController, AccessPolicyController, UserDirectoryController, SystemModulesController, AuditController, SitesProxyController, AcademicConfigProxyController, NotificationsController, PermissionsController, UserTypesController],
-  providers: [AuthPrismaService, AuthenticationService, PasswordRecoveryService, SmtpMailChannel, AccessPolicyGuard, UsersReadGuard, UsersCreateGuard, UsersUpdateGuard, UsersDeleteGuard, ModulesReadGuard, AuditReadGuard, PermissionsReadGuard, PermissionsCreateGuard, PermissionsUpdateGuard, PermissionsDeleteGuard, UserDirectoryService, ModuleDirectoryService, AuditLogService, PermissionCatalogService, UserTypeCatalogService, NotificationHub, WebhookNotificationChannel, NonceStore, NotificationService, NotificationDeliveryWorker, RabbitNotificationBridge],
+  controllers: [
+    HealthController,
+    AuthController,
+    AccessPolicyController,
+    UserDirectoryController,
+    SystemModulesController,
+    AuditController,
+    SitesProxyController,
+    AcademicConfigProxyController,
+    NotificationsController,
+    PermissionsController,
+    UserTypesController,
+  ],
+  providers: [
+    AuthPrismaService,
+    AuthenticationService,
+    PasswordRecoveryService,
+    RecaptchaService,
+    SmtpMailChannel,
+    AccessPolicyGuard,
+    UsersReadGuard,
+    UsersCreateGuard,
+    UsersUpdateGuard,
+    UsersDeleteGuard,
+    ModulesReadGuard,
+    AuditReadGuard,
+    PermissionsReadGuard,
+    PermissionsCreateGuard,
+    PermissionsUpdateGuard,
+    PermissionsDeleteGuard,
+    UserDirectoryService,
+    ModuleDirectoryService,
+    AuditLogService,
+    PermissionCatalogService,
+    UserTypeCatalogService,
+    NotificationHub,
+    WebhookNotificationChannel,
+    NonceStore,
+    NotificationService,
+    NotificationDeliveryWorker,
+    RabbitNotificationBridge,
+  ],
 })
 export class AppModule {}
