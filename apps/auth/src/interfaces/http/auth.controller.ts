@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import {
   Body,
   Controller,
@@ -14,6 +16,12 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
 import { PasswordRecoveryService } from '../../application/password-recovery.service.js';
+import {
+  GoogleAuthService,
+  googleAuthConfigured,
+  googleAuthorizationUrl,
+  googleStatesMatch,
+} from '../../infrastructure/security/google-auth.service.js';
 import { RecaptchaService } from '../../infrastructure/security/recaptcha.service.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -24,6 +32,7 @@ import {
 
 const accessCookieName = 'ci_access';
 const refreshCookieName = 'ci_refresh';
+const googleStateCookieName = 'ci_google_state';
 const useSecureCookies = process.env.AUTH_COOKIE_SECURE !== 'false';
 
 @Controller('auth')
@@ -32,7 +41,54 @@ export class AuthController {
     private readonly authenticationService: AuthenticationService,
     private readonly recovery: PasswordRecoveryService,
     private readonly recaptcha: RecaptchaService,
+    private readonly googleAuth: GoogleAuthService,
   ) {}
+
+  @Get('google')
+  @RouteConfig({ rateLimit: { max: 20, timeWindow: '1 minute' } })
+  startGoogle(@Res() response: FastifyReply): FastifyReply {
+    if (!googleAuthConfigured()) return response.redirect('/login?google=unconfigured', 302);
+    const state = randomBytes(32).toString('base64url');
+    response.setCookie(googleStateCookieName, state, {
+      httpOnly: true,
+      secure: useSecureCookies,
+      sameSite: 'lax',
+      path: '/api/v1/auth/google',
+      maxAge: 10 * 60,
+    });
+    return response.redirect(googleAuthorizationUrl(state), 302);
+  }
+
+  @Get('google/callback')
+  @RouteConfig({ rateLimit: { max: 20, timeWindow: '1 minute' } })
+  async finishGoogle(
+    @Req() request: FastifyRequest,
+    @Res() response: FastifyReply,
+  ): Promise<FastifyReply> {
+    const query = request.query as Record<string, unknown>;
+    const state = typeof query['state'] === 'string' ? query['state'] : '';
+    const code = typeof query['code'] === 'string' ? query['code'] : '';
+    const expected = request.cookies[googleStateCookieName];
+    response.clearCookie(googleStateCookieName, { path: '/api/v1/auth/google' });
+    if (query['error'] === 'access_denied') return response.redirect('/login?google=denied', 302);
+    if (!expected || !googleStatesMatch(expected, state) || !code) {
+      return response.redirect('/login?google=failed', 302);
+    }
+    try {
+      const email = await this.googleAuth.accountEmail(code);
+      if (!email) return response.redirect('/login?google=unverified', 302);
+      const session = await this.authenticationService.loginWithGoogle(
+        email,
+        request.headers['user-agent'],
+      );
+      this.setSessionCookies(response, session.accessToken, session.refreshToken);
+      const destination = session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio';
+      return response.redirect(destination, 302);
+    } catch (error) {
+      const destination = error instanceof UnauthorizedException ? 'unknown' : 'failed';
+      return response.redirect(`/login?google=${destination}`, 302);
+    }
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)

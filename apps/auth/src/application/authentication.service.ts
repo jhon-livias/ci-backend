@@ -6,7 +6,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { UserRoleName, UserStatus } from '../infrastructure/persistence/generated/client.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
 import type { LoginDto } from '../interfaces/http/dto/login.dto.js';
-import { loginIdentifier } from '../domain/institutional-email.js';
+import { loginIdentifier, normalizeInstitutionalEmail } from '../domain/institutional-email.js';
 import { AuditLogService } from './audit-log.service.js';
 import { NotificationService } from './notification.service.js';
 
@@ -78,6 +78,35 @@ export class AuthenticationService {
     void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
     await this.audit?.recordFor(user.id, 'Sesión', 'Inició sesión.');
     return this.issueTokens(authenticatedUser, session.refreshToken);
+  }
+
+  async loginWithGoogle(email: string, userAgent?: string | string[]): Promise<AuthenticatedSession> {
+    const normalized = normalizeInstitutionalEmail(email);
+    if (!normalized) throw new UnauthorizedException('Credenciales inválidas.');
+    const user = await this.prisma.user.findFirst({
+      where: { deletedAt: null, email: { equals: normalized, mode: 'insensitive' } },
+      include: { profile: true, roles: true },
+    });
+    if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
+      throw new UnauthorizedException('Credenciales inválidas.');
+    }
+
+    const session = await this.createSession(user.id, requestUserAgent(userAgent));
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: 0, lockedUntil: null, lastLoginAt: new Date() },
+    });
+    const event = {
+      id: randomUUID(),
+      recipientUserId: user.id,
+      title: 'Sesión iniciada',
+      body: 'Se inició una sesión en tu cuenta.',
+      createdAt: new Date().toISOString(),
+      correlationId: randomUUID(),
+    };
+    void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
+    await this.audit?.recordFor(user.id, 'Sesión', 'Inició sesión con Google.');
+    return this.issueTokens(this.toAuthenticatedUser(user), session.refreshToken);
   }
 
   async restore(accessToken: string): Promise<{ user: AuthenticatedUser; csrfToken: string }> {

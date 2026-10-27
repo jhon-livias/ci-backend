@@ -40,6 +40,7 @@ import { WebhookNotificationChannel } from './infrastructure/notifications/webho
 import { NotificationDeliveryWorker } from './infrastructure/notifications/notification-delivery.worker.js';
 import { RabbitNotificationBridge } from './infrastructure/notifications/rabbit-notification.bridge.js';
 import { NonceStore } from './infrastructure/notifications/nonce-store.js';
+import { GoogleAuthService } from './infrastructure/security/google-auth.service.js';
 import { RecaptchaService } from './infrastructure/security/recaptcha.service.js';
 
 const HealthController = createHealthController('auth');
@@ -75,6 +76,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     AuthenticationService,
     PasswordRecoveryService,
     RecaptchaService,
+    GoogleAuthService,
     SmtpMailChannel,
     AccessPolicyGuard,
     UsersReadGuard,
