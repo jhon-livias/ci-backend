@@ -57,7 +57,10 @@ export class AuthController {
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
     const accessToken = request.cookies[accessCookieName];
-    if (!accessToken) throw new UnauthorizedException();
+    if (!accessToken) {
+      response.status(HttpStatus.NO_CONTENT);
+      return;
+    }
     const session = await this.authenticationService.restore(accessToken);
     response.header('Cache-Control', 'no-store');
     return session;
@@ -70,7 +73,10 @@ export class AuthController {
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
     const refreshToken = request.cookies[refreshCookieName];
-    if (!refreshToken) throw new UnauthorizedException();
+    if (!refreshToken) {
+      response.status(HttpStatus.NO_CONTENT);
+      return;
+    }
     const session = await this.authenticationService.refresh(
       refreshToken,
       request.headers['user-agent'],
