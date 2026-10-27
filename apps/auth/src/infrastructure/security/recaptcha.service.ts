@@ -29,11 +29,18 @@ const readMinimumScore = (value: string | undefined): number => {
   return score;
 };
 
-const readHostnames = (value: string | undefined): readonly string[] =>
-  (value ?? '')
-    .split(',')
-    .map((hostname) => hostname.trim().toLowerCase())
-    .filter(Boolean);
+/** Acepta un host o una URL. Google responde solo con el nombre del host. */
+export const recaptchaHostnames = (value: string | undefined): readonly string[] => {
+  const hosts = new Set<string>();
+  for (const item of (value ?? '').split(',')) {
+    const trimmed = item.trim().toLowerCase();
+    if (!trimmed) continue;
+    const withoutScheme = trimmed.replace(/^[a-z][a-z0-9+.-]*:\/\//, '');
+    const host = withoutScheme.split('/')[0]?.split(':')[0]?.replace(/\.$/, '') ?? '';
+    if (host) hosts.add(host);
+  }
+  return [...hosts];
+};
 
 @Injectable()
 export class RecaptchaService {
@@ -41,7 +48,7 @@ export class RecaptchaService {
   private readonly minimumScore = readMinimumScore(
     process.env.RECAPTCHA_MIN_SCORE,
   );
-  private readonly allowedHostnames = readHostnames(
+  private readonly allowedHostnames = recaptchaHostnames(
     process.env.RECAPTCHA_ALLOWED_HOSTNAMES,
   );
   private readonly enabled = process.env.RECAPTCHA_ENABLED !== 'false';
