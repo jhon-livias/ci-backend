@@ -1,5 +1,5 @@
 import { Body, Controller, ForbiddenException, Get, Header, HttpException, Param, ParseUUIDPipe, Post, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
-import { ArrayMaxSize, IsArray, IsIn, IsNumber, IsOptional, IsUUID, Max, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsNumber, IsOptional, IsString, IsUUID, Max, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import type { FastifyRequest } from 'fastify';
 
@@ -19,6 +19,8 @@ class GradeRowDto {
 }
 class AttendanceBody { @IsArray() @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => AttendanceRowDto) rows!: AttendanceRowDto[]; }
 class GradesBody { @IsArray() @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => GradeRowDto) rows!: GradeRowDto[]; }
+class JustificationFileDto { @IsString() name!: string; @IsString() contentType!: string; @IsString() base64!: string; }
+class JustificationDto { @IsUUID('all') attendanceId!: string; @IsString() reason!: string; @IsOptional() @ValidateNested() @Type(() => JustificationFileDto) file?: JustificationFileDto; }
 
 @Controller('auth/teacher')
 export class TeacherPortalController {
@@ -75,6 +77,13 @@ export class TeacherPortalController {
   async attendanceHistory(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
     const user = await this.authorize(request, 'teaching.read');
     return this.records('POST', '/api/v1/internal/student-records/attendance/history', await this.groupRecords(id, user.id));
+  }
+
+  @Post('groups/:id/absences/justify')
+  @Header('Cache-Control', 'no-store')
+  async justifyAbsence(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: JustificationDto) {
+    const user = await this.authorize(request, 'teaching.update');
+    return this.records('POST', '/api/v1/internal/student-records/absences/teacher-justify', { ...(await this.groupRecords(id, user.id)), attendanceId: dto.attendanceId, actorId: user.id, reason: dto.reason, ...(dto.file ? { file: dto.file } : {}) });
   }
 
   @Post('groups/:id/grades')

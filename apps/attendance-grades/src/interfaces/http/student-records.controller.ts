@@ -1,4 +1,4 @@
-import { Body, Controller, Header, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Post, Query, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsIn, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
@@ -35,11 +35,16 @@ class RecordsBody extends GroupDto {
 }
 class AttendanceBody extends RecordsBody { @IsArray() @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => AttendanceDto) rows!: AttendanceDto[]; }
 class GradesBody extends RecordsBody { @IsArray() @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => GradeDto) rows!: GradeDto[]; }
+class AttachmentDto { @IsString() @MaxLength(160) name!: string; @IsString() @MaxLength(100) contentType!: string; @IsString() @MaxLength(7000000) base64!: string; }
+class JustifyDto { @IsUUID('all') attendanceId!: string; @IsUUID('all') actorId!: string; @IsString() @MaxLength(500) reason!: string; @IsOptional() @ValidateNested() @Type(() => AttachmentDto) file?: AttachmentDto; }
 
 @Controller('internal/student-records')
 @UseGuards(InternalAttendanceGuard)
 export class StudentRecordsController {
   constructor(private readonly records: StudentRecordsService) {}
+  @Get('absences') @Header('Cache-Control', 'no-store') absences(@Query('query') query?: string, @Query('date') date?: string, @Query('status') status?: string) { return this.records.listAbsences({ query, date, status }); }
+  @Post('absences/justify') @Header('Cache-Control', 'no-store') justify(@Body() dto: JustifyDto) { return this.records.justifyStudent(dto.attendanceId, dto.actorId, dto.reason, dto.file); }
+  @Post('absences/teacher-justify') @Header('Cache-Control', 'no-store') teacherJustify(@Body() dto: JustifyDto & RecordsBody) { return this.records.justifyStudentForGroup(dto.attendanceId, dto, dto.actorId, dto.reason, dto.file); }
   @Post('roster') @Header('Cache-Control', 'no-store') roster(@Body() dto: RecordsBody) { return this.records.roster(dto, dto.teacherUserId, dto.students); }
   @Post('attendance/history') @Header('Cache-Control', 'no-store') history(@Body() dto: RecordsBody) { return this.records.attendanceHistory(dto, dto.teacherUserId); }
   @Post('attendance') @Header('Cache-Control', 'no-store') attendance(@Body() dto: AttendanceBody) { return this.records.saveAttendance(dto, dto.teacherUserId, dto.students, dto.rows); }

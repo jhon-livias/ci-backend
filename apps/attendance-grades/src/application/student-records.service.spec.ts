@@ -9,17 +9,17 @@ const student = { userId: '00000000-0000-4000-8000-000000000003', code: '7012345
 
 describe('StudentRecordsService', () => {
   it('rejects attendance outside an opened group', async () => {
-    const service = new StudentRecordsService({} as never);
+    const service = new StudentRecordsService({} as never, {} as never);
     await expect(service.saveAttendance(group({ status: 'COMPLETED' }), group().teacherUserId, [student], [{ studentUserId: student.userId, status: 'PRESENT' }])).rejects.toThrow('Solo se registra asistencia');
   });
 
   it('rejects grade changes after the two-week closure window', async () => {
-    const service = new StudentRecordsService({} as never);
+    const service = new StudentRecordsService({} as never, {} as never);
     await expect(service.saveGrades(group({ status: 'COMPLETED', endsAt: '2020-01-01T00:00:00.000Z' }), group().teacherUserId, [student], [{ studentUserId: student.userId, listeningReading: 20, writing: 20, testOne: 20, participation: 20, finalTest: 20 }])).rejects.toThrow('plazo de dos semanas');
   });
 
   it('rejects a teacher who does not own the group', async () => {
-    const service = new StudentRecordsService({} as never);
+    const service = new StudentRecordsService({} as never, {} as never);
     await expect(service.roster(group(), '00000000-0000-4000-8000-000000000099', [student])).rejects.toThrow('no es válido');
   });
 });

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { limaCalendar } from '../../../../libs/contracts/src/lima-calendar.js';
 import { AttendancePrismaService } from '../infrastructure/persistence/attendance-prisma.service.js';
+import { PrivateAttachmentStore } from '../infrastructure/storage/private-attachment.store.js';
 import { StudentAttendanceStatus } from '../infrastructure/persistence/generated/client.js';
 
 export type RecordGroup = {
@@ -24,7 +25,31 @@ const score = (value: number | null) => value === null || (Number.isFinite(value
 
 @Injectable()
 export class StudentRecordsService {
-  constructor(private readonly db: AttendancePrismaService) {}
+  constructor(private readonly db: AttendancePrismaService, private readonly files: PrivateAttachmentStore) {}
+
+  async listAbsences(filter: { query?: string; date?: string; status?: string }) {
+    const rows = await this.db.studentAttendance.findMany({ where: { status: { in: [StudentAttendanceStatus.ABSENT, StudentAttendanceStatus.JUSTIFIED_ABSENCE] } }, orderBy: { sessionDate: 'desc' } });
+    const query = filter.query?.trim().toLowerCase() ?? '';
+    return { absences: rows.filter((row) => (!query || row.documentNumber.includes(query) || row.studentCode.toLowerCase().includes(query)) && (!filter.date || row.sessionDate.toISOString().slice(0, 10) === filter.date) && (!filter.status || (filter.status === 'Justificado' ? row.status === StudentAttendanceStatus.JUSTIFIED_ABSENCE : row.status === StudentAttendanceStatus.ABSENT))).map((row) => ({ id: row.id, date: row.sessionDate.toISOString().slice(0, 10), documentNumber: row.documentNumber, studentName: row.studentName, groupCode: row.groupCode, language: row.language, level: row.level, status: row.status === StudentAttendanceStatus.ABSENT ? 'Injustificado' : 'Justificado' })) };
+  }
+
+  async justifyStudent(attendanceId: string, actorId: string, reason: string, file?: { name: string; contentType: string; base64: string }) {
+    if (!/^[^<>]{1,500}$/u.test(reason.trim())) throw new BadRequestException('El motivo de la justificación es obligatorio.');
+    const attendance = await this.db.studentAttendance.findUnique({ where: { id: attendanceId } });
+    if (!attendance || attendance.status !== StudentAttendanceStatus.ABSENT) throw new BadRequestException('Solo se pueden justificar faltas injustificadas.');
+    const attachment = file ? await this.files.save(file) : null;
+    await this.db.$transaction([
+      this.db.studentAttendance.update({ where: { id: attendanceId }, data: { status: StudentAttendanceStatus.JUSTIFIED_ABSENCE, justificationNote: reason.trim(), justifiedAt: new Date() } }),
+      this.db.studentJustification.upsert({ where: { attendanceId }, create: { attendanceId, reason: reason.trim(), objectKey: attachment?.key, fileName: attachment?.name, contentType: attachment?.contentType, sizeBytes: attachment?.sizeBytes, createdBy: actorId }, update: { reason: reason.trim(), objectKey: attachment?.key, fileName: attachment?.name, contentType: attachment?.contentType, sizeBytes: attachment?.sizeBytes, createdBy: actorId } }),
+    ]);
+  }
+
+  async justifyStudentForGroup(attendanceId: string, group: RecordGroup, actorId: string, reason: string, file?: { name: string; contentType: string; base64: string }) {
+    this.assertTeacher(group, actorId);
+    const attendance = await this.db.studentAttendance.findUnique({ where: { id: attendanceId }, select: { groupId: true } });
+    if (!attendance || attendance.groupId !== group.id) throw new BadRequestException('La falta no pertenece a un grupo asignado.');
+    return this.justifyStudent(attendanceId, actorId, reason, file);
+  }
 
   async roster(group: RecordGroup, teacherUserId: string, students: readonly RecordStudent[]) {
     this.assertTeacher(group, teacherUserId);
