@@ -56,10 +56,19 @@ const present = (group: {
   dayComboId: string | null;
   hourComboId: string | null;
   dayCombo: { slots: readonly { day: string; classKind: 'SYNCHRONOUS' | 'ASYNCHRONOUS'; startMinutes: number; endMinutes: number }[] } | null;
-  hourCombo: { slots: readonly { startMinutes: number; endMinutes: number }[] } | null;
+  hourCombo: { slots: readonly { day: string; startMinutes: number; endMinutes: number }[] } | null;
 }) => {
   const days = group.dayCombo?.slots.map((slot) => slot.day).join(' - ') ?? '';
   const hours = group.hourCombo?.slots[0] ? formatRange(group.hourCombo.slots[0].startMinutes, group.hourCombo.slots[0].endMinutes) : '';
+  const slots = (group.dayCombo?.slots ?? []).map((slot) => {
+    const hour = group.hourCombo?.slots.find((item) => item.day === slot.day) ?? group.hourCombo?.slots[0];
+    return {
+      day: slot.day,
+      classKind: slot.classKind,
+      startMinutes: hour?.startMinutes ?? slot.startMinutes,
+      endMinutes: hour?.endMinutes ?? slot.endMinutes,
+    };
+  });
   return {
     id: group.id,
     code: group.code,
@@ -82,6 +91,7 @@ const present = (group: {
     schedule: days && hours ? `${days} | ${hours}` : days || hours || '—',
     enrolledCount: 0,
     classTypes: group.dayCombo?.slots.map((slot) => CLASS_KIND_LABEL[slot.classKind]).join(', ') ?? '',
+    slots,
   };
 };
 
@@ -93,6 +103,41 @@ export class AcademicGroupsService {
 
   async list() {
     const groups = await this.db.academicGroup.findMany({ include, orderBy: [{ createdAt: 'desc' }] });
+    return { groups: groups.map(present) };
+  }
+
+  async listForTeacher(teacherUserId: string) {
+    const groups = await this.db.academicGroup.findMany({
+      where: { teacherUserId },
+      include,
+      orderBy: [{ createdAt: 'desc' }],
+    });
+    return { groups: groups.map(present) };
+  }
+
+  async listOfferings(language?: string) {
+    const groups = await this.db.academicGroup.findMany({
+      where: {
+        kind: AcademicGroupKind.CLASSES,
+        status: { in: [AcademicGroupStatus.CREATED, AcademicGroupStatus.RESCHEDULED, AcademicGroupStatus.OPENED] },
+        ...(language ? { language } : {}),
+      },
+      include,
+      orderBy: [{ startsAt: 'asc' }],
+    });
+    return { groups: groups.map(present) };
+  }
+
+  async listProficiency(language?: string) {
+    const groups = await this.db.academicGroup.findMany({
+      where: {
+        kind: AcademicGroupKind.PROFICIENCY,
+        status: { in: [AcademicGroupStatus.CREATED, AcademicGroupStatus.RESCHEDULED, AcademicGroupStatus.OPENED] },
+        ...(language ? { language } : {}),
+      },
+      include,
+      orderBy: [{ startsAt: 'asc' }],
+    });
     return { groups: groups.map(present) };
   }
 

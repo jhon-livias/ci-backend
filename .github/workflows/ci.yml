@@ -24,9 +24,17 @@ jobs:
         env:
           AUTH_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=auth
           ACADEMIC_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=academic
+          STUDENTS_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=students
+          ENROLLMENT_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=enrollment
+          ATTENDANCE_GRADES_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=attendance
+          PAYMENTS_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=payments
         run: |
           npm run auth:db:generate
           npm run academic:db:generate
+          npm run students:db:generate
+          npm run enrollment:db:generate
+          npm run attendance:db:generate
+          npm run payments:db:generate
       - run: npm run build
       - run: npm run lint
       - run: npm run test

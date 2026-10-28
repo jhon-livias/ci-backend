@@ -11,11 +11,13 @@ import { ScheduleComboService } from './application/schedule-combo.service.js';
 import { TeacherProfilesService } from './application/teacher-profiles.service.js';
 import { SitesService } from './application/sites.service.js';
 import { DirectorOperationsController } from './interfaces/http/director-operations.controller.js';
+import { TeachingController } from './interfaces/http/teaching.controller.js';
+import { StudentOfferingsController } from './interfaces/http/student-offerings.controller.js';
 
 const HealthController = createHealthController('academic');
 
 @Module({
-  controllers: [HealthController, SitesController, AcademicConfigController, DirectorOperationsController],
+  controllers: [HealthController, SitesController, AcademicConfigController, DirectorOperationsController, TeachingController, StudentOfferingsController],
   providers: [
     AcademicPrismaService,
     InternalSitesGuard,

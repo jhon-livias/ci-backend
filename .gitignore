@@ -8,6 +8,8 @@
 /apps/students/src/infrastructure/persistence/generated
 /apps/academic/src/infrastructure/persistence/generated
 /apps/payments/src/infrastructure/persistence/generated
+/apps/attendance-grades/src/infrastructure/persistence/generated
+/apps/enrollment/src/infrastructure/persistence/generated
 
 # TypeScript build cache
 *.tsbuildinfo

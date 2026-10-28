@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/persistence/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EnrollmentStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  APPROVED
+  FAILED
+  WITHDRAWN
+}
+
+enum ProficiencyExamStatus {
+  PENDING_PAYMENT
+  REGISTERED
+}
+
+/// Matrícula del alumno en un grupo académico. groupId referencia academic, sin FK entre bases.
+model Enrollment {
+  id             String           @id @default(uuid()) @db.Uuid
+  studentUserId  String           @db.Uuid
+  groupId        String           @db.Uuid
+  groupCode      String           @db.VarChar(16)
+  language       String           @db.VarChar(80)
+  level          String           @db.VarChar(80)
+  modality       String           @db.VarChar(80)
+  studyType      String           @db.VarChar(80)
+  schedule       String           @db.VarChar(240)
+  teacherName    String           @db.VarChar(200)
+  meetUrl        String           @db.VarChar(255)
+  startsAt       DateTime
+  endsAt         DateTime
+  status         EnrollmentStatus @default(PENDING_PAYMENT)
+  paymentId      String?          @db.Uuid
+  enrolledAt     DateTime         @default(now())
+
+  @@unique([studentUserId, groupId])
+  @@index([studentUserId, language, enrolledAt])
+  @@index([groupId, status])
+  @@map("enrollments")
+}
+
+/// Pedido de otro grupo en el mismo horario cuando el seleccionado está lleno.
+model GroupWaitRequest {
+  id            String   @id @default(uuid()) @db.Uuid
+  studentUserId String   @db.Uuid
+  groupId       String   @db.Uuid
+  groupCode     String   @db.VarChar(16)
+  language      String   @db.VarChar(80)
+  schedule      String   @db.VarChar(240)
+  createdAt     DateTime @default(now())
+
+  @@unique([studentUserId, groupId])
+  @@index([groupId])
+  @@map("group_wait_requests")
+}
+
+model ProficiencyExamRegistration {
+  id            String                 @id @default(uuid()) @db.Uuid
+  studentUserId String                 @db.Uuid
+  language      String                 @db.VarChar(80)
+  examGroupId   String?                @db.Uuid
+  examDate      DateTime?
+  modality      String                 @db.VarChar(80)
+  meetUrl       String                 @db.VarChar(255)
+  paymentId     String?                @db.Uuid
+  status        ProficiencyExamStatus  @default(PENDING_PAYMENT)
+  createdAt     DateTime               @default(now())
+
+  @@index([studentUserId, createdAt])
+  @@map("proficiency_exam_registrations")
+}

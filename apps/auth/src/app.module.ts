@@ -37,6 +37,8 @@ import { PaymentsProxyController } from './interfaces/http/payments-proxy.contro
 import { FollowUpProxyController } from './interfaces/http/follow-up-proxy.controller.js';
 import { DirectorAcademicProxyController } from './interfaces/http/director-academic-proxy.controller.js';
 import { DirectorTeachersController } from './interfaces/http/director-teachers.controller.js';
+import { TeacherPortalController } from './interfaces/http/teacher-portal.controller.js';
+import { StudentPortalController } from './interfaces/http/student-portal.controller.js';
 import { SitesProxyController } from './interfaces/http/sites-proxy.controller.js';
 import { NotificationsController } from './interfaces/http/notifications.controller.js';
 import { NotificationService } from './application/notification.service.js';
@@ -78,6 +80,8 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     FollowUpProxyController,
     DirectorAcademicProxyController,
     DirectorTeachersController,
+    TeacherPortalController,
+    StudentPortalController,
     NotificationsController,
     PermissionsController,
     UserTypesController,

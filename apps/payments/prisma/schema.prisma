@@ -36,3 +36,31 @@ model PaymentIncident {
   @@index([status, occurredAt])
   @@map("payment_incidents")
 }
+
+enum StudentPaymentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum StudentPaymentConcept {
+  ENROLLMENT
+  PROFICIENCY
+}
+
+/// Cobro iniciado por el alumno. CONFIRMED solo llega cuando la pasarela lo confirme.
+model StudentPayment {
+  id            String                @id @default(uuid()) @db.Uuid
+  studentUserId String                @db.Uuid
+  studentName   String                @db.VarChar(200)
+  concept       StudentPaymentConcept
+  detail        String                @db.VarChar(240)
+  amountCents   Int
+  tariffCode    String                @db.VarChar(32)
+  status        StudentPaymentStatus  @default(PENDING)
+  correlative   String                @unique @db.VarChar(32)
+  createdAt     DateTime              @default(now())
+
+  @@index([studentUserId, createdAt])
+  @@map("student_payments")
+}

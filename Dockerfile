@@ -8,6 +8,9 @@ COPY . .
 RUN AUTH_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=auth' npm run auth:db:generate \
   && ACADEMIC_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=academic' npm run academic:db:generate \
   && PAYMENTS_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=payments' npm run payments:db:generate \
+  && STUDENTS_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=students' npm run students:db:generate \
+  && ENROLLMENT_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=enrollment' npm run enrollment:db:generate \
+  && ATTENDANCE_GRADES_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=attendance' npm run attendance:db:generate \
   && npm run build
 
 FROM node:22-alpine AS production-dependencies

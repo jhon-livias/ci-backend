@@ -50,7 +50,19 @@ export class DirectorAcademicProxyController {
   @Header('Cache-Control', 'no-store')
   async groups(@Req() request: FastifyRequest) {
     await this.authorize(request, 'groups.read');
-    return this.forward('GET', '/api/v1/internal/director/groups');
+    const [body, countsBody] = await Promise.all([
+      this.forward('GET', '/api/v1/internal/director/groups'),
+      this.enrollmentCounts(),
+    ]);
+    if (!isRecord(body) || !Array.isArray(body['groups'])) return body;
+    const occupancy = new Map(countsBody.map((item) => [item.groupId, item.enrolled]));
+    return {
+      ...body,
+      groups: body['groups'].map((item) => {
+        if (!isRecord(item) || typeof item['id'] !== 'string') return item;
+        return { ...item, enrolledCount: occupancy.get(item['id']) ?? 0 };
+      }),
+    };
   }
 
   @Post('groups')
@@ -88,6 +100,27 @@ export class DirectorAcademicProxyController {
     if (!hasAccessPermission(session.user.roles, permission)) throw new ForbiddenException();
     if (request.method !== 'GET' && request.headers['x-csrf-token'] !== session.csrfToken) throw new ForbiddenException();
     return session.user;
+  }
+
+  private async enrollmentCounts(): Promise<readonly { groupId: string; enrolled: number }[]> {
+    const secret = process.env.SITES_INTERNAL_SECRET;
+    const upstream = process.env.ENROLLMENT_UPSTREAM ?? 'http://enrollment:3004';
+    if (!secret || secret.length < 32) return [];
+    try {
+      const response = await fetch(`${upstream}/api/v1/internal/enrollment/counts`, {
+        headers: { 'x-internal-secret': secret },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!response.ok) return [];
+      const body: unknown = await response.json();
+      if (!isRecord(body) || !Array.isArray(body['counts'])) return [];
+      return body['counts'].flatMap((item) => {
+        if (!isRecord(item) || typeof item['groupId'] !== 'string' || typeof item['enrolled'] !== 'number') return [];
+        return [{ groupId: item['groupId'], enrolled: item['enrolled'] }];
+      });
+    } catch {
+      return [];
+    }
   }
 
   private async forward(method: string, path: string, body?: unknown): Promise<unknown> {

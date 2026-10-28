@@ -21,6 +21,7 @@ describe('fixed access policy', () => {
       'access_policy.read', 'users.read', 'users.create', 'users.update', 'users.delete', 'modules.read', 'audit.read', 'sites.read', 'sites.create', 'sites.update', 'sites.delete',
       'academic_config.read', 'academic_config.update', 'payments.read', 'payments.update', 'attendance.read',
       'teachers.read', 'teachers.create', 'teachers.update', 'teachers.delete', 'groups.read', 'groups.update',
+      'teaching.read', 'teaching.update', 'enrollment.read', 'enrollment.update',
       'permissions.read', 'permissions.create', 'permissions.update', 'permissions.delete',
     ]);
     expect(hasAccessPermission(['ADMINISTRATOR'], 'users.create')).toBe(true);
@@ -39,5 +40,11 @@ describe('fixed access policy', () => {
     expect(hasAccessPermission(['ADVISOR'], 'groups.update')).toBe(false);
     expect(hasAccessPermission(['ADMINISTRATOR'], 'permissions.delete')).toBe(true);
     expect(hasAccessPermission(['DIRECTOR'], 'permissions.update')).toBe(false);
+    expect(hasAccessPermission(['TEACHER'], 'teaching.update')).toBe(true);
+    expect(hasAccessPermission(['DIRECTOR'], 'teaching.update')).toBe(false);
+    expect(hasAccessPermission(['ADMINISTRATOR'], 'teaching.read')).toBe(false);
+    expect(hasAccessPermission(['STUDENT'], 'enrollment.update')).toBe(true);
+    expect(hasAccessPermission(['DIRECTOR'], 'enrollment.update')).toBe(false);
+    expect(hasAccessPermission(['ADMINISTRATOR'], 'enrollment.read')).toBe(false);
   });
 });

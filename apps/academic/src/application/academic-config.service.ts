@@ -50,6 +50,19 @@ export class AcademicConfigService {
     };
   }
 
+  async studentCatalog() {
+    const snapshot = await this.read();
+    const names = (kind: (typeof ACADEMIC_CATALOG_KINDS)[number]) =>
+      snapshot.catalogs.find((item) => item.kind === kind)?.items.map((item) => item.name) ?? [];
+    return {
+      languages: names('LANGUAGE'),
+      levels: names('LEVEL'),
+      minStudents: snapshot.rules.minStudents,
+      maxStudents: snapshot.rules.maxStudents,
+      passingGrade: snapshot.rules.passingGrade,
+    };
+  }
+
   async addItem(kind: string, rawName: string) {
     if (!isAcademicCatalogKind(kind)) throw new BadRequestException('Ese catálogo no existe.');
     const name = this.checkedName(rawName);

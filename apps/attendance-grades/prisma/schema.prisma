@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/persistence/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SessionClassKind {
+  SYNCHRONOUS
+  ASYNCHRONOUS
+}
+
+/// Marcajes reales de entrada y salida del docente. No se generan filas de demostración.
+model TeacherSession {
+  id             String           @id @default(uuid()) @db.Uuid
+  groupId        String           @db.Uuid
+  teacherUserId  String           @db.Uuid
+  groupCode      String           @db.VarChar(16)
+  language       String           @db.VarChar(80)
+  level          String           @db.VarChar(80)
+  sessionDate    DateTime         @db.Date
+  classKind      SessionClassKind
+  startMinutes   Int
+  endMinutes     Int
+  checkInAt      DateTime?
+  checkOutAt     DateTime?
+  createdAt      DateTime         @default(now())
+
+  @@unique([groupId, teacherUserId, sessionDate])
+  @@index([teacherUserId, sessionDate])
+  @@map("teacher_sessions")
+}
