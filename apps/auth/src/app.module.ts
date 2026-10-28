@@ -33,6 +33,7 @@ import { UserTypesController } from './interfaces/http/user-types.controller.js'
 import { UserTypeCatalogService } from './application/user-type-catalog.service.js';
 import { SystemModulesController } from './interfaces/http/system-modules.controller.js';
 import { AcademicConfigProxyController } from './interfaces/http/academic-config-proxy.controller.js';
+import { PaymentsProxyController } from './interfaces/http/payments-proxy.controller.js';
 import { SitesProxyController } from './interfaces/http/sites-proxy.controller.js';
 import { NotificationsController } from './interfaces/http/notifications.controller.js';
 import { NotificationService } from './application/notification.service.js';
@@ -70,6 +71,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     AuditController,
     SitesProxyController,
     AcademicConfigProxyController,
+    PaymentsProxyController,
     NotificationsController,
     PermissionsController,
     UserTypesController,

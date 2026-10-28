@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/persistence/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PaymentIncidentStatus {
+  PENDING
+  RESOLVED
+}
+
+/// Montos que el estudiante verá al pagar una matrícula.
+model EnrollmentTariff {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(32)
+  name        String   @db.VarChar(120)
+  amountCents Int
+  updatedAt   DateTime @updatedAt
+
+  @@map("enrollment_tariffs")
+}
+
+/// Errores de pasarela que el administrador debe revisar. No se inventan filas de demostración.
+model PaymentIncident {
+  id          String                 @id @default(uuid()) @db.Uuid
+  occurredAt  DateTime
+  studentName String                 @db.VarChar(200)
+  concept     String                 @db.VarChar(120)
+  error       String                 @db.VarChar(160)
+  status      PaymentIncidentStatus  @default(PENDING)
+  resolvedAt  DateTime?
+
+  @@index([status, occurredAt])
+  @@map("payment_incidents")
+}
