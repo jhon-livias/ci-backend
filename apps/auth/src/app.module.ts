@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
 import { createHealthController } from '../../../libs/common/src/index.js';
+import { AccountProfileService } from './application/account-profile.service.js';
 import { AuthenticationService } from './application/authentication.service.js';
 import { PasswordRecoveryService } from './application/password-recovery.service.js';
+import { AccountProfileController } from './interfaces/http/account-profile.controller.js';
 import { AuthController } from './interfaces/http/auth.controller.js';
 import { AuthPrismaService } from './infrastructure/persistence/auth-prisma.service.js';
 import { AccessPolicyController } from './interfaces/http/access-policy.controller.js';
@@ -61,6 +63,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
   controllers: [
     HealthController,
     AuthController,
+    AccountProfileController,
     AccessPolicyController,
     UserDirectoryController,
     SystemModulesController,
@@ -74,6 +77,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
   providers: [
     AuthPrismaService,
     AuthenticationService,
+    AccountProfileService,
     PasswordRecoveryService,
     RecaptchaService,
     GoogleAuthService,
