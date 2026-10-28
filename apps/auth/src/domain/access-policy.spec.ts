@@ -19,7 +19,8 @@ describe('fixed access policy', () => {
     expect(new Set(catalog.roles.map((role) => role.code)).size).toBe(5);
     expect(catalog.permissions.map((permission) => permission.code)).toEqual([
       'access_policy.read', 'users.read', 'users.create', 'users.update', 'users.delete', 'modules.read', 'audit.read', 'sites.read', 'sites.create', 'sites.update', 'sites.delete',
-      'academic_config.read', 'academic_config.update', 'payments.read', 'payments.update',
+      'academic_config.read', 'academic_config.update', 'payments.read', 'payments.update', 'attendance.read',
+      'teachers.read', 'teachers.create', 'teachers.update', 'teachers.delete', 'groups.read', 'groups.update',
       'permissions.read', 'permissions.create', 'permissions.update', 'permissions.delete',
     ]);
     expect(hasAccessPermission(['ADMINISTRATOR'], 'users.create')).toBe(true);
@@ -32,6 +33,10 @@ describe('fixed access policy', () => {
     expect(hasAccessPermission(['DIRECTOR'], 'academic_config.update')).toBe(false);
     expect(hasAccessPermission(['ADMINISTRATOR'], 'payments.update')).toBe(true);
     expect(hasAccessPermission(['DIRECTOR'], 'payments.update')).toBe(false);
+    expect(hasAccessPermission(['ADVISOR'], 'attendance.read')).toBe(true);
+    expect(hasAccessPermission(['ADMINISTRATOR'], 'attendance.read')).toBe(false);
+    expect(hasAccessPermission(['DIRECTOR'], 'attendance.read')).toBe(true);
+    expect(hasAccessPermission(['ADVISOR'], 'groups.update')).toBe(false);
     expect(hasAccessPermission(['ADMINISTRATOR'], 'permissions.delete')).toBe(true);
     expect(hasAccessPermission(['DIRECTOR'], 'permissions.update')).toBe(false);
   });

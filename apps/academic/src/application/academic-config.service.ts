@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { AcademicConfigError, ACADEMIC_CATALOG_KINDS, ACADEMIC_CATALOG_TITLES, isAcademicCatalogKind, normalizeAcademicRules, normalizeCatalogName, type AcademicCatalogKind, type AcademicRules } from '../../../../libs/contracts/src/academic-config.js';
+import { formatRange } from '../../../../libs/contracts/src/schedule-combo.js';
 import { AcademicPrismaService } from '../infrastructure/persistence/academic-prisma.service.js';
 
 const MAX_ITEMS = 40;
@@ -10,7 +11,7 @@ export class AcademicConfigService {
   constructor(private readonly db: AcademicPrismaService) {}
 
   async read() {
-    const [items, rules] = await Promise.all([
+    const [items, rules, combos] = await Promise.all([
       this.db.academicCatalogItem.findMany({
         where: { deletedAt: null },
         select: { id: true, kind: true, name: true, position: true },
@@ -26,6 +27,10 @@ export class AcademicConfigService {
           maxScorePerEvaluation: true,
         },
       }),
+      this.db.scheduleCombo.findMany({
+        include: { slots: true },
+        orderBy: { number: 'asc' },
+      }),
     ]);
     if (!rules) throw new NotFoundException('No se encontraron las reglas académicas.');
     return {
@@ -35,7 +40,13 @@ export class AcademicConfigService {
         items: items.filter((item) => item.kind === kind).map((item) => ({ id: item.id, name: item.name })),
       })),
       rules,
-      schedules: [],
+      schedules: combos.flatMap((combo) => combo.slots.map((slot) => ({
+        number: combo.number,
+        day: slot.day,
+        classType: slot.classKind === 'SYNCHRONOUS' ? 'Síncrona' : 'Asíncrona',
+        hours: formatRange(slot.startMinutes, slot.endMinutes),
+        owner: 'Director',
+      }))),
     };
   }
 

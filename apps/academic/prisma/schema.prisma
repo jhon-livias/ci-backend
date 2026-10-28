@@ -72,15 +72,84 @@ model PeruDistrict {
 
 /// Datos docentes mínimos. userId referencia la identidad de auth, sin FK entre microservicios.
 model TeacherProfile {
-  id          String        @id @default(uuid()) @db.Uuid
-  userId      String        @unique @db.Uuid
-  teacherCode String?       @unique @db.VarChar(32)
-  status      TeacherStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String        @unique @db.Uuid
+  teacherCode     String?       @unique @db.VarChar(32)
+  academicDegree  String?       @db.VarChar(120)
+  status          TeacherStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([status])
   @@map("teacher_profiles")
+}
+
+enum ClassKind {
+  SYNCHRONOUS
+  ASYNCHRONOUS
+}
+
+enum AcademicGroupKind {
+  CLASSES
+  PROFICIENCY
+}
+
+enum AcademicGroupStatus {
+  CREATED
+  RESCHEDULED
+  OPENED
+  COMPLETED
+}
+
+/// Combo de días y horas que el director arma para asignar a un grupo.
+model ScheduleCombo {
+  id        String         @id @default(uuid()) @db.Uuid
+  number    Int            @unique
+  createdAt DateTime       @default(now())
+  slots     ScheduleSlot[]
+  dayGroups AcademicGroup[] @relation("GroupDayCombo")
+  hourGroups AcademicGroup[] @relation("GroupHourCombo")
+
+  @@map("schedule_combos")
+}
+
+model ScheduleSlot {
+  id           String       @id @default(uuid()) @db.Uuid
+  comboId      String       @db.Uuid
+  day          String       @db.VarChar(16)
+  classKind    ClassKind
+  startMinutes Int
+  endMinutes   Int
+  combo        ScheduleCombo @relation(fields: [comboId], references: [id], onDelete: Cascade)
+
+  @@index([comboId])
+  @@map("schedule_slots")
+}
+
+model AcademicGroup {
+  id               String              @id @default(uuid()) @db.Uuid
+  code             String              @unique @db.VarChar(16)
+  kind             AcademicGroupKind
+  status           AcademicGroupStatus @default(CREATED)
+  language         String              @db.VarChar(80)
+  level            String              @db.VarChar(80)
+  modality         String              @db.VarChar(80)
+  studyType        String              @db.VarChar(80)
+  meetUrl          String              @db.VarChar(255)
+  startsAt         DateTime
+  endsAt           DateTime
+  teacherUserId    String              @db.Uuid
+  teacherDocument  String              @db.VarChar(16)
+  teacherName      String              @db.VarChar(200)
+  dayComboId       String?             @db.Uuid
+  hourComboId      String?             @db.Uuid
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  dayCombo         ScheduleCombo?      @relation("GroupDayCombo", fields: [dayComboId], references: [id], onDelete: Restrict)
+  hourCombo        ScheduleCombo?      @relation("GroupHourCombo", fields: [hourComboId], references: [id], onDelete: Restrict)
+
+  @@index([status, kind])
+  @@map("academic_groups")
 }
 
 enum AcademicCatalogKind {

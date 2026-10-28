@@ -1,6 +1,6 @@
 import { FIXED_ROLES } from './access-policy.js';
 
-export const AUDIT_MODULES = ['Sesión', 'Usuarios', 'Tipos de usuario', 'Permisos', 'Sedes', 'Configuración académica', 'Tarifas y pagos'] as const;
+export const AUDIT_MODULES = ['Sesión', 'Usuarios', 'Tipos de usuario', 'Permisos', 'Sedes', 'Configuración académica', 'Tarifas y pagos', 'Grupos', 'Combos horarios'] as const;
 export type AuditModule = (typeof AUDIT_MODULES)[number];
 
 export const AUDIT_ROLE_NAMES = ['Estudiante', 'Docente', 'Asesora', 'Director', 'Administrador'] as const;

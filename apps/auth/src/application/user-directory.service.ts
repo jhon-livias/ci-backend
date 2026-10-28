@@ -92,6 +92,62 @@ export class UserDirectoryService {
     return presentDetail(user);
   }
 
+  async createTeacher(input: {
+    readonly firstName: string;
+    readonly paternalLastName: string;
+    readonly maternalLastName: string;
+    readonly documentNumber: string;
+    readonly email: string;
+    readonly mobile: string;
+    readonly siteId: string;
+    readonly phone?: string;
+  }, actorId?: string) {
+    const password = temporaryPassword();
+    const draft = this.normalize({
+      documentType: 'DNI',
+      documentNumber: input.documentNumber,
+      firstName: input.firstName,
+      paternalLastName: input.paternalLastName,
+      maternalLastName: input.maternalLastName,
+      siteId: input.siteId,
+      phone: input.phone,
+      mobileCountry: '+51',
+      mobile: input.mobile,
+      email: input.email,
+      password,
+      enabled: true,
+      grants: [],
+    }, true);
+    await this.ensureAvailable(draft);
+    const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
+    const created = await this.prisma.user.create({
+      data: {
+        username: draft.documentNumber.toLowerCase(),
+        email: draft.email,
+        passwordHash,
+        status: 'ACTIVE',
+        mustChangePassword: true,
+        siteId: draft.siteId,
+        profile: { create: this.profileData(draft) },
+        roles: { create: [{ role: UserRoleName.TEACHER }] },
+      },
+      select: detailSelection,
+    });
+    const detail = presentDetail(created);
+    await this.note(actorId, `Creó la cuenta de ${personName(detail.firstName, detail.paternalLastName)}.`);
+    return { ...detail, password };
+  }
+
+  async listTeachers() {
+    const users = await this.prisma.user.findMany({
+      where: { deletedAt: null, roles: { some: { role: UserRoleName.TEACHER } } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: detailSelection,
+    });
+    return users.map(presentDetail);
+  }
+
   async create(dto: Parameters<typeof normalizeUserAccount>[0], actorId?: string) {
     const draft = this.normalize(dto, true);
     await this.ensureAvailable(draft);

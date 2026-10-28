@@ -15,6 +15,13 @@ export const ACCESS_PERMISSIONS = [
   { code: 'academic_config.update', description: 'Modificar catálogos y reglas académicas.' },
   { code: 'payments.read', description: 'Consultar tarifas e incidencias de pago.' },
   { code: 'payments.update', description: 'Modificar tarifas y resolver incidencias de pago.' },
+  { code: 'attendance.read', description: 'Consultar asistencias, notas y faltas para seguimiento.' },
+  { code: 'teachers.read', description: 'Consultar docentes del centro.' },
+  { code: 'teachers.create', description: 'Registrar docentes del centro.' },
+  { code: 'teachers.update', description: 'Modificar docentes del centro.' },
+  { code: 'teachers.delete', description: 'Eliminar docentes del centro.' },
+  { code: 'groups.read', description: 'Consultar grupos y combos horarios.' },
+  { code: 'groups.update', description: 'Crear y actualizar grupos y combos horarios.' },
   { code: 'permissions.read', description: 'Consultar el catálogo de permisos.' },
   { code: 'permissions.create', description: 'Crear permisos del catálogo.' },
   { code: 'permissions.update', description: 'Modificar permisos del catálogo.' },
@@ -35,8 +42,8 @@ export const FIXED_ROLES: readonly { readonly code: FixedRole; readonly name: st
 const ROLE_PERMISSIONS: Readonly<Record<FixedRole, readonly AccessPermission[]>> = {
   STUDENT: [],
   TEACHER: [],
-  ADVISOR: [],
-  DIRECTOR: [],
+  ADVISOR: ['attendance.read'],
+  DIRECTOR: ['attendance.read', 'teachers.read', 'teachers.create', 'teachers.update', 'teachers.delete', 'groups.read', 'groups.update'],
   ADMINISTRATOR: ['access_policy.read', 'users.read', 'users.create', 'users.update', 'users.delete', 'modules.read', 'audit.read', 'sites.read', 'sites.create', 'sites.update', 'sites.delete', 'academic_config.read', 'academic_config.update', 'payments.read', 'payments.update', 'permissions.read', 'permissions.create', 'permissions.update', 'permissions.delete'],
 };
 
