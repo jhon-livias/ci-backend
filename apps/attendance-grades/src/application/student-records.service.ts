@@ -27,10 +27,10 @@ const score = (value: number | null) => value === null || (Number.isFinite(value
 export class StudentRecordsService {
   constructor(private readonly db: AttendancePrismaService, private readonly files: PrivateAttachmentStore) {}
 
-  async listAbsences(filter: { query?: string; date?: string; status?: string }) {
+  async listAbsences(filter: { query?: string; date?: string; status?: string; groupId?: string }) {
     const rows = await this.db.studentAttendance.findMany({ where: { status: { in: [StudentAttendanceStatus.ABSENT, StudentAttendanceStatus.JUSTIFIED_ABSENCE] } }, orderBy: { sessionDate: 'desc' } });
     const query = filter.query?.trim().toLowerCase() ?? '';
-    return { absences: rows.filter((row) => (!query || row.documentNumber.includes(query) || row.studentCode.toLowerCase().includes(query)) && (!filter.date || row.sessionDate.toISOString().slice(0, 10) === filter.date) && (!filter.status || (filter.status === 'Justificado' ? row.status === StudentAttendanceStatus.JUSTIFIED_ABSENCE : row.status === StudentAttendanceStatus.ABSENT))).map((row) => ({ id: row.id, date: row.sessionDate.toISOString().slice(0, 10), documentNumber: row.documentNumber, studentName: row.studentName, groupCode: row.groupCode, language: row.language, level: row.level, status: row.status === StudentAttendanceStatus.ABSENT ? 'Injustificado' : 'Justificado' })) };
+    return { absences: rows.filter((row) => (!filter.groupId || row.groupId === filter.groupId) && (!query || row.documentNumber.includes(query) || row.studentCode.toLowerCase().includes(query)) && (!filter.date || row.sessionDate.toISOString().slice(0, 10) === filter.date) && (!filter.status || (filter.status === 'Justificado' ? row.status === StudentAttendanceStatus.JUSTIFIED_ABSENCE : row.status === StudentAttendanceStatus.ABSENT))).map((row) => ({ id: row.id, date: row.sessionDate.toISOString().slice(0, 10), documentNumber: row.documentNumber, studentName: row.studentName, groupCode: row.groupCode, language: row.language, level: row.level, status: row.status === StudentAttendanceStatus.ABSENT ? 'Injustificado' : 'Justificado' })) };
   }
 
   async justifyStudent(attendanceId: string, actorId: string, reason: string, file?: { name: string; contentType: string; base64: string }) {
