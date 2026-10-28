@@ -46,6 +46,15 @@ export class FollowUpProxyController {
     return this.forward('GET', `/api/v1/internal/student-records/absences/${attendanceId}/attachment`);
   }
 
+  @Get('teacher-absences') @Header('Cache-Control', 'no-store')
+  async teacherAbsences(@Req() request: FastifyRequest, @Query('query') query?: string, @Query('date') date?: string, @Query('status') status?: string) {
+    await this.authorize(request, false);
+    const params = new URLSearchParams(); if (query) params.set('query', query); if (date) params.set('date', date); if (status) params.set('status', status);
+    return this.forward('GET', `/api/v1/internal/teacher-sessions/absences?${params}`);
+  }
+  @Get('teacher-absences/:teacherAbsenceId/attachment') @Header('Cache-Control', 'no-store')
+  async teacherAttachment(@Req() request: FastifyRequest, @Param('teacherAbsenceId', ParseUUIDPipe) teacherAbsenceId: string) { await this.authorize(request, false); return this.forward('GET', `/api/v1/internal/teacher-sessions/absences/${teacherAbsenceId}/attachment`); }
+
   @Post('absences/justify')
   @Header('Cache-Control', 'no-store')
   async justify(@Req() request: FastifyRequest, @Body() body: unknown) {

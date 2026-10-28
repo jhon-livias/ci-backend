@@ -3,6 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CLASS_KIND_LABEL, formatRange, type ClassKindCode } from '../../../../libs/contracts/src/schedule-combo.js';
 import { limaCalendar } from '../../../../libs/contracts/src/lima-calendar.js';
 import { AttendancePrismaService } from '../infrastructure/persistence/attendance-prisma.service.js';
+import { PrivateAttachmentStore } from '../infrastructure/storage/private-attachment.store.js';
 import { SessionClassKind } from '../infrastructure/persistence/generated/client.js';
 
 export type TeachingSlot = {
@@ -50,7 +51,50 @@ const present = (row: {
 
 @Injectable()
 export class TeacherSessionsService {
-  constructor(private readonly db: AttendancePrismaService) {}
+  constructor(private readonly db: AttendancePrismaService, private readonly files: PrivateAttachmentStore) {}
+
+  async absences(group: TeachingGroupSnapshot, teacherUserId: string) {
+    this.assertOwner(group, teacherUserId);
+    const rows = await this.db.teacherSession.findMany({ where: { groupId: group.id, teacherUserId, checkInAt: null }, orderBy: { sessionDate: 'desc' } });
+    const recorded = await this.db.teacherAbsence.findMany({ where: { groupId: group.id, teacherUserId } });
+    const justifications = await this.db.teacherJustification.findMany();
+    const byAbsence = new Map(recorded.map((item) => [item.occurredOn.toISOString().slice(0, 10), item.id]));
+    const byId = new Map(justifications.map((item) => [item.teacherAbsenceId, item]));
+    return { absences: rows.map((row) => { const absenceId = byAbsence.get(row.sessionDate.toISOString().slice(0, 10)); const justification = absenceId ? byId.get(absenceId) : undefined; return { id: row.id, date: row.sessionDate.toISOString().slice(0, 10), groupCode: row.groupCode, language: row.language, level: row.level, status: justification ? 'Justificado' : 'Injustificado', attachmentName: justification?.fileName ?? null }; }) };
+  }
+
+  async allAbsences(filter: { query?: string; date?: string; status?: string }) {
+    const rows = await this.db.teacherSession.findMany({ where: { checkInAt: null }, orderBy: { sessionDate: 'desc' } });
+    const recorded = await this.db.teacherAbsence.findMany();
+    const justifications = await this.db.teacherJustification.findMany();
+    const absenceByKey = new Map(recorded.map((item) => [`${item.teacherUserId}:${item.groupId}:${item.occurredOn.toISOString().slice(0, 10)}`, item.id]));
+    const justificationByAbsence = new Map(justifications.map((item) => [item.teacherAbsenceId, item]));
+    const query = filter.query?.trim().toLowerCase() ?? '';
+    return { absences: rows.flatMap((row) => {
+      const absenceId = absenceByKey.get(`${row.teacherUserId}:${row.groupId}:${row.sessionDate.toISOString().slice(0, 10)}`);
+      const justification = absenceId ? justificationByAbsence.get(absenceId) : undefined;
+      const status = justification ? 'Justificado' : 'Injustificado';
+      if ((query && !row.teacherDocument.includes(query) && !row.teacherName.toLowerCase().includes(query)) || (filter.date && row.sessionDate.toISOString().slice(0, 10) !== filter.date) || (filter.status && filter.status !== status)) return [];
+      return [{ id: row.id, date: row.sessionDate.toISOString().slice(0, 10), documentNumber: row.teacherDocument, teacherName: row.teacherName, groupCode: row.groupCode, language: row.language, level: row.level, status, reason: justification?.reason ?? null, attachmentName: justification?.fileName ?? null, teacherAbsenceId: absenceId ?? null }];
+    }) };
+  }
+
+  async attachment(teacherAbsenceId: string) {
+    const justification = await this.db.teacherJustification.findUnique({ where: { teacherAbsenceId } });
+    if (!justification) throw new BadRequestException('La justificación no tiene adjunto.');
+    const data = await this.files.read(justification.objectKey).catch(() => { throw new BadRequestException('El adjunto no está disponible.'); });
+    return { name: justification.fileName, contentType: justification.contentType, base64: data.toString('base64') };
+  }
+
+  async justifyAbsence(group: TeachingGroupSnapshot, teacherUserId: string, sessionId: string, reason: string, file?: { name: string; contentType: string; base64: string }) {
+    this.assertOwner(group, teacherUserId);
+    if (!/^[^<>]{1,500}$/u.test(reason.trim()) || !file) throw new BadRequestException('El motivo y el adjunto son obligatorios.');
+    const session = await this.db.teacherSession.findUnique({ where: { id: sessionId } });
+    if (!session || session.groupId !== group.id || session.teacherUserId !== teacherUserId || session.checkInAt) throw new BadRequestException('La falta no es válida para justificar.');
+    const attachment = await this.files.save(file);
+    const absence = await this.db.teacherAbsence.upsert({ where: { teacherUserId_groupId_occurredOn: { teacherUserId, groupId: group.id, occurredOn: session.sessionDate } }, create: { teacherUserId, groupId: group.id, groupCode: session.groupCode, language: session.language, level: session.level, occurredOn: session.sessionDate }, update: {} });
+    await this.db.teacherJustification.upsert({ where: { teacherAbsenceId: absence.id }, create: { teacherAbsenceId: absence.id, reason: reason.trim(), objectKey: attachment.key, fileName: attachment.name, contentType: attachment.contentType, sizeBytes: attachment.sizeBytes, createdBy: teacherUserId }, update: { reason: reason.trim(), objectKey: attachment.key, fileName: attachment.name, contentType: attachment.contentType, sizeBytes: attachment.sizeBytes, createdBy: teacherUserId } });
+  }
 
   async list(groupId: string, teacherUserId: string) {
     const rows = await this.db.teacherSession.findMany({
@@ -129,5 +173,9 @@ export class TeacherSessionsService {
     if (!slot) throw new BadRequestException('Hoy no hay una clase programada para este grupo.');
     const classKind: ClassKindCode = slot.classKind === 'ASYNCHRONOUS' ? 'ASYNCHRONOUS' : 'SYNCHRONOUS';
     return { ...slot, classKind, date: today.date };
+  }
+
+  private assertOwner(group: TeachingGroupSnapshot, teacherUserId: string) {
+    if (group.teacherUserId !== teacherUserId) throw new BadRequestException('Ese grupo no está asignado a este docente.');
   }
 }

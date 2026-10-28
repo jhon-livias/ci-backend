@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Header, Post, Query, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, Post, Query, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsIn, IsInt, IsString, IsUUID, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsInt, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
 import { CLASS_KINDS, WEEK_DAYS } from '../../../../../libs/contracts/src/schedule-combo.js';
 import { TeacherSessionsService } from '../../application/teacher-sessions.service.js';
@@ -66,6 +66,8 @@ class PunchDto {
   @Type(() => SlotDto)
   slots!: SlotDto[];
 }
+class FileDto { @IsString() @MaxLength(160) name!: string; @IsString() @MaxLength(100) contentType!: string; @IsString() @MaxLength(7000000) base64!: string; }
+class TeacherJustifyDto extends PunchDto { @IsUUID('all') sessionId!: string; @IsString() @MaxLength(500) reason!: string; @ValidateNested() @Type(() => FileDto) file!: FileDto; }
 
 @Controller('internal/teacher-sessions')
 @UseGuards(InternalAttendanceGuard)
@@ -77,6 +79,8 @@ export class TeacherSessionsController {
   list(@Query('groupId', ParseUUIDPipe) groupId: string, @Query('teacherUserId', ParseUUIDPipe) teacherUserId: string) {
     return this.sessions.list(groupId, teacherUserId);
   }
+  @Get('absences') @Header('Cache-Control', 'no-store') allAbsences(@Query('query') query?: string, @Query('date') date?: string, @Query('status') status?: string) { return this.sessions.allAbsences({ query, date, status }); }
+  @Get('absences/:teacherAbsenceId/attachment') @Header('Cache-Control', 'no-store') attachment(@Param('teacherAbsenceId', ParseUUIDPipe) teacherAbsenceId: string) { return this.sessions.attachment(teacherAbsenceId); }
 
   @Post('synchronize')
   synchronize(@Body() dto: PunchDto) { return this.sessions.synchronizePastSessions(dto, dto.teacherUserId); }
@@ -92,4 +96,6 @@ export class TeacherSessionsController {
   checkOut(@Body() dto: PunchDto) {
     return this.sessions.checkOut(dto, dto.teacherUserId);
   }
+  @Post('absences') @Header('Cache-Control', 'no-store') absences(@Body() dto: PunchDto) { return this.sessions.absences(dto, dto.teacherUserId); }
+  @Post('absences/justify') @Header('Cache-Control', 'no-store') justify(@Body() dto: TeacherJustifyDto) { return this.sessions.justifyAbsence(dto, dto.teacherUserId, dto.sessionId, dto.reason, dto.file); }
 }
