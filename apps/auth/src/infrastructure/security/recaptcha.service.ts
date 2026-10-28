@@ -54,7 +54,10 @@ export class RecaptchaService {
   private readonly enabled = process.env.RECAPTCHA_ENABLED !== 'false';
 
   constructor() {
-    if (process.env.NODE_ENV === 'production' && !this.enabled) {
+    // El compose local también usa NODE_ENV=production. AUTH_COOKIE_SECURE=false
+    // identifica esa máquina; en el servidor las cookies siguen siendo seguras.
+    const publicSite = process.env.NODE_ENV === 'production' && process.env.AUTH_COOKIE_SECURE !== 'false';
+    if (publicSite && !this.enabled) {
       throw new Error('reCAPTCHA no puede deshabilitarse en producción.');
     }
     if (this.enabled && process.env.NODE_ENV === 'production' && !this.secret) {
