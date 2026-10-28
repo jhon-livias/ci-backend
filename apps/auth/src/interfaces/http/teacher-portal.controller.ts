@@ -1,14 +1,28 @@
-import { Controller, ForbiddenException, Get, Header, HttpException, Param, ParseUUIDPipe, Post, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Header, HttpException, Param, ParseUUIDPipe, Post, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { ArrayMaxSize, IsArray, IsIn, IsNumber, IsOptional, IsUUID, Max, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import type { FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
+import { AccountProfileService } from '../../application/account-profile.service.js';
 import { hasAccessPermission, type AccessPermission } from '../../domain/access-policy.js';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+class AttendanceRowDto { @IsUUID('all') studentUserId!: string; @IsIn(['PRESENT', 'ABSENT', 'JUSTIFIED_ABSENCE', 'LATE']) status!: string; }
+class GradeRowDto {
+  @IsUUID('all') studentUserId!: string;
+  @IsOptional() @IsNumber() @Min(0) @Max(20) listeningReading!: number | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(20) writing!: number | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(20) testOne!: number | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(20) participation!: number | null;
+  @IsOptional() @IsNumber() @Min(0) @Max(20) finalTest!: number | null;
+}
+class AttendanceBody { @IsArray() @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => AttendanceRowDto) rows!: AttendanceRowDto[]; }
+class GradesBody { @IsArray() @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => GradeRowDto) rows!: GradeRowDto[]; }
 
 @Controller('auth/teacher')
 export class TeacherPortalController {
-  constructor(private readonly auth: AuthenticationService) {}
+  constructor(private readonly auth: AuthenticationService, private readonly profiles: AccountProfileService) {}
 
   @Get('groups')
   @Header('Cache-Control', 'no-store')
@@ -21,7 +35,8 @@ export class TeacherPortalController {
   @Header('Cache-Control', 'no-store')
   async sessions(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
     const user = await this.authorize(request, 'teaching.read');
-    await this.ownedGroup(user.id, id);
+    const group = await this.ownedGroup(user.id, id);
+    await this.attendance('POST', '/api/v1/internal/teacher-sessions/synchronize', await this.punch(group, user.id));
     return this.attendance('GET', `/api/v1/internal/teacher-sessions?groupId=${id}&teacherUserId=${user.id}`);
   }
 
@@ -30,7 +45,7 @@ export class TeacherPortalController {
   async checkIn(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
     const user = await this.authorize(request, 'teaching.update');
     const group = await this.ownedGroup(user.id, id);
-    return this.attendance('POST', '/api/v1/internal/teacher-sessions/check-in', this.punch(group, user.id));
+    return this.attendance('POST', '/api/v1/internal/teacher-sessions/check-in', await this.punch(group, user.id));
   }
 
   @Post('groups/:id/check-out')
@@ -38,7 +53,42 @@ export class TeacherPortalController {
   async checkOut(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
     const user = await this.authorize(request, 'teaching.update');
     const group = await this.ownedGroup(user.id, id);
-    return this.attendance('POST', '/api/v1/internal/teacher-sessions/check-out', this.punch(group, user.id));
+    return this.attendance('POST', '/api/v1/internal/teacher-sessions/check-out', await this.punch(group, user.id));
+  }
+
+  @Post('groups/:id/roster')
+  @Header('Cache-Control', 'no-store')
+  async roster(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
+    const user = await this.authorize(request, 'teaching.read');
+    return this.records('POST', '/api/v1/internal/student-records/roster', await this.groupRecords(id, user.id));
+  }
+
+  @Post('groups/:id/attendance')
+  @Header('Cache-Control', 'no-store')
+  async saveAttendance(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: AttendanceBody) {
+    const user = await this.authorize(request, 'teaching.update');
+    return this.records('POST', '/api/v1/internal/student-records/attendance', { ...(await this.groupRecords(id, user.id)), rows: dto.rows });
+  }
+
+  @Post('groups/:id/attendance/history')
+  @Header('Cache-Control', 'no-store')
+  async attendanceHistory(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
+    const user = await this.authorize(request, 'teaching.read');
+    return this.records('POST', '/api/v1/internal/student-records/attendance/history', await this.groupRecords(id, user.id));
+  }
+
+  @Post('groups/:id/grades')
+  @Header('Cache-Control', 'no-store')
+  async grades(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: GradesBody) {
+    const user = await this.authorize(request, 'teaching.update');
+    return this.records('POST', '/api/v1/internal/student-records/grades', { ...(await this.groupRecords(id, user.id)), rows: dto.rows });
+  }
+
+  @Post('groups/:id/grades/view')
+  @Header('Cache-Control', 'no-store')
+  async viewGrades(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
+    const user = await this.authorize(request, 'teaching.read');
+    return this.records('POST', '/api/v1/internal/student-records/grades/view', await this.groupRecords(id, user.id));
   }
 
   private async ownedGroup(teacherUserId: string, groupId: string): Promise<Record<string, unknown>> {
@@ -47,6 +97,17 @@ export class TeacherPortalController {
     const group = groups.find((item) => isRecord(item) && item['id'] === groupId);
     if (!group || !isRecord(group)) throw new HttpException('Ese grupo no está asignado a este docente.', 404);
     return group;
+  }
+
+  private async groupRecords(groupId: string, teacherUserId: string) {
+    const group = await this.ownedGroup(teacherUserId, groupId);
+    const enrolled = await this.forward('GET', process.env.ENROLLMENT_UPSTREAM ?? 'http://enrollment:3004', `/api/v1/internal/enrollment?groupId=${groupId}`);
+    const rows = isRecord(enrolled) && Array.isArray(enrolled['enrollments']) ? enrolled['enrollments'] : [];
+    const students = await Promise.all(rows.filter(isRecord).flatMap((row) => typeof row['studentUserId'] === 'string' ? [row['studentUserId']] : []).map(async (userId) => {
+      const profile = await this.profiles.get(userId);
+      return { userId, code: profile.documentNumber, documentNumber: profile.documentNumber, name: `${profile.firstName} ${profile.paternalLastName} ${profile.maternalLastName}`.trim() };
+    }));
+    return { id: group['id'], code: group['code'], language: group['language'], level: group['level'], status: group['status'], startsAt: group['startsAt'], endsAt: group['endsAt'], teacherUserId, students };
   }
 
   private async authorize(request: FastifyRequest, permission: AccessPermission) {
@@ -58,7 +119,8 @@ export class TeacherPortalController {
     return session.user;
   }
 
-  private punch(group: Record<string, unknown>, teacherUserId: string) {
+  private async punch(group: Record<string, unknown>, teacherUserId: string) {
+    const profile = await this.profiles.get(teacherUserId);
     const slots = Array.isArray(group['slots']) ? group['slots'] : [];
     return {
       id: group['id'],
@@ -69,6 +131,8 @@ export class TeacherPortalController {
       startsAt: group['startsAt'],
       endsAt: group['endsAt'],
       teacherUserId,
+      teacherName: `${profile.firstName} ${profile.paternalLastName} ${profile.maternalLastName}`.trim(),
+      teacherDocument: profile.documentNumber,
       slots: slots.flatMap((item) => {
         if (!isRecord(item) || typeof item['day'] !== 'string') return [];
         return [{
@@ -86,6 +150,10 @@ export class TeacherPortalController {
   }
 
   private attendance(method: string, path: string, body?: unknown) {
+    return this.forward(method, process.env.ATTENDANCE_GRADES_UPSTREAM ?? 'http://attendance-grades:3005', path, body);
+  }
+
+  private records(method: string, path: string, body?: unknown) {
     return this.forward(method, process.env.ATTENDANCE_GRADES_UPSTREAM ?? 'http://attendance-grades:3005', path, body);
   }
 

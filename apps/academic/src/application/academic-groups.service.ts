@@ -179,6 +179,17 @@ export class AcademicGroupsService {
     return present(updated);
   }
 
+  async changeStatus(id: string, status: 'OPENED' | 'COMPLETED', enrolledCount: number) {
+    const current = await this.db.academicGroup.findUnique({ where: { id }, select: { status: true } });
+    if (!current) throw new NotFoundException();
+    if (status === 'OPENED') {
+      if (current.status !== AcademicGroupStatus.CREATED && current.status !== AcademicGroupStatus.RESCHEDULED) throw new BadRequestException('Solo un grupo creado o reprogramado puede aperturarse.');
+      if (!Number.isInteger(enrolledCount) || enrolledCount < 30) throw new BadRequestException('Se requieren al menos 30 matrículas activas para aperturar el grupo.');
+    } else if (current.status !== AcademicGroupStatus.OPENED) throw new BadRequestException('Solo un grupo aperturado puede culminarse.');
+    const updated = await this.db.academicGroup.update({ where: { id }, data: { status: status === 'OPENED' ? AcademicGroupStatus.OPENED : AcademicGroupStatus.COMPLETED }, include });
+    return present(updated);
+  }
+
   private async ensureCode(code: string) {
     const exists = await this.db.academicGroup.findUnique({ where: { code }, select: { id: true } });
     if (exists) throw new ConflictException('Ese código de grupo ya existe.');

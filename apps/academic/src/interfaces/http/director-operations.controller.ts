@@ -103,6 +103,7 @@ class RescheduleDto {
   @IsString()
   endsAt!: string;
 }
+class StatusDto { @IsIn(['OPENED', 'COMPLETED']) status!: 'OPENED' | 'COMPLETED'; @Type(() => Number) @IsInt() @Min(0) enrolledCount!: number; }
 
 class TeacherDegreeDto {
   @IsUUID('all')
@@ -164,6 +165,9 @@ export class DirectorOperationsController {
   reschedule(@Param('id', ParseUUIDPipe) id: string, @Body() dto: RescheduleDto) {
     return this.groups.reschedule(id, dto.startsAt, dto.endsAt);
   }
+
+  @Patch('groups/:id/status')
+  changeStatus(@Param('id', ParseUUIDPipe) id: string, @Body() dto: StatusDto) { return this.groups.changeStatus(id, dto.status, dto.enrolledCount); }
 
   @Get('teacher-profiles')
   @Header('Cache-Control', 'no-store')

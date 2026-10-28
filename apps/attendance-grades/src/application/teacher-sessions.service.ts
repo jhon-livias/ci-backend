@@ -21,6 +21,8 @@ export type TeachingGroupSnapshot = {
   readonly startsAt: string;
   readonly endsAt: string;
   readonly teacherUserId: string;
+  readonly teacherName: string;
+  readonly teacherDocument: string;
   readonly slots: readonly TeachingSlot[];
 };
 
@@ -58,6 +60,21 @@ export class TeacherSessionsService {
     return { sessions: rows.map(present) };
   }
 
+  async synchronizePastSessions(group: TeachingGroupSnapshot, teacherUserId: string) {
+    if (group.teacherUserId !== teacherUserId) throw new BadRequestException('Ese grupo no está asignado a este docente.');
+    const today = limaCalendar().date;
+    const end = [group.endsAt.slice(0, 10), today].sort()[0];
+    for (let cursor = group.startsAt.slice(0, 10); cursor <= end; ) {
+      const weekday = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][new Date(`${cursor}T00:00:00.000Z`).getUTCDay()];
+      const slot = group.slots.find((item) => item.day === weekday);
+      if (slot && cursor < today) await this.db.teacherSession.upsert({
+        where: { groupId_teacherUserId_sessionDate: { groupId: group.id, teacherUserId, sessionDate: new Date(`${cursor}T00:00:00.000Z`) } },
+        create: { groupId: group.id, teacherUserId, teacherName: group.teacherName, teacherDocument: group.teacherDocument, groupCode: group.code, language: group.language, level: group.level, sessionDate: new Date(`${cursor}T00:00:00.000Z`), classKind: slot.classKind === 'ASYNCHRONOUS' ? 'ASYNCHRONOUS' : 'SYNCHRONOUS', startMinutes: slot.startMinutes, endMinutes: slot.endMinutes }, update: {},
+      });
+      const next = new Date(`${cursor}T00:00:00.000Z`); next.setUTCDate(next.getUTCDate() + 1); cursor = next.toISOString().slice(0, 10);
+    }
+  }
+
   async checkIn(group: TeachingGroupSnapshot, teacherUserId: string) {
     const slot = this.todaySlot(group, teacherUserId);
     const sessionDate = new Date(`${slot.date}T00:00:00.000Z`);
@@ -70,6 +87,8 @@ export class TeacherSessionsService {
       create: {
         groupId: group.id,
         teacherUserId,
+        teacherName: group.teacherName,
+        teacherDocument: group.teacherDocument,
         groupCode: group.code,
         language: group.language,
         level: group.level,

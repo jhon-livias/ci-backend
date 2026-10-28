@@ -54,6 +54,12 @@ class PunchDto {
   @IsUUID('all')
   teacherUserId!: string;
 
+  @IsString() @MaxLength(200)
+  teacherName!: string;
+
+  @IsString() @MaxLength(16)
+  teacherDocument!: string;
+
   @IsArray()
   @ArrayMaxSize(7)
   @ValidateNested({ each: true })
@@ -71,6 +77,9 @@ export class TeacherSessionsController {
   list(@Query('groupId', ParseUUIDPipe) groupId: string, @Query('teacherUserId', ParseUUIDPipe) teacherUserId: string) {
     return this.sessions.list(groupId, teacherUserId);
   }
+
+  @Post('synchronize')
+  synchronize(@Body() dto: PunchDto) { return this.sessions.synchronizePastSessions(dto, dto.teacherUserId); }
 
   @Post('check-in')
   @Header('Cache-Control', 'no-store')

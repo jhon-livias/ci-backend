@@ -12,11 +12,20 @@ enum SessionClassKind {
   ASYNCHRONOUS
 }
 
+enum StudentAttendanceStatus {
+  PRESENT
+  ABSENT
+  JUSTIFIED_ABSENCE
+  LATE
+}
+
 /// Marcajes reales de entrada y salida del docente. No se generan filas de demostración.
 model TeacherSession {
   id             String           @id @default(uuid()) @db.Uuid
   groupId        String           @db.Uuid
   teacherUserId  String           @db.Uuid
+  teacherName    String           @db.VarChar(200)
+  teacherDocument String           @db.VarChar(16)
   groupCode      String           @db.VarChar(16)
   language       String           @db.VarChar(80)
   level          String           @db.VarChar(80)
@@ -31,4 +40,96 @@ model TeacherSession {
   @@unique([groupId, teacherUserId, sessionDate])
   @@index([teacherUserId, sessionDate])
   @@map("teacher_sessions")
+}
+
+/// Attendance is a denormalized, auditable snapshot. This service never reads
+/// the enrollment database directly; the Gateway supplies an authorized roster.
+model StudentAttendance {
+  id                String                  @id @default(uuid()) @db.Uuid
+  groupId           String                  @db.Uuid
+  studentUserId     String                  @db.Uuid
+  groupCode         String                  @db.VarChar(16)
+  language          String                  @db.VarChar(80)
+  level             String                  @db.VarChar(80)
+  studentCode       String                  @db.VarChar(32)
+  documentNumber    String                  @db.VarChar(16)
+  studentName       String                  @db.VarChar(200)
+  sessionDate       DateTime                @db.Date
+  status            StudentAttendanceStatus
+  justificationNote String?                 @db.VarChar(500)
+  justifiedAt       DateTime?
+  recordedByUserId  String                  @db.Uuid
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@unique([groupId, studentUserId, sessionDate])
+  @@index([studentUserId, sessionDate])
+  @@index([groupId, sessionDate])
+  @@map("student_attendance")
+}
+
+model StudentGrade {
+  id               String   @id @default(uuid()) @db.Uuid
+  groupId          String   @db.Uuid
+  studentUserId    String   @db.Uuid
+  groupCode        String   @db.VarChar(16)
+  language         String   @db.VarChar(80)
+  level            String   @db.VarChar(80)
+  studentCode      String   @db.VarChar(32)
+  documentNumber   String   @db.VarChar(16)
+  studentName      String   @db.VarChar(200)
+  listeningReading Decimal? @db.Decimal(5, 2)
+  writing          Decimal? @db.Decimal(5, 2)
+  testOne          Decimal? @db.Decimal(5, 2)
+  participation    Decimal? @db.Decimal(5, 2)
+  finalTest        Decimal? @db.Decimal(5, 2)
+  recordedByUserId String   @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([groupId, studentUserId])
+  @@index([studentUserId])
+  @@map("student_grades")
+}
+
+model StudentJustification {
+  id           String   @id @default(uuid()) @db.Uuid
+  attendanceId String   @unique @db.Uuid
+  reason       String   @db.VarChar(500)
+  objectKey    String?  @db.VarChar(255)
+  fileName     String?  @db.VarChar(160)
+  contentType  String?  @db.VarChar(100)
+  sizeBytes    Int?
+  createdBy    String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  @@map("student_justifications")
+}
+
+model TeacherAbsence {
+  id            String   @id @default(uuid()) @db.Uuid
+  teacherUserId String   @db.Uuid
+  groupId       String   @db.Uuid
+  groupCode     String   @db.VarChar(16)
+  language      String   @db.VarChar(80)
+  level         String   @db.VarChar(80)
+  occurredOn    DateTime @db.Date
+  createdAt     DateTime @default(now())
+
+  @@unique([teacherUserId, groupId, occurredOn])
+  @@map("teacher_absences")
+}
+
+model TeacherJustification {
+  id               String   @id @default(uuid()) @db.Uuid
+  teacherAbsenceId String   @unique @db.Uuid
+  reason           String   @db.VarChar(500)
+  objectKey        String   @db.VarChar(255)
+  fileName         String   @db.VarChar(160)
+  contentType      String   @db.VarChar(100)
+  sizeBytes        Int
+  createdBy        String   @db.Uuid
+  createdAt        DateTime @default(now())
+
+  @@map("teacher_justifications")
 }

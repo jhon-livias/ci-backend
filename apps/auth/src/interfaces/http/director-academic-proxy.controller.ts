@@ -93,6 +93,15 @@ export class DirectorAcademicProxyController {
     return updated;
   }
 
+  @Patch('groups/:id/status')
+  @Header('Cache-Control', 'no-store')
+  async changeStatus(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() body: unknown) {
+    const actor = await this.authorize(request, 'groups.update');
+    const updated = await this.forward('PATCH', `/api/v1/internal/director/groups/${id}/status`, body);
+    await this.audit.recordFor(actor.id, 'Grupos', 'Actualizó el estado de un grupo.');
+    return updated;
+  }
+
   private async authorize(request: FastifyRequest, permission: AccessPermission) {
     const token = request.cookies?.['ci_access'];
     if (!token) throw new UnauthorizedException();

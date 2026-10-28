@@ -131,8 +131,10 @@ export class EnrollmentController {
 
   @Get()
   @Header('Cache-Control', 'no-store')
-  list(@Query('studentUserId', ParseUUIDPipe) studentUserId: string) {
-    return this.enrollments.list(studentUserId);
+  list(@Query('studentUserId') studentUserId?: string, @Query('groupId') groupId?: string) {
+    if (studentUserId && !groupId) return this.enrollments.list(studentUserId);
+    if (groupId && !studentUserId) return this.enrollments.listGroup(groupId);
+    throw new UnauthorizedException();
   }
 
   @Get('counts')

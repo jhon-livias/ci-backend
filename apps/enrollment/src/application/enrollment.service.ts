@@ -99,6 +99,14 @@ export class EnrollmentService {
     return { enrollments: rows.map(presentEnrollment) };
   }
 
+  async listGroup(groupId: string) {
+    const rows = await this.db.enrollment.findMany({
+      where: { groupId, status: { in: [EnrollmentStatus.ACTIVE, EnrollmentStatus.APPROVED] } },
+      orderBy: { enrolledAt: 'asc' },
+    });
+    return { enrollments: rows.map((row) => ({ studentUserId: row.studentUserId, ...presentEnrollment(row) })) };
+  }
+
   async counts() {
     const rows = await this.db.enrollment.groupBy({
       by: ['groupId'],
