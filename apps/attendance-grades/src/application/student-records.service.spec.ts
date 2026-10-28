@@ -22,4 +22,20 @@ describe('StudentRecordsService', () => {
     const service = new StudentRecordsService({} as never, {} as never);
     await expect(service.roster(group(), '00000000-0000-4000-8000-000000000099', [student])).rejects.toThrow('no es válido');
   });
+
+  it('does not expose an attachment outside its group', async () => {
+    const db = { studentAttendance: { findUnique: async () => ({ groupId: group().id }) } };
+    const service = new StudentRecordsService(db as never, {} as never);
+    await expect(service.attachment('00000000-0000-4000-8000-000000000010', '00000000-0000-4000-8000-000000000099')).rejects.toThrow('No tienes acceso');
+  });
+
+  it('returns a private attachment only after authorization checks', async () => {
+    const db = {
+      studentAttendance: { findUnique: async () => ({ groupId: group().id }) },
+      studentJustification: { findUnique: async () => ({ objectKey: '00000000-0000-4000-8000-000000000011', fileName: 'sustento.pdf', contentType: 'application/pdf' }) },
+    };
+    const files = { read: async () => Buffer.from('private-file') };
+    const service = new StudentRecordsService(db as never, files as never);
+    await expect(service.attachment('00000000-0000-4000-8000-000000000010', group().id)).resolves.toEqual({ name: 'sustento.pdf', contentType: 'application/pdf', base64: Buffer.from('private-file').toString('base64') });
+  });
 });

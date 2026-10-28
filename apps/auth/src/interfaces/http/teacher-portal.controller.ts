@@ -86,6 +86,7 @@ export class TeacherPortalController {
     return this.records('POST', '/api/v1/internal/student-records/absences/teacher-justify', { ...(await this.groupRecords(id, user.id)), attendanceId: dto.attendanceId, actorId: user.id, reason: dto.reason, ...(dto.file ? { file: dto.file } : {}) });
   }
   @Get('groups/:id/absences') @Header('Cache-Control', 'no-store') async absences(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) { const user = await this.authorize(request, 'teaching.read'); await this.ownedGroup(user.id, id); return this.records('GET', `/api/v1/internal/student-records/absences?groupId=${id}&status=Injustificado`); }
+  @Get('groups/:id/absences/:attendanceId/attachment') @Header('Cache-Control', 'no-store') async absenceAttachment(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Param('attendanceId', ParseUUIDPipe) attendanceId: string) { const user = await this.authorize(request, 'teaching.read'); await this.ownedGroup(user.id, id); return this.records('GET', `/api/v1/internal/student-records/absences/${attendanceId}/attachment?groupId=${id}`); }
 
   @Post('groups/:id/grades')
   @Header('Cache-Control', 'no-store')

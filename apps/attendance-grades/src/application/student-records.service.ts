@@ -29,8 +29,22 @@ export class StudentRecordsService {
 
   async listAbsences(filter: { query?: string; date?: string; status?: string; groupId?: string }) {
     const rows = await this.db.studentAttendance.findMany({ where: { status: { in: [StudentAttendanceStatus.ABSENT, StudentAttendanceStatus.JUSTIFIED_ABSENCE] } }, orderBy: { sessionDate: 'desc' } });
+    const justifications = await this.db.studentJustification.findMany();
+    const byAttendance = new Map(justifications.map((item) => [item.attendanceId, item]));
     const query = filter.query?.trim().toLowerCase() ?? '';
-    return { absences: rows.filter((row) => (!filter.groupId || row.groupId === filter.groupId) && (!query || row.documentNumber.includes(query) || row.studentCode.toLowerCase().includes(query)) && (!filter.date || row.sessionDate.toISOString().slice(0, 10) === filter.date) && (!filter.status || (filter.status === 'Justificado' ? row.status === StudentAttendanceStatus.JUSTIFIED_ABSENCE : row.status === StudentAttendanceStatus.ABSENT))).map((row) => ({ id: row.id, date: row.sessionDate.toISOString().slice(0, 10), documentNumber: row.documentNumber, studentName: row.studentName, groupCode: row.groupCode, language: row.language, level: row.level, status: row.status === StudentAttendanceStatus.ABSENT ? 'Injustificado' : 'Justificado' })) };
+    return { absences: rows.filter((row) => (!filter.groupId || row.groupId === filter.groupId) && (!query || row.documentNumber.includes(query) || row.studentCode.toLowerCase().includes(query)) && (!filter.date || row.sessionDate.toISOString().slice(0, 10) === filter.date) && (!filter.status || (filter.status === 'Justificado' ? row.status === StudentAttendanceStatus.JUSTIFIED_ABSENCE : row.status === StudentAttendanceStatus.ABSENT))).map((row) => {
+      const justification = byAttendance.get(row.id);
+      return { id: row.id, date: row.sessionDate.toISOString().slice(0, 10), documentNumber: row.documentNumber, studentName: row.studentName, groupCode: row.groupCode, language: row.language, level: row.level, status: row.status === StudentAttendanceStatus.ABSENT ? 'Injustificado' : 'Justificado', attachmentName: justification?.objectKey ? justification.fileName : null };
+    }) };
+  }
+
+  async attachment(attendanceId: string, groupId?: string) {
+    const attendance = await this.db.studentAttendance.findUnique({ where: { id: attendanceId }, select: { groupId: true } });
+    if (!attendance || (groupId && attendance.groupId !== groupId)) throw new BadRequestException('No tienes acceso a este adjunto.');
+    const justification = await this.db.studentJustification.findUnique({ where: { attendanceId } });
+    if (!justification?.objectKey || !justification.fileName || !justification.contentType) throw new BadRequestException('La justificación no tiene adjunto.');
+    const data = await this.files.read(justification.objectKey).catch(() => { throw new BadRequestException('El adjunto no está disponible.'); });
+    return { name: justification.fileName, contentType: justification.contentType, base64: data.toString('base64') };
   }
 
   async justifyStudent(attendanceId: string, actorId: string, reason: string, file?: { name: string; contentType: string; base64: string }) {

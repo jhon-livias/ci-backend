@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Header, Post, Query, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Header, Param, ParseUUIDPipe, Post, Query, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
@@ -37,6 +37,13 @@ export class FollowUpProxyController {
     await this.authorize(request, false);
     const params = new URLSearchParams(); if (query) params.set('query', query); if (date) params.set('date', date); if (status) params.set('status', status);
     return this.forward('GET', `/api/v1/internal/student-records/absences?${params}`);
+  }
+
+  @Get('absences/:attendanceId/attachment')
+  @Header('Cache-Control', 'no-store')
+  async attachment(@Req() request: FastifyRequest, @Param('attendanceId', ParseUUIDPipe) attendanceId: string) {
+    await this.authorize(request, false);
+    return this.forward('GET', `/api/v1/internal/student-records/absences/${attendanceId}/attachment`);
   }
 
   @Post('absences/justify')

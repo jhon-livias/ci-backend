@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsIn, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 
@@ -43,6 +43,7 @@ class JustifyDto { @IsUUID('all') attendanceId!: string; @IsUUID('all') actorId!
 export class StudentRecordsController {
   constructor(private readonly records: StudentRecordsService) {}
   @Get('absences') @Header('Cache-Control', 'no-store') absences(@Query('query') query?: string, @Query('date') date?: string, @Query('status') status?: string, @Query('groupId') groupId?: string) { return this.records.listAbsences({ query, date, status, groupId }); }
+  @Get('absences/:attendanceId/attachment') @Header('Cache-Control', 'no-store') attachment(@Param('attendanceId', ParseUUIDPipe) attendanceId: string, @Query('groupId') groupId?: string) { return this.records.attachment(attendanceId, groupId); }
   @Post('absences/justify') @Header('Cache-Control', 'no-store') justify(@Body() dto: JustifyDto) { return this.records.justifyStudent(dto.attendanceId, dto.actorId, dto.reason, dto.file); }
   @Post('absences/teacher-justify') @Header('Cache-Control', 'no-store') teacherJustify(@Body() dto: JustifyDto & RecordsBody) { return this.records.justifyStudentForGroup(dto.attendanceId, dto, dto.actorId, dto.reason, dto.file); }
   @Post('roster') @Header('Cache-Control', 'no-store') roster(@Body() dto: RecordsBody) { return this.records.roster(dto, dto.teacherUserId, dto.students); }
