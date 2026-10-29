@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
@@ -113,7 +113,14 @@ export class SsoService {
   }
 }
 
-const ticketsRedirectUri = (): string => process.env.TICKETS_SSO_REDIRECT_URI?.trim() || 'http://localhost:4201/auth/callback';
+const ticketsRedirectUri = (): string => {
+  const configured = process.env.TICKETS_SSO_REDIRECT_URI?.trim();
+  if (configured) return configured;
+  if (process.env.NODE_ENV === 'production') {
+    throw new ServiceUnavailableException('El retorno SSO de Tickets no está configurado.');
+  }
+  return 'http://localhost:4201/auth/callback';
+};
 const digest = (value: string): string => createHash('sha256').update(value).digest('hex');
 const pkceChallenge = (verifier: string): string => createHash('sha256').update(verifier).digest('base64url');
 const safeEqual = (left: string, right: string): boolean => {
