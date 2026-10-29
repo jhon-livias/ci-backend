@@ -27,4 +27,4 @@ COPY --from=build --chown=node:node /app/dist ./dist
 USER node
 
 # SERVICE is set by ci-deploy for gateway or an internal microservice.
-CMD ["sh", "-c", "node dist/apps/${SERVICE:-gateway}/src/main.js"]
+CMD ["sh", "-c", "case \"${SERVICE:-gateway}\" in auth|tickets|gateway) APP=\"${SERVICE:-gateway}\" ;; *) APP=\"language-center/${SERVICE:-gateway}\" ;; esac; node dist/apps/$APP/src/main.js"]

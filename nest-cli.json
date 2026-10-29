@@ -10,12 +10,12 @@
   "projects": {
     "gateway": { "type": "application", "root": "apps/gateway", "sourceRoot": "apps/gateway/src", "entryFile": "main" },
     "auth": { "type": "application", "root": "apps/auth", "sourceRoot": "apps/auth/src", "entryFile": "main" },
-    "academic": { "type": "application", "root": "apps/academic", "sourceRoot": "apps/academic/src", "entryFile": "main" },
-    "students": { "type": "application", "root": "apps/students", "sourceRoot": "apps/students/src", "entryFile": "main" },
-    "enrollment": { "type": "application", "root": "apps/enrollment", "sourceRoot": "apps/enrollment/src", "entryFile": "main" },
-    "attendance-grades": { "type": "application", "root": "apps/attendance-grades", "sourceRoot": "apps/attendance-grades/src", "entryFile": "main" },
-    "exams": { "type": "application", "root": "apps/exams", "sourceRoot": "apps/exams/src", "entryFile": "main" },
-    "payments": { "type": "application", "root": "apps/payments", "sourceRoot": "apps/payments/src", "entryFile": "main" },
+    "academic": { "type": "application", "root": "apps/language-center/academic", "sourceRoot": "apps/language-center/academic/src", "entryFile": "main" },
+    "students": { "type": "application", "root": "apps/language-center/students", "sourceRoot": "apps/language-center/students/src", "entryFile": "main" },
+    "enrollment": { "type": "application", "root": "apps/language-center/enrollment", "sourceRoot": "apps/language-center/enrollment/src", "entryFile": "main" },
+    "attendance-grades": { "type": "application", "root": "apps/language-center/attendance-grades", "sourceRoot": "apps/language-center/attendance-grades/src", "entryFile": "main" },
+    "exams": { "type": "application", "root": "apps/language-center/exams", "sourceRoot": "apps/language-center/exams/src", "entryFile": "main" },
+    "payments": { "type": "application", "root": "apps/language-center/payments", "sourceRoot": "apps/language-center/payments/src", "entryFile": "main" },
     "tickets": { "type": "application", "root": "apps/tickets", "sourceRoot": "apps/tickets/src", "entryFile": "main" }
   }
 }

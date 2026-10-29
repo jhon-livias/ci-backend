@@ -10,6 +10,8 @@
 /apps/payments/src/infrastructure/persistence/generated
 /apps/attendance-grades/src/infrastructure/persistence/generated
 /apps/enrollment/src/infrastructure/persistence/generated
+/apps/language-center/*/src/infrastructure/persistence/generated
+/apps/tickets/src/infrastructure/persistence/generated
 
 # TypeScript build cache
 *.tsbuildinfo
