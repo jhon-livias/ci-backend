@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 const verificationEndpoint = 'https://www.google.com/recaptcha/api/siteverify';
 const verificationTimeoutMs = 5_000;
@@ -44,6 +44,7 @@ export const recaptchaHostnames = (value: string | undefined): readonly string[]
 
 @Injectable()
 export class RecaptchaService {
+  private readonly logger = new Logger(RecaptchaService.name);
   private readonly secret = process.env.RECAPTCHA_SECRET_KEY?.trim() ?? '';
   private readonly minimumScore = readMinimumScore(
     process.env.RECAPTCHA_MIN_SCORE,
@@ -78,7 +79,7 @@ export class RecaptchaService {
     // El modo explícitamente deshabilitado solo se permite fuera de producción,
     // para no requerir llamadas a Google durante pruebas locales automatizadas.
     if (!this.enabled) return;
-    if (!this.secret) throw invalidChallenge();
+    if (!this.secret) this.reject('secret-missing');
 
     const body = new URLSearchParams({ secret: this.secret, response: token });
     if (remoteIp) body.set('remoteip', remoteIp);
@@ -92,10 +93,10 @@ export class RecaptchaService {
         signal: AbortSignal.timeout(verificationTimeoutMs),
       });
     } catch {
-      throw invalidChallenge();
+      this.reject('verification-request-failed');
     }
 
-    if (!response.ok) throw invalidChallenge();
+    if (!response.ok) this.reject(`verification-http-${response.status}`);
 
     let payload: RecaptchaVerificationResponse;
     try {
@@ -104,7 +105,7 @@ export class RecaptchaService {
         throw new Error('Respuesta de reCAPTCHA inválida.');
       payload = data;
     } catch {
-      throw invalidChallenge();
+      this.reject('verification-response-invalid');
     }
 
     const hostname =
@@ -121,7 +122,14 @@ export class RecaptchaService {
       payload.score < this.minimumScore ||
       !hostnameAllowed
     ) {
-      throw invalidChallenge();
+      this.reject(
+        `rejected success=${payload.success === true} action=${String(payload.action)} hostname=${hostname || 'missing'} score=${typeof payload.score === 'number' ? payload.score.toFixed(2) : 'missing'}`,
+      );
     }
+  }
+
+  private reject(reason: string): never {
+    this.logger.warn(`Login reCAPTCHA rechazado: ${reason}`);
+    throw invalidChallenge();
   }
 }
