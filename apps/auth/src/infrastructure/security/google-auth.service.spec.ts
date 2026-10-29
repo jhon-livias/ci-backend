@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { googleAccountEmail, googleStatesMatch } from './google-auth.service.js';
+import { googleAccountEmail, googleAuthorizationUrl, googleStatesMatch } from './google-auth.service.js';
 
 describe('google account email', () => {
   it('accepts a verified institutional account and rejects the rest', () => {
@@ -25,5 +25,10 @@ describe('google account email', () => {
     expect(googleStatesMatch(state, state)).toBe(true);
     expect(googleStatesMatch(state, `${state}x`)).toBe(false);
     expect(googleStatesMatch('short', 'short')).toBe(false);
+  });
+
+  it('uses the configured application callback supplied by the controller', () => {
+    const url = new URL(googleAuthorizationUrl('state-value', 'https://tickets.uprit.edu.pe/api/v1/auth/google/callback'));
+    expect(url.searchParams.get('redirect_uri')).toBe('https://tickets.uprit.edu.pe/api/v1/auth/google/callback');
   });
 });

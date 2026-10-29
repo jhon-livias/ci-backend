@@ -23,6 +23,7 @@ import {
   googleAuthConfigured,
   googleAuthorizationUrl,
   googleStatesMatch,
+  ticketsGoogleRedirectUri,
 } from '../../infrastructure/security/google-auth.service.js';
 import { RecaptchaService } from '../../infrastructure/security/recaptcha.service.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
@@ -35,7 +36,9 @@ import {
 const accessCookieName = 'ci_access';
 const refreshCookieName = 'ci_refresh';
 const googleStateCookieName = 'ci_google_state';
+const googleApplicationCookieName = 'ci_google_application';
 const useSecureCookies = process.env.AUTH_COOKIE_SECURE !== 'false';
+type GoogleApplication = 'language-center' | 'tickets';
 
 @Controller('auth')
 export class AuthController {
@@ -49,8 +52,12 @@ export class AuthController {
 
   @Get('google')
   @RouteConfig({ rateLimit: { max: 20, timeWindow: '1 minute' } })
-  startGoogle(@Res() response: FastifyReply): FastifyReply {
-    if (!googleAuthConfigured()) return response.redirect('/login?google=unconfigured', 302);
+  startGoogle(@Req() request: FastifyRequest, @Res() response: FastifyReply): FastifyReply {
+    const application = this.googleApplication(request);
+    const redirectUri = application === 'tickets' ? ticketsGoogleRedirectUri() : undefined;
+    if (!googleAuthConfigured() || (application === 'tickets' && !redirectUri)) {
+      return response.redirect('/login?google=unconfigured', 302);
+    }
     const state = randomBytes(32).toString('base64url');
     response.setCookie(googleStateCookieName, state, {
       httpOnly: true,
@@ -59,7 +66,14 @@ export class AuthController {
       path: '/api/v1/auth/google',
       maxAge: 10 * 60,
     });
-    return response.redirect(googleAuthorizationUrl(state), 302);
+    response.setCookie(googleApplicationCookieName, application, {
+      httpOnly: true,
+      secure: useSecureCookies,
+      sameSite: 'lax',
+      path: '/api/v1/auth/google',
+      maxAge: 10 * 60,
+    });
+    return response.redirect(googleAuthorizationUrl(state, redirectUri), 302);
   }
 
   @Get('sso/authorize')
@@ -113,20 +127,27 @@ export class AuthController {
     const state = typeof query['state'] === 'string' ? query['state'] : '';
     const code = typeof query['code'] === 'string' ? query['code'] : '';
     const expected = request.cookies[googleStateCookieName];
+    const application: GoogleApplication = request.cookies[googleApplicationCookieName] === 'tickets'
+      ? 'tickets'
+      : 'language-center';
+    const redirectUri = application === 'tickets' ? ticketsGoogleRedirectUri() : undefined;
     response.clearCookie(googleStateCookieName, { path: '/api/v1/auth/google' });
+    response.clearCookie(googleApplicationCookieName, { path: '/api/v1/auth/google' });
     if (query['error'] === 'access_denied') return response.redirect('/login?google=denied', 302);
     if (!expected || !googleStatesMatch(expected, state) || !code) {
       return response.redirect('/login?google=failed', 302);
     }
     try {
-      const email = await this.googleAuth.accountEmail(code);
+      const email = await this.googleAuth.accountEmail(code, redirectUri);
       if (!email) return response.redirect('/login?google=unverified', 302);
       const session = await this.authenticationService.loginWithGoogle(
         email,
         request.headers['user-agent'],
       );
       this.setSessionCookies(response, session.accessToken, session.refreshToken);
-      const destination = session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio';
+      const destination = application === 'tickets'
+        ? (session.user.mustChangePassword ? '/cambiar-contrasena' : '/')
+        : (session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio');
       return response.redirect(destination, 302);
     } catch (error) {
       const destination = error instanceof UnauthorizedException ? 'unknown' : 'failed';
@@ -261,5 +282,10 @@ export class AuthController {
         path: '/api/v1/auth',
         maxAge: 7 * 24 * 60 * 60,
       });
+  }
+
+  private googleApplication(request: FastifyRequest): GoogleApplication {
+    const application = (request.query as Record<string, unknown>)['application'];
+    return application === 'tickets' ? 'tickets' : 'language-center';
   }
 }

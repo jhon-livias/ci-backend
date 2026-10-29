@@ -11,10 +11,12 @@ const requestTimeoutMs = 5_000;
 export const googleAuthConfigured = (): boolean =>
   googleClientId().length > 0 && googleClientSecret().length > 0 && googleRedirectUri().length > 0;
 
-export const googleAuthorizationUrl = (state: string): string => {
+export const ticketsGoogleRedirectUri = (): string => process.env.TICKETS_GOOGLE_REDIRECT_URI?.trim() ?? '';
+
+export const googleAuthorizationUrl = (state: string, redirectUri = googleRedirectUri()): string => {
   const url = new URL(authorizationEndpoint);
   url.searchParams.set('client_id', googleClientId());
-  url.searchParams.set('redirect_uri', googleRedirectUri());
+  url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'openid email profile');
   url.searchParams.set('state', state);
@@ -47,8 +49,8 @@ const googleRedirectUri = (): string => process.env.GOOGLE_REDIRECT_URI?.trim() 
 
 @Injectable()
 export class GoogleAuthService {
-  async accountEmail(code: string): Promise<string | null> {
-    const accessToken = await this.accessToken(code);
+  async accountEmail(code: string, redirectUri = googleRedirectUri()): Promise<string | null> {
+    const accessToken = await this.accessToken(code, redirectUri);
     if (!accessToken) return null;
     const response = await fetch(userInfoEndpoint, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -58,12 +60,12 @@ export class GoogleAuthService {
     return googleAccountEmail(await response.json());
   }
 
-  private async accessToken(code: string): Promise<string | null> {
+  private async accessToken(code: string, redirectUri: string): Promise<string | null> {
     const body = new URLSearchParams({
       code,
       client_id: googleClientId(),
       client_secret: googleClientSecret(),
-      redirect_uri: googleRedirectUri(),
+      redirect_uri: redirectUri,
       grant_type: 'authorization_code',
     });
     const response = await fetch(tokenEndpoint, {
