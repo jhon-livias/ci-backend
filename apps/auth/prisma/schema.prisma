@@ -74,6 +74,7 @@ model User {
   notifications       UserNotification[]
   grants              UserFunctionalityGrant[]
   applicationRoles    UserApplicationRole[]
+  ssoAuthorizationCodes SsoAuthorizationCode[]
   auditEvents         AuditEvent[]
 
   @@index([status])
@@ -90,6 +91,7 @@ model IdentityApplication {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   roles     ApplicationRole[]
+  authorizationCodes SsoAuthorizationCode[]
 
   @@map("identity_applications")
 }
@@ -118,6 +120,27 @@ model UserApplicationRole {
   @@id([userId, applicationRoleId])
   @@index([applicationRoleId])
   @@map("user_application_roles")
+}
+
+/// Código efímero para el inicio de sesión único. El valor que circula por el
+/// navegador nunca se guarda; solo se conserva su SHA-256 y se canjea una vez.
+model SsoAuthorizationCode {
+  id            String              @id @default(uuid()) @db.Uuid
+  codeHash      String              @unique @db.Char(64)
+  userId        String              @db.Uuid
+  applicationId String              @db.Uuid
+  redirectUri   String              @db.VarChar(2048)
+  codeChallenge String              @db.VarChar(128)
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime            @default(now())
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   IdentityApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([applicationId, expiresAt])
+  @@index([expiresAt])
+  @@map("sso_authorization_codes")
 }
 
 /// Datos generales editables desde la vista de perfil. El correo de acceso sigue en User.

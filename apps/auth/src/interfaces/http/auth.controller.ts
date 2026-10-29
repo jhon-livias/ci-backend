@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,6 +16,7 @@ import { RouteConfig } from '@nestjs/platform-fastify';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import { AuthenticationService } from '../../application/authentication.service.js';
+import { SsoService } from '../../application/sso.service.js';
 import { PasswordRecoveryService } from '../../application/password-recovery.service.js';
 import {
   GoogleAuthService,
@@ -39,6 +41,7 @@ const useSecureCookies = process.env.AUTH_COOKIE_SECURE !== 'false';
 export class AuthController {
   constructor(
     private readonly authenticationService: AuthenticationService,
+    private readonly sso: SsoService,
     private readonly recovery: PasswordRecoveryService,
     private readonly recaptcha: RecaptchaService,
     private readonly googleAuth: GoogleAuthService,
@@ -57,6 +60,47 @@ export class AuthController {
       maxAge: 10 * 60,
     });
     return response.redirect(googleAuthorizationUrl(state), 302);
+  }
+
+  @Get('sso/authorize')
+  @RouteConfig({ rateLimit: { max: 30, timeWindow: '1 minute' } })
+  async authorizeSso(@Req() request: FastifyRequest, @Res() response: FastifyReply): Promise<FastifyReply> {
+    const query = request.query as Record<string, unknown>;
+    const clientId = query['client_id'];
+    const redirectUri = query['redirect_uri'];
+    const challenge = query['code_challenge'];
+    const state = query['state'];
+    if (query['response_type'] !== 'code' || typeof clientId !== 'string' || typeof redirectUri !== 'string' ||
+      typeof challenge !== 'string' || query['code_challenge_method'] !== 'S256' ||
+      (state !== undefined && (typeof state !== 'string' || state.length > 512))) {
+      throw new ForbiddenException('Solicitud SSO inválida.');
+    }
+    const accessToken = request.cookies[accessCookieName];
+    if (!accessToken) throw new UnauthorizedException('Inicie sesión para continuar con Tickets.');
+    const session = await this.authenticationService.restore(accessToken);
+    if (session.user.mustChangePassword) throw new ForbiddenException('Debe cambiar su contraseña antes de continuar.');
+    const code = await this.sso.authorize({ user: session.user, clientId, redirectUri, codeChallenge: challenge });
+    const destination = new URL(redirectUri);
+    destination.searchParams.set('code', code);
+    if (typeof state === 'string') destination.searchParams.set('state', state);
+    response.header('Cache-Control', 'no-store');
+    return response.redirect(destination.toString(), 302);
+  }
+
+  @Post('sso/token')
+  @HttpCode(HttpStatus.OK)
+  @RouteConfig({ rateLimit: { max: 20, timeWindow: '1 minute' } })
+  async exchangeSsoCode(@Body() input: { client_id?: unknown; code?: unknown; redirect_uri?: unknown; code_verifier?: unknown }) {
+    if (typeof input.client_id !== 'string' || typeof input.code !== 'string' ||
+      typeof input.redirect_uri !== 'string' || typeof input.code_verifier !== 'string') {
+      throw new ForbiddenException('Solicitud de canje SSO inválida.');
+    }
+    return this.sso.exchange({
+      clientId: input.client_id,
+      code: input.code,
+      redirectUri: input.redirect_uri,
+      codeVerifier: input.code_verifier,
+    });
   }
 
   @Get('google/callback')

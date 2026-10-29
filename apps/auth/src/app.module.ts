@@ -50,6 +50,7 @@ import { RabbitNotificationBridge } from './infrastructure/notifications/rabbit-
 import { NonceStore } from './infrastructure/notifications/nonce-store.js';
 import { GoogleAuthService } from './infrastructure/security/google-auth.service.js';
 import { RecaptchaService } from './infrastructure/security/recaptcha.service.js';
+import { SsoService } from './application/sso.service.js';
 
 const HealthController = createHealthController('auth');
 const accessTokenSecret = process.env.AUTH_JWT_ACCESS_SECRET;
@@ -89,6 +90,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
   providers: [
     AuthPrismaService,
     AuthenticationService,
+    SsoService,
     AccountProfileService,
     PasswordRecoveryService,
     RecaptchaService,
