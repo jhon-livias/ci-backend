@@ -11,6 +11,7 @@ RUN AUTH_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=auth
   && STUDENTS_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=students' npm run students:db:generate \
   && ENROLLMENT_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=enrollment' npm run enrollment:db:generate \
   && ATTENDANCE_GRADES_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=attendance' npm run attendance:db:generate \
+  && TICKETS_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=tickets' npm run tickets:db:generate \
   && npm run build
 
 FROM node:22-alpine AS production-dependencies

@@ -15,6 +15,7 @@
     "enrollment": { "type": "application", "root": "apps/enrollment", "sourceRoot": "apps/enrollment/src", "entryFile": "main" },
     "attendance-grades": { "type": "application", "root": "apps/attendance-grades", "sourceRoot": "apps/attendance-grades/src", "entryFile": "main" },
     "exams": { "type": "application", "root": "apps/exams", "sourceRoot": "apps/exams/src", "entryFile": "main" },
-    "payments": { "type": "application", "root": "apps/payments", "sourceRoot": "apps/payments/src", "entryFile": "main" }
+    "payments": { "type": "application", "root": "apps/payments", "sourceRoot": "apps/payments/src", "entryFile": "main" },
+    "tickets": { "type": "application", "root": "apps/tickets", "sourceRoot": "apps/tickets/src", "entryFile": "main" }
   }
 }

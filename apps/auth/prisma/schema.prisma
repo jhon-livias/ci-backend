@@ -73,11 +73,51 @@ model User {
   passwordResetTokens PasswordResetToken[]
   notifications       UserNotification[]
   grants              UserFunctionalityGrant[]
+  applicationRoles    UserApplicationRole[]
   auditEvents         AuditEvent[]
 
   @@index([status])
   @@index([siteId])
   @@map("users")
+}
+
+/// Aplicaciones que delegan identidad a este servicio. Sus dominios no se mezclan.
+model IdentityApplication {
+  id        String            @id @default(uuid()) @db.Uuid
+  code      String            @unique @db.VarChar(64)
+  name      String            @db.VarChar(120)
+  enabled   Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  roles     ApplicationRole[]
+
+  @@map("identity_applications")
+}
+
+/// Rol limitado a una aplicación, independiente de los roles académicos históricos.
+model ApplicationRole {
+  id            String                @id @default(uuid()) @db.Uuid
+  applicationId String                @db.Uuid
+  code          String                @db.VarChar(100)
+  name          String                @db.VarChar(120)
+  enabled       Boolean               @default(true)
+  application   IdentityApplication   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  users         UserApplicationRole[]
+
+  @@unique([applicationId, code])
+  @@map("application_roles")
+}
+
+model UserApplicationRole {
+  userId            String          @db.Uuid
+  applicationRoleId String          @db.Uuid
+  assignedAt        DateTime        @default(now())
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationRole   ApplicationRole @relation(fields: [applicationRoleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, applicationRoleId])
+  @@index([applicationRoleId])
+  @@map("user_application_roles")
 }
 
 /// Datos generales editables desde la vista de perfil. El correo de acceso sigue en User.

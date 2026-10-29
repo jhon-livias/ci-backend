@@ -7,6 +7,7 @@ export const serviceNames = [
   'attendance-grades',
   'exams',
   'payments',
+  'tickets',
 ] as const;
 
 export type ServiceName = (typeof serviceNames)[number];

@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/persistence/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TicketStatus {
+  CREATED
+  IN_REVIEW
+  ASSIGNED
+  DERIVED
+  RESOLVED
+  CLOSED
+  REOPENED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Area {
+  id       String @id @default(uuid()) @db.Uuid
+  name     String @db.VarChar(160)
+  parentId String? @db.Uuid
+  enabled  Boolean @default(true)
+  @@index([parentId])
+  @@map("areas")
+}
+
+model TicketCategory {
+  id        String @id @default(uuid()) @db.Uuid
+  areaId    String @db.Uuid
+  name      String @db.VarChar(160)
+  enabled   Boolean @default(true)
+  @@index([areaId])
+  @@map("ticket_categories")
+}
+
+model Ticket {
+  id              String         @id @default(uuid()) @db.Uuid
+  code            String         @unique @db.VarChar(32)
+  requesterUserId String         @db.Uuid
+  areaId          String         @db.Uuid
+  categoryId      String         @db.Uuid
+  subject         String         @db.VarChar(200)
+  description     String         @db.VarChar(4000)
+  status          TicketStatus   @default(CREATED)
+  priority        TicketPriority @default(MEDIUM)
+  assignedUserId  String?        @db.Uuid
+  dueAt           DateTime?
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  @@index([requesterUserId, createdAt])
+  @@index([assignedUserId, status])
+  @@index([areaId, status])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id          String   @id @default(uuid()) @db.Uuid
+  ticketId    String   @db.Uuid
+  authorUserId String  @db.Uuid
+  body        String   @db.VarChar(4000)
+  internal    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  @@index([ticketId, createdAt])
+  @@map("ticket_comments")
+}
+
+model TicketHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  ticketId    String   @db.Uuid
+  actorUserId String?  @db.Uuid
+  action      String   @db.VarChar(120)
+  detail      String?  @db.VarChar(500)
+  createdAt   DateTime @default(now())
+  @@index([ticketId, createdAt])
+  @@map("ticket_history")
+}

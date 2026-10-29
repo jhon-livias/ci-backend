@@ -1,0 +1,15 @@
+CREATE TYPE "TicketStatus" AS ENUM ('CREATED', 'IN_REVIEW', 'ASSIGNED', 'DERIVED', 'RESOLVED', 'CLOSED', 'REOPENED');
+CREATE TYPE "TicketPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+CREATE TABLE "areas" ("id" UUID NOT NULL, "name" VARCHAR(160) NOT NULL, "parentId" UUID, "enabled" BOOLEAN NOT NULL DEFAULT true, CONSTRAINT "areas_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "areas_parentId_idx" ON "areas"("parentId");
+CREATE TABLE "ticket_categories" ("id" UUID NOT NULL, "areaId" UUID NOT NULL, "name" VARCHAR(160) NOT NULL, "enabled" BOOLEAN NOT NULL DEFAULT true, CONSTRAINT "ticket_categories_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "ticket_categories_areaId_idx" ON "ticket_categories"("areaId");
+CREATE TABLE "tickets" ("id" UUID NOT NULL, "code" VARCHAR(32) NOT NULL, "requesterUserId" UUID NOT NULL, "areaId" UUID NOT NULL, "categoryId" UUID NOT NULL, "subject" VARCHAR(200) NOT NULL, "description" VARCHAR(4000) NOT NULL, "status" "TicketStatus" NOT NULL DEFAULT 'CREATED', "priority" "TicketPriority" NOT NULL DEFAULT 'MEDIUM', "assignedUserId" UUID, "dueAt" TIMESTAMP(3), "resolvedAt" TIMESTAMP(3), "closedAt" TIMESTAMP(3), "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "tickets_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "tickets_code_key" ON "tickets"("code");
+CREATE INDEX "tickets_requesterUserId_createdAt_idx" ON "tickets"("requesterUserId", "createdAt");
+CREATE INDEX "tickets_assignedUserId_status_idx" ON "tickets"("assignedUserId", "status");
+CREATE INDEX "tickets_areaId_status_idx" ON "tickets"("areaId", "status");
+CREATE TABLE "ticket_comments" ("id" UUID NOT NULL, "ticketId" UUID NOT NULL, "authorUserId" UUID NOT NULL, "body" VARCHAR(4000) NOT NULL, "internal" BOOLEAN NOT NULL DEFAULT false, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ticket_comments_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "ticket_comments_ticketId_createdAt_idx" ON "ticket_comments"("ticketId", "createdAt");
+CREATE TABLE "ticket_history" ("id" UUID NOT NULL, "ticketId" UUID NOT NULL, "actorUserId" UUID, "action" VARCHAR(120) NOT NULL, "detail" VARCHAR(500), "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "ticket_history_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "ticket_history_ticketId_createdAt_idx" ON "ticket_history"("ticketId", "createdAt");

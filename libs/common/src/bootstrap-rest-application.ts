@@ -21,6 +21,7 @@ const ports: Record<ServiceName, number> = {
   'attendance-grades': 3005,
   exams: 3006,
   payments: 3007,
+  tickets: 3008,
 };
 
 const parseAllowedOrigins = (): string[] =>
