@@ -28,7 +28,7 @@ describe('SsoService', () => {
     };
     const service = new SsoService(prisma as never);
     const code = await service.authorize({
-      user: { id: activeUser.id, username: 'ana', roles: [], mustChangePassword: false, profile: null },
+      user: { id: activeUser.id, username: 'ana', roles: [], applicationRoles: [], mustChangePassword: false, profile: null },
       clientId: 'ci-tickets', redirectUri: 'http://localhost:4201/auth/callback', codeChallenge: 'r'.repeat(43),
     });
     expect(code).toMatch(/^[A-Za-z0-9_-]{32,}$/u);

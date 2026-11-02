@@ -25,6 +25,7 @@ export interface AuthenticatedUser {
   readonly id: string;
   readonly username: string;
   readonly roles: readonly UserRoleName[];
+  readonly applicationRoles: readonly string[];
   readonly mustChangePassword: boolean;
   readonly profile: { readonly firstName: string; readonly paternalLastName: string } | null;
 }
@@ -46,7 +47,7 @@ export class AuthenticationService {
         deletedAt: null,
         OR: [{ username: identifier }, { email: identifier }],
       },
-      include: { profile: true, roles: true },
+      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
     });
 
     if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
@@ -85,7 +86,7 @@ export class AuthenticationService {
     if (!normalized) throw new UnauthorizedException('Credenciales inválidas.');
     const user = await this.prisma.user.findFirst({
       where: { deletedAt: null, email: { equals: normalized, mode: 'insensitive' } },
-      include: { profile: true, roles: true },
+      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
     });
     if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
       throw new UnauthorizedException('Credenciales inválidas.');
@@ -119,7 +120,7 @@ export class AuthenticationService {
     if (!payload.sub || !payload.csrf || !Array.isArray(payload.roles)) throw new UnauthorizedException();
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      include: { profile: true, roles: true },
+      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
     });
     if (!user || user.deletedAt || user.status !== UserStatus.ACTIVE) throw new UnauthorizedException();
     return { user: this.toAuthenticatedUser(user), csrfToken: payload.csrf };
@@ -130,7 +131,7 @@ export class AuthenticationService {
     if (!sessionId) throw new UnauthorizedException();
     const existing = await this.prisma.authSession.findUnique({
       where: { id: sessionId },
-      include: { user: { include: { profile: true, roles: true } } },
+      include: { user: { include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } } } },
     });
     if (!existing || existing.revokedAt || existing.expiresAt <= new Date()) throw new UnauthorizedException();
     if (!(await argon2.verify(existing.refreshTokenHash, refreshToken))) throw new UnauthorizedException();
@@ -197,12 +198,16 @@ export class AuthenticationService {
     username: string;
     mustChangePassword: boolean;
     roles: readonly { role: UserRoleName }[];
+    applicationRoles?: readonly { applicationRole: { code: string; enabled: boolean } }[];
     profile: { firstName: string; paternalLastName: string } | null;
   }): AuthenticatedUser {
     return {
       id: user.id,
       username: user.username,
       roles: user.roles.map(({ role }) => role),
+      applicationRoles: (user.applicationRoles ?? [])
+        .filter(({ applicationRole }) => applicationRole.enabled)
+        .map(({ applicationRole }) => applicationRole.code),
       mustChangePassword: user.mustChangePassword,
       profile: user.profile ? { firstName: user.profile.firstName, paternalLastName: user.profile.paternalLastName } : null,
     };
