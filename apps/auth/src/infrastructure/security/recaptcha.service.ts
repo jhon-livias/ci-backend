@@ -42,6 +42,12 @@ export const recaptchaHostnames = (value: string | undefined): readonly string[]
   return [...hosts];
 };
 
+/** Une la lista explícita de reCAPTCHA con los orígenes públicos de las aplicaciones. */
+export const recaptchaAllowedHostnames = (
+  allowedHostnames: string | undefined,
+  allowedOrigins: string | undefined,
+): readonly string[] => [...new Set([...recaptchaHostnames(allowedHostnames), ...recaptchaHostnames(allowedOrigins)])];
+
 @Injectable()
 export class RecaptchaService {
   private readonly logger = new Logger(RecaptchaService.name);
@@ -49,8 +55,9 @@ export class RecaptchaService {
   private readonly minimumScore = readMinimumScore(
     process.env.RECAPTCHA_MIN_SCORE,
   );
-  private readonly allowedHostnames = recaptchaHostnames(
+  private readonly allowedHostnames = recaptchaAllowedHostnames(
     process.env.RECAPTCHA_ALLOWED_HOSTNAMES,
+    process.env.APP_ALLOWED_ORIGINS,
   );
   private readonly enabled = process.env.RECAPTCHA_ENABLED !== 'false';
 
