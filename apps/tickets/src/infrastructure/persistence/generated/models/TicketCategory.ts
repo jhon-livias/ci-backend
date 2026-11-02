@@ -28,21 +28,30 @@ export type TicketCategoryMinAggregateOutputType = {
   id: string | null
   areaId: string | null
   name: string | null
+  description: string | null
   enabled: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type TicketCategoryMaxAggregateOutputType = {
   id: string | null
   areaId: string | null
   name: string | null
+  description: string | null
   enabled: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type TicketCategoryCountAggregateOutputType = {
   id: number
   areaId: number
   name: number
+  description: number
   enabled: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -51,21 +60,30 @@ export type TicketCategoryMinAggregateInputType = {
   id?: true
   areaId?: true
   name?: true
+  description?: true
   enabled?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type TicketCategoryMaxAggregateInputType = {
   id?: true
   areaId?: true
   name?: true
+  description?: true
   enabled?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type TicketCategoryCountAggregateInputType = {
   id?: true
   areaId?: true
   name?: true
+  description?: true
   enabled?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -145,7 +163,10 @@ export type TicketCategoryGroupByOutputType = {
   id: string
   areaId: string
   name: string
+  description: string
   enabled: boolean
+  createdAt: Date
+  updatedAt: Date
   _count: TicketCategoryCountAggregateOutputType | null
   _min: TicketCategoryMinAggregateOutputType | null
   _max: TicketCategoryMaxAggregateOutputType | null
@@ -173,31 +194,50 @@ export type TicketCategoryWhereInput = {
   id?: Prisma.UuidFilter<"TicketCategory"> | string
   areaId?: Prisma.UuidFilter<"TicketCategory"> | string
   name?: Prisma.StringFilter<"TicketCategory"> | string
+  description?: Prisma.StringFilter<"TicketCategory"> | string
   enabled?: Prisma.BoolFilter<"TicketCategory"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"TicketCategory"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TicketCategory"> | Date | string
+  area?: Prisma.XOR<Prisma.AreaScalarRelationFilter, Prisma.AreaWhereInput>
+  tickets?: Prisma.TicketListRelationFilter
 }
 
 export type TicketCategoryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   areaId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  area?: Prisma.AreaOrderByWithRelationInput
+  tickets?: Prisma.TicketOrderByRelationAggregateInput
 }
 
 export type TicketCategoryWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  areaId_name?: Prisma.TicketCategoryAreaIdNameCompoundUniqueInput
   AND?: Prisma.TicketCategoryWhereInput | Prisma.TicketCategoryWhereInput[]
   OR?: Prisma.TicketCategoryWhereInput[]
   NOT?: Prisma.TicketCategoryWhereInput | Prisma.TicketCategoryWhereInput[]
   areaId?: Prisma.UuidFilter<"TicketCategory"> | string
   name?: Prisma.StringFilter<"TicketCategory"> | string
+  description?: Prisma.StringFilter<"TicketCategory"> | string
   enabled?: Prisma.BoolFilter<"TicketCategory"> | boolean
-}, "id">
+  createdAt?: Prisma.DateTimeFilter<"TicketCategory"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TicketCategory"> | Date | string
+  area?: Prisma.XOR<Prisma.AreaScalarRelationFilter, Prisma.AreaWhereInput>
+  tickets?: Prisma.TicketListRelationFilter
+}, "id" | "areaId_name">
 
 export type TicketCategoryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   areaId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.TicketCategoryCountOrderByAggregateInput
   _max?: Prisma.TicketCategoryMaxOrderByAggregateInput
   _min?: Prisma.TicketCategoryMinOrderByAggregateInput
@@ -210,119 +250,447 @@ export type TicketCategoryScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"TicketCategory"> | string
   areaId?: Prisma.UuidWithAggregatesFilter<"TicketCategory"> | string
   name?: Prisma.StringWithAggregatesFilter<"TicketCategory"> | string
+  description?: Prisma.StringWithAggregatesFilter<"TicketCategory"> | string
   enabled?: Prisma.BoolWithAggregatesFilter<"TicketCategory"> | boolean
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"TicketCategory"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TicketCategory"> | Date | string
 }
 
 export type TicketCategoryCreateInput = {
   id?: string
-  areaId: string
   name: string
+  description: string
   enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  area: Prisma.AreaCreateNestedOneWithoutCategoriesInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutCategoryInput
 }
 
 export type TicketCategoryUncheckedCreateInput = {
   id?: string
   areaId: string
   name: string
+  description: string
   enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutCategoryInput
 }
 
 export type TicketCategoryUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  areaId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  area?: Prisma.AreaUpdateOneRequiredWithoutCategoriesNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutCategoryNestedInput
 }
 
 export type TicketCategoryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   areaId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutCategoryNestedInput
 }
 
 export type TicketCategoryCreateManyInput = {
   id?: string
   areaId: string
   name: string
+  description: string
   enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type TicketCategoryUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  areaId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TicketCategoryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   areaId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TicketCategoryListRelationFilter = {
+  every?: Prisma.TicketCategoryWhereInput
+  some?: Prisma.TicketCategoryWhereInput
+  none?: Prisma.TicketCategoryWhereInput
+}
+
+export type TicketCategoryOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type TicketCategoryAreaIdNameCompoundUniqueInput = {
+  areaId: string
+  name: string
 }
 
 export type TicketCategoryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   areaId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type TicketCategoryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   areaId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type TicketCategoryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   areaId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
+export type TicketCategoryScalarRelationFilter = {
+  is?: Prisma.TicketCategoryWhereInput
+  isNot?: Prisma.TicketCategoryWhereInput
+}
+
+export type TicketCategoryCreateNestedManyWithoutAreaInput = {
+  create?: Prisma.XOR<Prisma.TicketCategoryCreateWithoutAreaInput, Prisma.TicketCategoryUncheckedCreateWithoutAreaInput> | Prisma.TicketCategoryCreateWithoutAreaInput[] | Prisma.TicketCategoryUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.TicketCategoryCreateOrConnectWithoutAreaInput | Prisma.TicketCategoryCreateOrConnectWithoutAreaInput[]
+  createMany?: Prisma.TicketCategoryCreateManyAreaInputEnvelope
+  connect?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+}
+
+export type TicketCategoryUncheckedCreateNestedManyWithoutAreaInput = {
+  create?: Prisma.XOR<Prisma.TicketCategoryCreateWithoutAreaInput, Prisma.TicketCategoryUncheckedCreateWithoutAreaInput> | Prisma.TicketCategoryCreateWithoutAreaInput[] | Prisma.TicketCategoryUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.TicketCategoryCreateOrConnectWithoutAreaInput | Prisma.TicketCategoryCreateOrConnectWithoutAreaInput[]
+  createMany?: Prisma.TicketCategoryCreateManyAreaInputEnvelope
+  connect?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+}
+
+export type TicketCategoryUpdateManyWithoutAreaNestedInput = {
+  create?: Prisma.XOR<Prisma.TicketCategoryCreateWithoutAreaInput, Prisma.TicketCategoryUncheckedCreateWithoutAreaInput> | Prisma.TicketCategoryCreateWithoutAreaInput[] | Prisma.TicketCategoryUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.TicketCategoryCreateOrConnectWithoutAreaInput | Prisma.TicketCategoryCreateOrConnectWithoutAreaInput[]
+  upsert?: Prisma.TicketCategoryUpsertWithWhereUniqueWithoutAreaInput | Prisma.TicketCategoryUpsertWithWhereUniqueWithoutAreaInput[]
+  createMany?: Prisma.TicketCategoryCreateManyAreaInputEnvelope
+  set?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  disconnect?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  delete?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  connect?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  update?: Prisma.TicketCategoryUpdateWithWhereUniqueWithoutAreaInput | Prisma.TicketCategoryUpdateWithWhereUniqueWithoutAreaInput[]
+  updateMany?: Prisma.TicketCategoryUpdateManyWithWhereWithoutAreaInput | Prisma.TicketCategoryUpdateManyWithWhereWithoutAreaInput[]
+  deleteMany?: Prisma.TicketCategoryScalarWhereInput | Prisma.TicketCategoryScalarWhereInput[]
+}
+
+export type TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput = {
+  create?: Prisma.XOR<Prisma.TicketCategoryCreateWithoutAreaInput, Prisma.TicketCategoryUncheckedCreateWithoutAreaInput> | Prisma.TicketCategoryCreateWithoutAreaInput[] | Prisma.TicketCategoryUncheckedCreateWithoutAreaInput[]
+  connectOrCreate?: Prisma.TicketCategoryCreateOrConnectWithoutAreaInput | Prisma.TicketCategoryCreateOrConnectWithoutAreaInput[]
+  upsert?: Prisma.TicketCategoryUpsertWithWhereUniqueWithoutAreaInput | Prisma.TicketCategoryUpsertWithWhereUniqueWithoutAreaInput[]
+  createMany?: Prisma.TicketCategoryCreateManyAreaInputEnvelope
+  set?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  disconnect?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  delete?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  connect?: Prisma.TicketCategoryWhereUniqueInput | Prisma.TicketCategoryWhereUniqueInput[]
+  update?: Prisma.TicketCategoryUpdateWithWhereUniqueWithoutAreaInput | Prisma.TicketCategoryUpdateWithWhereUniqueWithoutAreaInput[]
+  updateMany?: Prisma.TicketCategoryUpdateManyWithWhereWithoutAreaInput | Prisma.TicketCategoryUpdateManyWithWhereWithoutAreaInput[]
+  deleteMany?: Prisma.TicketCategoryScalarWhereInput | Prisma.TicketCategoryScalarWhereInput[]
+}
+
+export type TicketCategoryCreateNestedOneWithoutTicketsInput = {
+  create?: Prisma.XOR<Prisma.TicketCategoryCreateWithoutTicketsInput, Prisma.TicketCategoryUncheckedCreateWithoutTicketsInput>
+  connectOrCreate?: Prisma.TicketCategoryCreateOrConnectWithoutTicketsInput
+  connect?: Prisma.TicketCategoryWhereUniqueInput
+}
+
+export type TicketCategoryUpdateOneRequiredWithoutTicketsNestedInput = {
+  create?: Prisma.XOR<Prisma.TicketCategoryCreateWithoutTicketsInput, Prisma.TicketCategoryUncheckedCreateWithoutTicketsInput>
+  connectOrCreate?: Prisma.TicketCategoryCreateOrConnectWithoutTicketsInput
+  upsert?: Prisma.TicketCategoryUpsertWithoutTicketsInput
+  connect?: Prisma.TicketCategoryWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TicketCategoryUpdateToOneWithWhereWithoutTicketsInput, Prisma.TicketCategoryUpdateWithoutTicketsInput>, Prisma.TicketCategoryUncheckedUpdateWithoutTicketsInput>
+}
+
+export type TicketCategoryCreateWithoutAreaInput = {
+  id?: string
+  name: string
+  description: string
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tickets?: Prisma.TicketCreateNestedManyWithoutCategoryInput
+}
+
+export type TicketCategoryUncheckedCreateWithoutAreaInput = {
+  id?: string
+  name: string
+  description: string
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutCategoryInput
+}
+
+export type TicketCategoryCreateOrConnectWithoutAreaInput = {
+  where: Prisma.TicketCategoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.TicketCategoryCreateWithoutAreaInput, Prisma.TicketCategoryUncheckedCreateWithoutAreaInput>
+}
+
+export type TicketCategoryCreateManyAreaInputEnvelope = {
+  data: Prisma.TicketCategoryCreateManyAreaInput | Prisma.TicketCategoryCreateManyAreaInput[]
+  skipDuplicates?: boolean
+}
+
+export type TicketCategoryUpsertWithWhereUniqueWithoutAreaInput = {
+  where: Prisma.TicketCategoryWhereUniqueInput
+  update: Prisma.XOR<Prisma.TicketCategoryUpdateWithoutAreaInput, Prisma.TicketCategoryUncheckedUpdateWithoutAreaInput>
+  create: Prisma.XOR<Prisma.TicketCategoryCreateWithoutAreaInput, Prisma.TicketCategoryUncheckedCreateWithoutAreaInput>
+}
+
+export type TicketCategoryUpdateWithWhereUniqueWithoutAreaInput = {
+  where: Prisma.TicketCategoryWhereUniqueInput
+  data: Prisma.XOR<Prisma.TicketCategoryUpdateWithoutAreaInput, Prisma.TicketCategoryUncheckedUpdateWithoutAreaInput>
+}
+
+export type TicketCategoryUpdateManyWithWhereWithoutAreaInput = {
+  where: Prisma.TicketCategoryScalarWhereInput
+  data: Prisma.XOR<Prisma.TicketCategoryUpdateManyMutationInput, Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaInput>
+}
+
+export type TicketCategoryScalarWhereInput = {
+  AND?: Prisma.TicketCategoryScalarWhereInput | Prisma.TicketCategoryScalarWhereInput[]
+  OR?: Prisma.TicketCategoryScalarWhereInput[]
+  NOT?: Prisma.TicketCategoryScalarWhereInput | Prisma.TicketCategoryScalarWhereInput[]
+  id?: Prisma.UuidFilter<"TicketCategory"> | string
+  areaId?: Prisma.UuidFilter<"TicketCategory"> | string
+  name?: Prisma.StringFilter<"TicketCategory"> | string
+  description?: Prisma.StringFilter<"TicketCategory"> | string
+  enabled?: Prisma.BoolFilter<"TicketCategory"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"TicketCategory"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"TicketCategory"> | Date | string
+}
+
+export type TicketCategoryCreateWithoutTicketsInput = {
+  id?: string
+  name: string
+  description: string
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  area: Prisma.AreaCreateNestedOneWithoutCategoriesInput
+}
+
+export type TicketCategoryUncheckedCreateWithoutTicketsInput = {
+  id?: string
+  areaId: string
+  name: string
+  description: string
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TicketCategoryCreateOrConnectWithoutTicketsInput = {
+  where: Prisma.TicketCategoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.TicketCategoryCreateWithoutTicketsInput, Prisma.TicketCategoryUncheckedCreateWithoutTicketsInput>
+}
+
+export type TicketCategoryUpsertWithoutTicketsInput = {
+  update: Prisma.XOR<Prisma.TicketCategoryUpdateWithoutTicketsInput, Prisma.TicketCategoryUncheckedUpdateWithoutTicketsInput>
+  create: Prisma.XOR<Prisma.TicketCategoryCreateWithoutTicketsInput, Prisma.TicketCategoryUncheckedCreateWithoutTicketsInput>
+  where?: Prisma.TicketCategoryWhereInput
+}
+
+export type TicketCategoryUpdateToOneWithWhereWithoutTicketsInput = {
+  where?: Prisma.TicketCategoryWhereInput
+  data: Prisma.XOR<Prisma.TicketCategoryUpdateWithoutTicketsInput, Prisma.TicketCategoryUncheckedUpdateWithoutTicketsInput>
+}
+
+export type TicketCategoryUpdateWithoutTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  area?: Prisma.AreaUpdateOneRequiredWithoutCategoriesNestedInput
+}
+
+export type TicketCategoryUncheckedUpdateWithoutTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  areaId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TicketCategoryCreateManyAreaInput = {
+  id?: string
+  name: string
+  description: string
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TicketCategoryUpdateWithoutAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tickets?: Prisma.TicketUpdateManyWithoutCategoryNestedInput
+}
+
+export type TicketCategoryUncheckedUpdateWithoutAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutCategoryNestedInput
+}
+
+export type TicketCategoryUncheckedUpdateManyWithoutAreaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type TicketCategoryCountOutputType
+ */
+
+export type TicketCategoryCountOutputType = {
+  tickets: number
+}
+
+export type TicketCategoryCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  tickets?: boolean | TicketCategoryCountOutputTypeCountTicketsArgs
+}
+
+/**
+ * TicketCategoryCountOutputType without action
+ */
+export type TicketCategoryCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TicketCategoryCountOutputType
+   */
+  select?: Prisma.TicketCategoryCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * TicketCategoryCountOutputType without action
+ */
+export type TicketCategoryCountOutputTypeCountTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TicketWhereInput
+}
 
 
 export type TicketCategorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   areaId?: boolean
   name?: boolean
+  description?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
+  tickets?: boolean | Prisma.TicketCategory$ticketsArgs<ExtArgs>
+  _count?: boolean | Prisma.TicketCategoryCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticketCategory"]>
 
 export type TicketCategorySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   areaId?: boolean
   name?: boolean
+  description?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticketCategory"]>
 
 export type TicketCategorySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   areaId?: boolean
   name?: boolean
+  description?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticketCategory"]>
 
 export type TicketCategorySelectScalar = {
   id?: boolean
   areaId?: boolean
   name?: boolean
+  description?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type TicketCategoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "areaId" | "name" | "enabled", ExtArgs["result"]["ticketCategory"]>
+export type TicketCategoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "areaId" | "name" | "description" | "enabled" | "createdAt" | "updatedAt", ExtArgs["result"]["ticketCategory"]>
+export type TicketCategoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
+  tickets?: boolean | Prisma.TicketCategory$ticketsArgs<ExtArgs>
+  _count?: boolean | Prisma.TicketCategoryCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type TicketCategoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
+}
+export type TicketCategoryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
+}
 
 export type $TicketCategoryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TicketCategory"
-  objects: {}
+  objects: {
+    area: Prisma.$AreaPayload<ExtArgs>
+    tickets: Prisma.$TicketPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     areaId: string
     name: string
+    description: string
     enabled: boolean
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["ticketCategory"]>
   composites: {}
 }
@@ -717,6 +1085,8 @@ readonly fields: TicketCategoryFieldRefs;
  */
 export interface Prisma__TicketCategoryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  area<T extends Prisma.AreaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AreaDefaultArgs<ExtArgs>>): Prisma.Prisma__AreaClient<runtime.Types.Result.GetResult<Prisma.$AreaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  tickets<T extends Prisma.TicketCategory$ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TicketCategory$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -749,7 +1119,10 @@ export interface TicketCategoryFieldRefs {
   readonly id: Prisma.FieldRef<"TicketCategory", 'String'>
   readonly areaId: Prisma.FieldRef<"TicketCategory", 'String'>
   readonly name: Prisma.FieldRef<"TicketCategory", 'String'>
+  readonly description: Prisma.FieldRef<"TicketCategory", 'String'>
   readonly enabled: Prisma.FieldRef<"TicketCategory", 'Boolean'>
+  readonly createdAt: Prisma.FieldRef<"TicketCategory", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"TicketCategory", 'DateTime'>
 }
     
 
@@ -766,6 +1139,10 @@ export type TicketCategoryFindUniqueArgs<ExtArgs extends runtime.Types.Extension
    * Omit specific fields from the TicketCategory
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
   /**
    * Filter, which TicketCategory to fetch.
    */
@@ -785,6 +1162,10 @@ export type TicketCategoryFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Ex
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
+  /**
    * Filter, which TicketCategory to fetch.
    */
   where: Prisma.TicketCategoryWhereUniqueInput
@@ -802,6 +1183,10 @@ export type TicketCategoryFindFirstArgs<ExtArgs extends runtime.Types.Extensions
    * Omit specific fields from the TicketCategory
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
   /**
    * Filter, which TicketCategory to fetch.
    */
@@ -851,6 +1236,10 @@ export type TicketCategoryFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
+  /**
    * Filter, which TicketCategory to fetch.
    */
   where?: Prisma.TicketCategoryWhereInput
@@ -898,6 +1287,10 @@ export type TicketCategoryFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the TicketCategory
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
   /**
    * Filter, which TicketCategories to fetch.
    */
@@ -947,6 +1340,10 @@ export type TicketCategoryCreateArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
+  /**
    * The data needed to create a TicketCategory.
    */
   data: Prisma.XOR<Prisma.TicketCategoryCreateInput, Prisma.TicketCategoryUncheckedCreateInput>
@@ -980,6 +1377,10 @@ export type TicketCategoryCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    */
   data: Prisma.TicketCategoryCreateManyInput | Prisma.TicketCategoryCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -994,6 +1395,10 @@ export type TicketCategoryUpdateArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the TicketCategory
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
   /**
    * The data needed to update a TicketCategory.
    */
@@ -1046,6 +1451,10 @@ export type TicketCategoryUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * Limit how many TicketCategories to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1060,6 +1469,10 @@ export type TicketCategoryUpsertArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the TicketCategory
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
   /**
    * The filter to search for the TicketCategory to update in case it exists.
    */
@@ -1087,6 +1500,10 @@ export type TicketCategoryDeleteArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
+  /**
    * Filter which TicketCategory to delete.
    */
   where: Prisma.TicketCategoryWhereUniqueInput
@@ -1107,6 +1524,30 @@ export type TicketCategoryDeleteManyArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
+ * TicketCategory.tickets
+ */
+export type TicketCategory$ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ticket
+   */
+  select?: Prisma.TicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ticket
+   */
+  omit?: Prisma.TicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketInclude<ExtArgs> | null
+  where?: Prisma.TicketWhereInput
+  orderBy?: Prisma.TicketOrderByWithRelationInput | Prisma.TicketOrderByWithRelationInput[]
+  cursor?: Prisma.TicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TicketScalarFieldEnum | Prisma.TicketScalarFieldEnum[]
+}
+
+/**
  * TicketCategory without action
  */
 export type TicketCategoryDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1118,4 +1559,8 @@ export type TicketCategoryDefaultArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the TicketCategory
    */
   omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
 }

@@ -10,78 +10,166 @@ datasource db {
 enum TicketStatus {
   CREATED
   IN_REVIEW
-  ASSIGNED
-  DERIVED
+  RETURNED
   RESOLVED
-  CLOSED
+  DERIVED
   REOPENED
 }
 
+enum TicketKind {
+  EXTERNAL
+  INTERNAL
+}
+
 enum TicketPriority {
-  LOW
-  MEDIUM
   HIGH
-  CRITICAL
+  MEDIUM
+  LOW
+}
+
+enum TicketAbout {
+  SELF
+  STUDENT
+  TEACHER
 }
 
 model Area {
-  id       String @id @default(uuid()) @db.Uuid
-  name     String @db.VarChar(160)
-  parentId String? @db.Uuid
-  enabled  Boolean @default(true)
+  id                String           @id @default(uuid()) @db.Uuid
+  parentId          String?          @db.Uuid
+  parent            Area?            @relation("AreaTree", fields: [parentId], references: [id])
+  children          Area[]           @relation("AreaTree")
+  code              String           @unique @db.VarChar(6)
+  name              String           @db.VarChar(160)
+  responsibility    String           @db.VarChar(400)
+  managerName       String           @db.VarChar(160)
+  managerDocument   String           @db.VarChar(12)
+  managerEmail      String           @db.VarChar(254)
+  receivesTickets   Boolean          @default(false)
+  allowsInternal    Boolean          @default(false)
+  canCreateTickets  Boolean          @default(false)
+  enabled           Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  categories        TicketCategory[]
+  tickets           Ticket[]
   @@index([parentId])
   @@map("areas")
 }
 
 model TicketCategory {
-  id        String @id @default(uuid()) @db.Uuid
-  areaId    String @db.Uuid
-  name      String @db.VarChar(160)
-  enabled   Boolean @default(true)
+  id          String   @id @default(uuid()) @db.Uuid
+  areaId      String   @db.Uuid
+  area        Area     @relation(fields: [areaId], references: [id])
+  name        String   @db.VarChar(160)
+  description String   @db.VarChar(400)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tickets     Ticket[]
+  @@unique([areaId, name])
   @@index([areaId])
   @@map("ticket_categories")
 }
 
+model TeamMember {
+  id          String   @id @default(uuid()) @db.Uuid
+  fullName    String   @db.VarChar(160)
+  document    String   @unique @db.VarChar(12)
+  roleTitle   String   @db.VarChar(160)
+  email       String   @db.VarChar(254)
+  phone       String   @db.VarChar(20)
+  functions   String   @db.VarChar(400)
+  schedule    String   @db.VarChar(200)
+  isManager   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tickets     Ticket[]
+  @@map("team_members")
+}
+
+model PriorityLevel {
+  level       TicketPriority    @id
+  description String            @db.VarChar(400)
+  activities  PriorityActivity[]
+  @@map("priority_levels")
+}
+
+model PriorityActivity {
+  id           String        @id @default(uuid()) @db.Uuid
+  level        TicketPriority
+  priority     PriorityLevel @relation(fields: [level], references: [level])
+  categoryName String        @db.VarChar(160)
+  activity     String        @db.VarChar(240)
+  estimate     String        @db.VarChar(80)
+  createdAt    DateTime      @default(now())
+  @@index([level])
+  @@map("priority_activities")
+}
+
+model TicketSequence {
+  prefix    String @id @db.VarChar(16)
+  nextValue Int
+  @@map("ticket_sequences")
+}
+
 model Ticket {
-  id              String         @id @default(uuid()) @db.Uuid
-  code            String         @unique @db.VarChar(32)
-  requesterUserId String         @db.Uuid
-  areaId          String         @db.Uuid
-  categoryId      String         @db.Uuid
-  subject         String         @db.VarChar(200)
-  description     String         @db.VarChar(4000)
-  status          TicketStatus   @default(CREATED)
-  priority        TicketPriority @default(MEDIUM)
-  assignedUserId  String?        @db.Uuid
-  dueAt           DateTime?
-  resolvedAt      DateTime?
-  closedAt        DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id                 String           @id @default(uuid()) @db.Uuid
+  code               String           @unique @db.VarChar(32)
+  kind               TicketKind
+  requesterUserId    String           @db.Uuid
+  requesterName      String           @db.VarChar(160)
+  requesterRole      String           @db.VarChar(80)
+  academicArea       String           @db.VarChar(80) @default("")
+  about              TicketAbout      @default(SELF)
+  aboutLabel         String           @db.VarChar(200)
+  areaId             String           @db.Uuid
+  area               Area             @relation(fields: [areaId], references: [id])
+  categoryId         String           @db.Uuid
+  category           TicketCategory   @relation(fields: [categoryId], references: [id])
+  categoryName       String           @db.VarChar(160)
+  destinationAreaCode String          @db.VarChar(6)
+  status             TicketStatus     @default(CREATED)
+  priority           TicketPriority   @default(MEDIUM)
+  estimate           String           @db.VarChar(80)
+  assignedMemberId   String?          @db.Uuid
+  assignedMember     TeamMember?      @relation(fields: [assignedMemberId], references: [id])
+  assignedName       String?          @db.VarChar(160)
+  dueOn              DateTime?        @db.Date
+  description        String           @db.VarChar(4000)
+  receiverResponse   String           @db.VarChar(4000) @default("")
+  emittedInternally  Boolean          @default(false)
+  resolvedAt         DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  history            TicketHistory[]
+  attachments        TicketAttachment[]
   @@index([requesterUserId, createdAt])
-  @@index([assignedUserId, status])
+  @@index([assignedMemberId, status])
   @@index([areaId, status])
+  @@index([kind, status])
   @@map("tickets")
 }
 
-model TicketComment {
-  id          String   @id @default(uuid()) @db.Uuid
-  ticketId    String   @db.Uuid
-  authorUserId String  @db.Uuid
-  body        String   @db.VarChar(4000)
-  internal    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  @@index([ticketId, createdAt])
-  @@map("ticket_comments")
+model TicketHistory {
+  id        String       @id @default(uuid()) @db.Uuid
+  ticketId  String       @db.Uuid
+  ticket    Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  status    TicketStatus
+  at        DateTime     @default(now())
+  actorName String       @db.VarChar(160)
+  actorArea String       @db.VarChar(80)
+  fromName  String?      @db.VarChar(160)
+  toName    String?      @db.VarChar(160)
+  note      String?      @db.VarChar(4000)
+  @@index([ticketId, at])
+  @@map("ticket_history")
 }
 
-model TicketHistory {
-  id          String   @id @default(uuid()) @db.Uuid
-  ticketId    String   @db.Uuid
-  actorUserId String?  @db.Uuid
-  action      String   @db.VarChar(120)
-  detail      String?  @db.VarChar(500)
-  createdAt   DateTime @default(now())
-  @@index([ticketId, createdAt])
-  @@map("ticket_history")
+model TicketAttachment {
+  id       String @id @default(uuid()) @db.Uuid
+  ticketId String @db.Uuid
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  fileName String @db.VarChar(200)
+  @@index([ticketId])
+  @@map("ticket_attachments")
 }

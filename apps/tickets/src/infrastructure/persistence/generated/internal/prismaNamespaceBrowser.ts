@@ -53,9 +53,13 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Area: 'Area',
   TicketCategory: 'TicketCategory',
+  TeamMember: 'TeamMember',
+  PriorityLevel: 'PriorityLevel',
+  PriorityActivity: 'PriorityActivity',
+  TicketSequence: 'TicketSequence',
   Ticket: 'Ticket',
-  TicketComment: 'TicketComment',
-  TicketHistory: 'TicketHistory'
+  TicketHistory: 'TicketHistory',
+  TicketAttachment: 'TicketAttachment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -76,9 +80,19 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 
 export const AreaScalarFieldEnum = {
   id: 'id',
-  name: 'name',
   parentId: 'parentId',
-  enabled: 'enabled'
+  code: 'code',
+  name: 'name',
+  responsibility: 'responsibility',
+  managerName: 'managerName',
+  managerDocument: 'managerDocument',
+  managerEmail: 'managerEmail',
+  receivesTickets: 'receivesTickets',
+  allowsInternal: 'allowsInternal',
+  canCreateTickets: 'canCreateTickets',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type AreaScalarFieldEnum = (typeof AreaScalarFieldEnum)[keyof typeof AreaScalarFieldEnum]
@@ -88,26 +102,84 @@ export const TicketCategoryScalarFieldEnum = {
   id: 'id',
   areaId: 'areaId',
   name: 'name',
-  enabled: 'enabled'
+  description: 'description',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type TicketCategoryScalarFieldEnum = (typeof TicketCategoryScalarFieldEnum)[keyof typeof TicketCategoryScalarFieldEnum]
 
 
+export const TeamMemberScalarFieldEnum = {
+  id: 'id',
+  fullName: 'fullName',
+  document: 'document',
+  roleTitle: 'roleTitle',
+  email: 'email',
+  phone: 'phone',
+  functions: 'functions',
+  schedule: 'schedule',
+  isManager: 'isManager',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
+
+
+export const PriorityLevelScalarFieldEnum = {
+  level: 'level',
+  description: 'description'
+} as const
+
+export type PriorityLevelScalarFieldEnum = (typeof PriorityLevelScalarFieldEnum)[keyof typeof PriorityLevelScalarFieldEnum]
+
+
+export const PriorityActivityScalarFieldEnum = {
+  id: 'id',
+  level: 'level',
+  categoryName: 'categoryName',
+  activity: 'activity',
+  estimate: 'estimate',
+  createdAt: 'createdAt'
+} as const
+
+export type PriorityActivityScalarFieldEnum = (typeof PriorityActivityScalarFieldEnum)[keyof typeof PriorityActivityScalarFieldEnum]
+
+
+export const TicketSequenceScalarFieldEnum = {
+  prefix: 'prefix',
+  nextValue: 'nextValue'
+} as const
+
+export type TicketSequenceScalarFieldEnum = (typeof TicketSequenceScalarFieldEnum)[keyof typeof TicketSequenceScalarFieldEnum]
+
+
 export const TicketScalarFieldEnum = {
   id: 'id',
   code: 'code',
+  kind: 'kind',
   requesterUserId: 'requesterUserId',
+  requesterName: 'requesterName',
+  requesterRole: 'requesterRole',
+  academicArea: 'academicArea',
+  about: 'about',
+  aboutLabel: 'aboutLabel',
   areaId: 'areaId',
   categoryId: 'categoryId',
-  subject: 'subject',
-  description: 'description',
+  categoryName: 'categoryName',
+  destinationAreaCode: 'destinationAreaCode',
   status: 'status',
   priority: 'priority',
-  assignedUserId: 'assignedUserId',
-  dueAt: 'dueAt',
+  estimate: 'estimate',
+  assignedMemberId: 'assignedMemberId',
+  assignedName: 'assignedName',
+  dueOn: 'dueOn',
+  description: 'description',
+  receiverResponse: 'receiverResponse',
+  emittedInternally: 'emittedInternally',
   resolvedAt: 'resolvedAt',
-  closedAt: 'closedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -115,28 +187,28 @@ export const TicketScalarFieldEnum = {
 export type TicketScalarFieldEnum = (typeof TicketScalarFieldEnum)[keyof typeof TicketScalarFieldEnum]
 
 
-export const TicketCommentScalarFieldEnum = {
-  id: 'id',
-  ticketId: 'ticketId',
-  authorUserId: 'authorUserId',
-  body: 'body',
-  internal: 'internal',
-  createdAt: 'createdAt'
-} as const
-
-export type TicketCommentScalarFieldEnum = (typeof TicketCommentScalarFieldEnum)[keyof typeof TicketCommentScalarFieldEnum]
-
-
 export const TicketHistoryScalarFieldEnum = {
   id: 'id',
   ticketId: 'ticketId',
-  actorUserId: 'actorUserId',
-  action: 'action',
-  detail: 'detail',
-  createdAt: 'createdAt'
+  status: 'status',
+  at: 'at',
+  actorName: 'actorName',
+  actorArea: 'actorArea',
+  fromName: 'fromName',
+  toName: 'toName',
+  note: 'note'
 } as const
 
 export type TicketHistoryScalarFieldEnum = (typeof TicketHistoryScalarFieldEnum)[keyof typeof TicketHistoryScalarFieldEnum]
+
+
+export const TicketAttachmentScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  fileName: 'fileName'
+} as const
+
+export type TicketAttachmentScalarFieldEnum = (typeof TicketAttachmentScalarFieldEnum)[keyof typeof TicketAttachmentScalarFieldEnum]
 
 
 export const SortOrder = {

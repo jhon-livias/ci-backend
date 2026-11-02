@@ -189,7 +189,16 @@ export class AuthenticationService {
 
   private async issueTokens(user: AuthenticatedUser, refreshToken: string): Promise<AuthenticatedSession> {
     const csrfToken = randomBytes(32).toString('base64url');
-    const accessToken = await this.jwtService.signAsync({ sub: user.id, roles: user.roles, csrf: csrfToken });
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      username: user.username,
+      displayName: user.profile
+        ? `${user.profile.firstName} ${user.profile.paternalLastName}`.trim()
+        : user.username,
+      roles: user.roles,
+      applicationRoles: user.applicationRoles,
+      csrf: csrfToken,
+    });
     return { accessToken, refreshToken, csrfToken, user };
   }
 

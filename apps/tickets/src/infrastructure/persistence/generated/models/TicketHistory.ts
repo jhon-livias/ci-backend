@@ -27,28 +27,37 @@ export type AggregateTicketHistory = {
 export type TicketHistoryMinAggregateOutputType = {
   id: string | null
   ticketId: string | null
-  actorUserId: string | null
-  action: string | null
-  detail: string | null
-  createdAt: Date | null
+  status: $Enums.TicketStatus | null
+  at: Date | null
+  actorName: string | null
+  actorArea: string | null
+  fromName: string | null
+  toName: string | null
+  note: string | null
 }
 
 export type TicketHistoryMaxAggregateOutputType = {
   id: string | null
   ticketId: string | null
-  actorUserId: string | null
-  action: string | null
-  detail: string | null
-  createdAt: Date | null
+  status: $Enums.TicketStatus | null
+  at: Date | null
+  actorName: string | null
+  actorArea: string | null
+  fromName: string | null
+  toName: string | null
+  note: string | null
 }
 
 export type TicketHistoryCountAggregateOutputType = {
   id: number
   ticketId: number
-  actorUserId: number
-  action: number
-  detail: number
-  createdAt: number
+  status: number
+  at: number
+  actorName: number
+  actorArea: number
+  fromName: number
+  toName: number
+  note: number
   _all: number
 }
 
@@ -56,28 +65,37 @@ export type TicketHistoryCountAggregateOutputType = {
 export type TicketHistoryMinAggregateInputType = {
   id?: true
   ticketId?: true
-  actorUserId?: true
-  action?: true
-  detail?: true
-  createdAt?: true
+  status?: true
+  at?: true
+  actorName?: true
+  actorArea?: true
+  fromName?: true
+  toName?: true
+  note?: true
 }
 
 export type TicketHistoryMaxAggregateInputType = {
   id?: true
   ticketId?: true
-  actorUserId?: true
-  action?: true
-  detail?: true
-  createdAt?: true
+  status?: true
+  at?: true
+  actorName?: true
+  actorArea?: true
+  fromName?: true
+  toName?: true
+  note?: true
 }
 
 export type TicketHistoryCountAggregateInputType = {
   id?: true
   ticketId?: true
-  actorUserId?: true
-  action?: true
-  detail?: true
-  createdAt?: true
+  status?: true
+  at?: true
+  actorName?: true
+  actorArea?: true
+  fromName?: true
+  toName?: true
+  note?: true
   _all?: true
 }
 
@@ -156,10 +174,13 @@ export type TicketHistoryGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type TicketHistoryGroupByOutputType = {
   id: string
   ticketId: string
-  actorUserId: string | null
-  action: string
-  detail: string | null
-  createdAt: Date
+  status: $Enums.TicketStatus
+  at: Date
+  actorName: string
+  actorArea: string
+  fromName: string | null
+  toName: string | null
+  note: string | null
   _count: TicketHistoryCountAggregateOutputType | null
   _min: TicketHistoryMinAggregateOutputType | null
   _max: TicketHistoryMaxAggregateOutputType | null
@@ -186,19 +207,27 @@ export type TicketHistoryWhereInput = {
   NOT?: Prisma.TicketHistoryWhereInput | Prisma.TicketHistoryWhereInput[]
   id?: Prisma.UuidFilter<"TicketHistory"> | string
   ticketId?: Prisma.UuidFilter<"TicketHistory"> | string
-  actorUserId?: Prisma.UuidNullableFilter<"TicketHistory"> | string | null
-  action?: Prisma.StringFilter<"TicketHistory"> | string
-  detail?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"TicketHistory"> | Date | string
+  status?: Prisma.EnumTicketStatusFilter<"TicketHistory"> | $Enums.TicketStatus
+  at?: Prisma.DateTimeFilter<"TicketHistory"> | Date | string
+  actorName?: Prisma.StringFilter<"TicketHistory"> | string
+  actorArea?: Prisma.StringFilter<"TicketHistory"> | string
+  fromName?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  toName?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  note?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  ticket?: Prisma.XOR<Prisma.TicketScalarRelationFilter, Prisma.TicketWhereInput>
 }
 
 export type TicketHistoryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   ticketId?: Prisma.SortOrder
-  actorUserId?: Prisma.SortOrderInput | Prisma.SortOrder
-  action?: Prisma.SortOrder
-  detail?: Prisma.SortOrderInput | Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  at?: Prisma.SortOrder
+  actorName?: Prisma.SortOrder
+  actorArea?: Prisma.SortOrder
+  fromName?: Prisma.SortOrderInput | Prisma.SortOrder
+  toName?: Prisma.SortOrderInput | Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
+  ticket?: Prisma.TicketOrderByWithRelationInput
 }
 
 export type TicketHistoryWhereUniqueInput = Prisma.AtLeast<{
@@ -207,19 +236,26 @@ export type TicketHistoryWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.TicketHistoryWhereInput[]
   NOT?: Prisma.TicketHistoryWhereInput | Prisma.TicketHistoryWhereInput[]
   ticketId?: Prisma.UuidFilter<"TicketHistory"> | string
-  actorUserId?: Prisma.UuidNullableFilter<"TicketHistory"> | string | null
-  action?: Prisma.StringFilter<"TicketHistory"> | string
-  detail?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"TicketHistory"> | Date | string
+  status?: Prisma.EnumTicketStatusFilter<"TicketHistory"> | $Enums.TicketStatus
+  at?: Prisma.DateTimeFilter<"TicketHistory"> | Date | string
+  actorName?: Prisma.StringFilter<"TicketHistory"> | string
+  actorArea?: Prisma.StringFilter<"TicketHistory"> | string
+  fromName?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  toName?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  note?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  ticket?: Prisma.XOR<Prisma.TicketScalarRelationFilter, Prisma.TicketWhereInput>
 }, "id">
 
 export type TicketHistoryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   ticketId?: Prisma.SortOrder
-  actorUserId?: Prisma.SortOrderInput | Prisma.SortOrder
-  action?: Prisma.SortOrder
-  detail?: Prisma.SortOrderInput | Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  at?: Prisma.SortOrder
+  actorName?: Prisma.SortOrder
+  actorArea?: Prisma.SortOrder
+  fromName?: Prisma.SortOrderInput | Prisma.SortOrder
+  toName?: Prisma.SortOrderInput | Prisma.SortOrder
+  note?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TicketHistoryCountOrderByAggregateInput
   _max?: Prisma.TicketHistoryMaxOrderByAggregateInput
   _min?: Prisma.TicketHistoryMinOrderByAggregateInput
@@ -231,100 +267,291 @@ export type TicketHistoryScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TicketHistoryScalarWhereWithAggregatesInput | Prisma.TicketHistoryScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"TicketHistory"> | string
   ticketId?: Prisma.UuidWithAggregatesFilter<"TicketHistory"> | string
-  actorUserId?: Prisma.UuidNullableWithAggregatesFilter<"TicketHistory"> | string | null
-  action?: Prisma.StringWithAggregatesFilter<"TicketHistory"> | string
-  detail?: Prisma.StringNullableWithAggregatesFilter<"TicketHistory"> | string | null
-  createdAt?: Prisma.DateTimeWithAggregatesFilter<"TicketHistory"> | Date | string
+  status?: Prisma.EnumTicketStatusWithAggregatesFilter<"TicketHistory"> | $Enums.TicketStatus
+  at?: Prisma.DateTimeWithAggregatesFilter<"TicketHistory"> | Date | string
+  actorName?: Prisma.StringWithAggregatesFilter<"TicketHistory"> | string
+  actorArea?: Prisma.StringWithAggregatesFilter<"TicketHistory"> | string
+  fromName?: Prisma.StringNullableWithAggregatesFilter<"TicketHistory"> | string | null
+  toName?: Prisma.StringNullableWithAggregatesFilter<"TicketHistory"> | string | null
+  note?: Prisma.StringNullableWithAggregatesFilter<"TicketHistory"> | string | null
 }
 
 export type TicketHistoryCreateInput = {
   id?: string
-  ticketId: string
-  actorUserId?: string | null
-  action: string
-  detail?: string | null
-  createdAt?: Date | string
+  status: $Enums.TicketStatus
+  at?: Date | string
+  actorName: string
+  actorArea: string
+  fromName?: string | null
+  toName?: string | null
+  note?: string | null
+  ticket: Prisma.TicketCreateNestedOneWithoutHistoryInput
 }
 
 export type TicketHistoryUncheckedCreateInput = {
   id?: string
   ticketId: string
-  actorUserId?: string | null
-  action: string
-  detail?: string | null
-  createdAt?: Date | string
+  status: $Enums.TicketStatus
+  at?: Date | string
+  actorName: string
+  actorArea: string
+  fromName?: string | null
+  toName?: string | null
+  note?: string | null
 }
 
 export type TicketHistoryUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ticketId?: Prisma.StringFieldUpdateOperationsInput | string
-  actorUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  detail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ticket?: Prisma.TicketUpdateOneRequiredWithoutHistoryNestedInput
 }
 
 export type TicketHistoryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ticketId?: Prisma.StringFieldUpdateOperationsInput | string
-  actorUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  detail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TicketHistoryCreateManyInput = {
   id?: string
   ticketId: string
-  actorUserId?: string | null
-  action: string
-  detail?: string | null
-  createdAt?: Date | string
+  status: $Enums.TicketStatus
+  at?: Date | string
+  actorName: string
+  actorArea: string
+  fromName?: string | null
+  toName?: string | null
+  note?: string | null
 }
 
 export type TicketHistoryUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  ticketId?: Prisma.StringFieldUpdateOperationsInput | string
-  actorUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  detail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TicketHistoryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   ticketId?: Prisma.StringFieldUpdateOperationsInput | string
-  actorUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  action?: Prisma.StringFieldUpdateOperationsInput | string
-  detail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type TicketHistoryListRelationFilter = {
+  every?: Prisma.TicketHistoryWhereInput
+  some?: Prisma.TicketHistoryWhereInput
+  none?: Prisma.TicketHistoryWhereInput
+}
+
+export type TicketHistoryOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type TicketHistoryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ticketId?: Prisma.SortOrder
-  actorUserId?: Prisma.SortOrder
-  action?: Prisma.SortOrder
-  detail?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  at?: Prisma.SortOrder
+  actorName?: Prisma.SortOrder
+  actorArea?: Prisma.SortOrder
+  fromName?: Prisma.SortOrder
+  toName?: Prisma.SortOrder
+  note?: Prisma.SortOrder
 }
 
 export type TicketHistoryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ticketId?: Prisma.SortOrder
-  actorUserId?: Prisma.SortOrder
-  action?: Prisma.SortOrder
-  detail?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  at?: Prisma.SortOrder
+  actorName?: Prisma.SortOrder
+  actorArea?: Prisma.SortOrder
+  fromName?: Prisma.SortOrder
+  toName?: Prisma.SortOrder
+  note?: Prisma.SortOrder
 }
 
 export type TicketHistoryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   ticketId?: Prisma.SortOrder
-  actorUserId?: Prisma.SortOrder
-  action?: Prisma.SortOrder
-  detail?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  at?: Prisma.SortOrder
+  actorName?: Prisma.SortOrder
+  actorArea?: Prisma.SortOrder
+  fromName?: Prisma.SortOrder
+  toName?: Prisma.SortOrder
+  note?: Prisma.SortOrder
+}
+
+export type TicketHistoryCreateNestedManyWithoutTicketInput = {
+  create?: Prisma.XOR<Prisma.TicketHistoryCreateWithoutTicketInput, Prisma.TicketHistoryUncheckedCreateWithoutTicketInput> | Prisma.TicketHistoryCreateWithoutTicketInput[] | Prisma.TicketHistoryUncheckedCreateWithoutTicketInput[]
+  connectOrCreate?: Prisma.TicketHistoryCreateOrConnectWithoutTicketInput | Prisma.TicketHistoryCreateOrConnectWithoutTicketInput[]
+  createMany?: Prisma.TicketHistoryCreateManyTicketInputEnvelope
+  connect?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+}
+
+export type TicketHistoryUncheckedCreateNestedManyWithoutTicketInput = {
+  create?: Prisma.XOR<Prisma.TicketHistoryCreateWithoutTicketInput, Prisma.TicketHistoryUncheckedCreateWithoutTicketInput> | Prisma.TicketHistoryCreateWithoutTicketInput[] | Prisma.TicketHistoryUncheckedCreateWithoutTicketInput[]
+  connectOrCreate?: Prisma.TicketHistoryCreateOrConnectWithoutTicketInput | Prisma.TicketHistoryCreateOrConnectWithoutTicketInput[]
+  createMany?: Prisma.TicketHistoryCreateManyTicketInputEnvelope
+  connect?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+}
+
+export type TicketHistoryUpdateManyWithoutTicketNestedInput = {
+  create?: Prisma.XOR<Prisma.TicketHistoryCreateWithoutTicketInput, Prisma.TicketHistoryUncheckedCreateWithoutTicketInput> | Prisma.TicketHistoryCreateWithoutTicketInput[] | Prisma.TicketHistoryUncheckedCreateWithoutTicketInput[]
+  connectOrCreate?: Prisma.TicketHistoryCreateOrConnectWithoutTicketInput | Prisma.TicketHistoryCreateOrConnectWithoutTicketInput[]
+  upsert?: Prisma.TicketHistoryUpsertWithWhereUniqueWithoutTicketInput | Prisma.TicketHistoryUpsertWithWhereUniqueWithoutTicketInput[]
+  createMany?: Prisma.TicketHistoryCreateManyTicketInputEnvelope
+  set?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  disconnect?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  delete?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  connect?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  update?: Prisma.TicketHistoryUpdateWithWhereUniqueWithoutTicketInput | Prisma.TicketHistoryUpdateWithWhereUniqueWithoutTicketInput[]
+  updateMany?: Prisma.TicketHistoryUpdateManyWithWhereWithoutTicketInput | Prisma.TicketHistoryUpdateManyWithWhereWithoutTicketInput[]
+  deleteMany?: Prisma.TicketHistoryScalarWhereInput | Prisma.TicketHistoryScalarWhereInput[]
+}
+
+export type TicketHistoryUncheckedUpdateManyWithoutTicketNestedInput = {
+  create?: Prisma.XOR<Prisma.TicketHistoryCreateWithoutTicketInput, Prisma.TicketHistoryUncheckedCreateWithoutTicketInput> | Prisma.TicketHistoryCreateWithoutTicketInput[] | Prisma.TicketHistoryUncheckedCreateWithoutTicketInput[]
+  connectOrCreate?: Prisma.TicketHistoryCreateOrConnectWithoutTicketInput | Prisma.TicketHistoryCreateOrConnectWithoutTicketInput[]
+  upsert?: Prisma.TicketHistoryUpsertWithWhereUniqueWithoutTicketInput | Prisma.TicketHistoryUpsertWithWhereUniqueWithoutTicketInput[]
+  createMany?: Prisma.TicketHistoryCreateManyTicketInputEnvelope
+  set?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  disconnect?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  delete?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  connect?: Prisma.TicketHistoryWhereUniqueInput | Prisma.TicketHistoryWhereUniqueInput[]
+  update?: Prisma.TicketHistoryUpdateWithWhereUniqueWithoutTicketInput | Prisma.TicketHistoryUpdateWithWhereUniqueWithoutTicketInput[]
+  updateMany?: Prisma.TicketHistoryUpdateManyWithWhereWithoutTicketInput | Prisma.TicketHistoryUpdateManyWithWhereWithoutTicketInput[]
+  deleteMany?: Prisma.TicketHistoryScalarWhereInput | Prisma.TicketHistoryScalarWhereInput[]
+}
+
+export type TicketHistoryCreateWithoutTicketInput = {
+  id?: string
+  status: $Enums.TicketStatus
+  at?: Date | string
+  actorName: string
+  actorArea: string
+  fromName?: string | null
+  toName?: string | null
+  note?: string | null
+}
+
+export type TicketHistoryUncheckedCreateWithoutTicketInput = {
+  id?: string
+  status: $Enums.TicketStatus
+  at?: Date | string
+  actorName: string
+  actorArea: string
+  fromName?: string | null
+  toName?: string | null
+  note?: string | null
+}
+
+export type TicketHistoryCreateOrConnectWithoutTicketInput = {
+  where: Prisma.TicketHistoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.TicketHistoryCreateWithoutTicketInput, Prisma.TicketHistoryUncheckedCreateWithoutTicketInput>
+}
+
+export type TicketHistoryCreateManyTicketInputEnvelope = {
+  data: Prisma.TicketHistoryCreateManyTicketInput | Prisma.TicketHistoryCreateManyTicketInput[]
+  skipDuplicates?: boolean
+}
+
+export type TicketHistoryUpsertWithWhereUniqueWithoutTicketInput = {
+  where: Prisma.TicketHistoryWhereUniqueInput
+  update: Prisma.XOR<Prisma.TicketHistoryUpdateWithoutTicketInput, Prisma.TicketHistoryUncheckedUpdateWithoutTicketInput>
+  create: Prisma.XOR<Prisma.TicketHistoryCreateWithoutTicketInput, Prisma.TicketHistoryUncheckedCreateWithoutTicketInput>
+}
+
+export type TicketHistoryUpdateWithWhereUniqueWithoutTicketInput = {
+  where: Prisma.TicketHistoryWhereUniqueInput
+  data: Prisma.XOR<Prisma.TicketHistoryUpdateWithoutTicketInput, Prisma.TicketHistoryUncheckedUpdateWithoutTicketInput>
+}
+
+export type TicketHistoryUpdateManyWithWhereWithoutTicketInput = {
+  where: Prisma.TicketHistoryScalarWhereInput
+  data: Prisma.XOR<Prisma.TicketHistoryUpdateManyMutationInput, Prisma.TicketHistoryUncheckedUpdateManyWithoutTicketInput>
+}
+
+export type TicketHistoryScalarWhereInput = {
+  AND?: Prisma.TicketHistoryScalarWhereInput | Prisma.TicketHistoryScalarWhereInput[]
+  OR?: Prisma.TicketHistoryScalarWhereInput[]
+  NOT?: Prisma.TicketHistoryScalarWhereInput | Prisma.TicketHistoryScalarWhereInput[]
+  id?: Prisma.UuidFilter<"TicketHistory"> | string
+  ticketId?: Prisma.UuidFilter<"TicketHistory"> | string
+  status?: Prisma.EnumTicketStatusFilter<"TicketHistory"> | $Enums.TicketStatus
+  at?: Prisma.DateTimeFilter<"TicketHistory"> | Date | string
+  actorName?: Prisma.StringFilter<"TicketHistory"> | string
+  actorArea?: Prisma.StringFilter<"TicketHistory"> | string
+  fromName?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  toName?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+  note?: Prisma.StringNullableFilter<"TicketHistory"> | string | null
+}
+
+export type TicketHistoryCreateManyTicketInput = {
+  id?: string
+  status: $Enums.TicketStatus
+  at?: Date | string
+  actorName: string
+  actorArea: string
+  fromName?: string | null
+  toName?: string | null
+  note?: string | null
+}
+
+export type TicketHistoryUpdateWithoutTicketInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type TicketHistoryUncheckedUpdateWithoutTicketInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type TicketHistoryUncheckedUpdateManyWithoutTicketInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTicketStatusFieldUpdateOperationsInput | $Enums.TicketStatus
+  at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  actorName?: Prisma.StringFieldUpdateOperationsInput | string
+  actorArea?: Prisma.StringFieldUpdateOperationsInput | string
+  fromName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -332,51 +559,80 @@ export type TicketHistoryMinOrderByAggregateInput = {
 export type TicketHistorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   ticketId?: boolean
-  actorUserId?: boolean
-  action?: boolean
-  detail?: boolean
-  createdAt?: boolean
+  status?: boolean
+  at?: boolean
+  actorName?: boolean
+  actorArea?: boolean
+  fromName?: boolean
+  toName?: boolean
+  note?: boolean
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticketHistory"]>
 
 export type TicketHistorySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   ticketId?: boolean
-  actorUserId?: boolean
-  action?: boolean
-  detail?: boolean
-  createdAt?: boolean
+  status?: boolean
+  at?: boolean
+  actorName?: boolean
+  actorArea?: boolean
+  fromName?: boolean
+  toName?: boolean
+  note?: boolean
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticketHistory"]>
 
 export type TicketHistorySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   ticketId?: boolean
-  actorUserId?: boolean
-  action?: boolean
-  detail?: boolean
-  createdAt?: boolean
+  status?: boolean
+  at?: boolean
+  actorName?: boolean
+  actorArea?: boolean
+  fromName?: boolean
+  toName?: boolean
+  note?: boolean
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ticketHistory"]>
 
 export type TicketHistorySelectScalar = {
   id?: boolean
   ticketId?: boolean
-  actorUserId?: boolean
-  action?: boolean
-  detail?: boolean
-  createdAt?: boolean
+  status?: boolean
+  at?: boolean
+  actorName?: boolean
+  actorArea?: boolean
+  fromName?: boolean
+  toName?: boolean
+  note?: boolean
 }
 
-export type TicketHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticketId" | "actorUserId" | "action" | "detail" | "createdAt", ExtArgs["result"]["ticketHistory"]>
+export type TicketHistoryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ticketId" | "status" | "at" | "actorName" | "actorArea" | "fromName" | "toName" | "note", ExtArgs["result"]["ticketHistory"]>
+export type TicketHistoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
+}
+export type TicketHistoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
+}
+export type TicketHistoryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ticket?: boolean | Prisma.TicketDefaultArgs<ExtArgs>
+}
 
 export type $TicketHistoryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TicketHistory"
-  objects: {}
+  objects: {
+    ticket: Prisma.$TicketPayload<ExtArgs>
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     ticketId: string
-    actorUserId: string | null
-    action: string
-    detail: string | null
-    createdAt: Date
+    status: $Enums.TicketStatus
+    at: Date
+    actorName: string
+    actorArea: string
+    fromName: string | null
+    toName: string | null
+    note: string | null
   }, ExtArgs["result"]["ticketHistory"]>
   composites: {}
 }
@@ -771,6 +1027,7 @@ readonly fields: TicketHistoryFieldRefs;
  */
 export interface Prisma__TicketHistoryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  ticket<T extends Prisma.TicketDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TicketDefaultArgs<ExtArgs>>): Prisma.Prisma__TicketClient<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -802,10 +1059,13 @@ export interface Prisma__TicketHistoryClient<T, Null = never, ExtArgs extends ru
 export interface TicketHistoryFieldRefs {
   readonly id: Prisma.FieldRef<"TicketHistory", 'String'>
   readonly ticketId: Prisma.FieldRef<"TicketHistory", 'String'>
-  readonly actorUserId: Prisma.FieldRef<"TicketHistory", 'String'>
-  readonly action: Prisma.FieldRef<"TicketHistory", 'String'>
-  readonly detail: Prisma.FieldRef<"TicketHistory", 'String'>
-  readonly createdAt: Prisma.FieldRef<"TicketHistory", 'DateTime'>
+  readonly status: Prisma.FieldRef<"TicketHistory", 'TicketStatus'>
+  readonly at: Prisma.FieldRef<"TicketHistory", 'DateTime'>
+  readonly actorName: Prisma.FieldRef<"TicketHistory", 'String'>
+  readonly actorArea: Prisma.FieldRef<"TicketHistory", 'String'>
+  readonly fromName: Prisma.FieldRef<"TicketHistory", 'String'>
+  readonly toName: Prisma.FieldRef<"TicketHistory", 'String'>
+  readonly note: Prisma.FieldRef<"TicketHistory", 'String'>
 }
     
 
@@ -822,6 +1082,10 @@ export type TicketHistoryFindUniqueArgs<ExtArgs extends runtime.Types.Extensions
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
   /**
    * Filter, which TicketHistory to fetch.
    */
@@ -841,6 +1105,10 @@ export type TicketHistoryFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
+  /**
    * Filter, which TicketHistory to fetch.
    */
   where: Prisma.TicketHistoryWhereUniqueInput
@@ -858,6 +1126,10 @@ export type TicketHistoryFindFirstArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
   /**
    * Filter, which TicketHistory to fetch.
    */
@@ -907,6 +1179,10 @@ export type TicketHistoryFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Exte
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
+  /**
    * Filter, which TicketHistory to fetch.
    */
   where?: Prisma.TicketHistoryWhereInput
@@ -954,6 +1230,10 @@ export type TicketHistoryFindManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
   /**
    * Filter, which TicketHistories to fetch.
    */
@@ -1003,6 +1283,10 @@ export type TicketHistoryCreateArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
+  /**
    * The data needed to create a TicketHistory.
    */
   data: Prisma.XOR<Prisma.TicketHistoryCreateInput, Prisma.TicketHistoryUncheckedCreateInput>
@@ -1036,6 +1320,10 @@ export type TicketHistoryCreateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    */
   data: Prisma.TicketHistoryCreateManyInput | Prisma.TicketHistoryCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1050,6 +1338,10 @@ export type TicketHistoryUpdateArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
   /**
    * The data needed to update a TicketHistory.
    */
@@ -1102,6 +1394,10 @@ export type TicketHistoryUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    * Limit how many TicketHistories to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1116,6 +1412,10 @@ export type TicketHistoryUpsertArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
   /**
    * The filter to search for the TicketHistory to update in case it exists.
    */
@@ -1142,6 +1442,10 @@ export type TicketHistoryDeleteArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
   /**
    * Filter which TicketHistory to delete.
    */
@@ -1174,4 +1478,8 @@ export type TicketHistoryDefaultArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the TicketHistory
    */
   omit?: Prisma.TicketHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketHistoryInclude<ExtArgs> | null
 }

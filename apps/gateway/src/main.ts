@@ -10,4 +10,9 @@ void bootstrapRestApplication(AppModule, 'gateway', async (application) => {
     rewritePrefix: '/api/v1/auth',
     websocket: true,
   });
+  await application.register(fastifyHttpProxy, {
+    upstream: process.env.TICKETS_UPSTREAM ?? 'http://tickets:3008',
+    prefix: '/api/v1/tickets',
+    rewritePrefix: '/api/v1/tickets',
+  });
 });

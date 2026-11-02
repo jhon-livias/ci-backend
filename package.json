@@ -26,6 +26,7 @@
     "auth:db:migrate:deploy": "prisma migrate deploy --config prisma.config.ts",
     "auth:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "auth:bootstrap-tickets-users": "tsx scripts/bootstrap-tickets-users.ts",
+    "tickets:bootstrap-catalog": "tsx scripts/bootstrap-tickets-catalog.ts",
     "students:db:generate": "prisma generate --config apps/language-center/students/prisma.config.ts",
     "students:db:validate": "prisma validate --config apps/language-center/students/prisma.config.ts",
     "students:db:migrate": "prisma migrate dev --config apps/language-center/students/prisma.config.ts",

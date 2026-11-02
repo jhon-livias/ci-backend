@@ -28,17 +28,37 @@ export type Area = Prisma.AreaModel
  */
 export type TicketCategory = Prisma.TicketCategoryModel
 /**
+ * Model TeamMember
+ * 
+ */
+export type TeamMember = Prisma.TeamMemberModel
+/**
+ * Model PriorityLevel
+ * 
+ */
+export type PriorityLevel = Prisma.PriorityLevelModel
+/**
+ * Model PriorityActivity
+ * 
+ */
+export type PriorityActivity = Prisma.PriorityActivityModel
+/**
+ * Model TicketSequence
+ * 
+ */
+export type TicketSequence = Prisma.TicketSequenceModel
+/**
  * Model Ticket
  * 
  */
 export type Ticket = Prisma.TicketModel
 /**
- * Model TicketComment
- * 
- */
-export type TicketComment = Prisma.TicketCommentModel
-/**
  * Model TicketHistory
  * 
  */
 export type TicketHistory = Prisma.TicketHistoryModel
+/**
+ * Model TicketAttachment
+ * 
+ */
+export type TicketAttachment = Prisma.TicketAttachmentModel

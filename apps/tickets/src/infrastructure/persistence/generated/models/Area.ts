@@ -26,46 +26,106 @@ export type AggregateArea = {
 
 export type AreaMinAggregateOutputType = {
   id: string | null
-  name: string | null
   parentId: string | null
+  code: string | null
+  name: string | null
+  responsibility: string | null
+  managerName: string | null
+  managerDocument: string | null
+  managerEmail: string | null
+  receivesTickets: boolean | null
+  allowsInternal: boolean | null
+  canCreateTickets: boolean | null
   enabled: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AreaMaxAggregateOutputType = {
   id: string | null
-  name: string | null
   parentId: string | null
+  code: string | null
+  name: string | null
+  responsibility: string | null
+  managerName: string | null
+  managerDocument: string | null
+  managerEmail: string | null
+  receivesTickets: boolean | null
+  allowsInternal: boolean | null
+  canCreateTickets: boolean | null
   enabled: boolean | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type AreaCountAggregateOutputType = {
   id: number
-  name: number
   parentId: number
+  code: number
+  name: number
+  responsibility: number
+  managerName: number
+  managerDocument: number
+  managerEmail: number
+  receivesTickets: number
+  allowsInternal: number
+  canCreateTickets: number
   enabled: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
 
 export type AreaMinAggregateInputType = {
   id?: true
-  name?: true
   parentId?: true
+  code?: true
+  name?: true
+  responsibility?: true
+  managerName?: true
+  managerDocument?: true
+  managerEmail?: true
+  receivesTickets?: true
+  allowsInternal?: true
+  canCreateTickets?: true
   enabled?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AreaMaxAggregateInputType = {
   id?: true
-  name?: true
   parentId?: true
+  code?: true
+  name?: true
+  responsibility?: true
+  managerName?: true
+  managerDocument?: true
+  managerEmail?: true
+  receivesTickets?: true
+  allowsInternal?: true
+  canCreateTickets?: true
   enabled?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type AreaCountAggregateInputType = {
   id?: true
-  name?: true
   parentId?: true
+  code?: true
+  name?: true
+  responsibility?: true
+  managerName?: true
+  managerDocument?: true
+  managerEmail?: true
+  receivesTickets?: true
+  allowsInternal?: true
+  canCreateTickets?: true
   enabled?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -143,9 +203,19 @@ export type AreaGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type AreaGroupByOutputType = {
   id: string
-  name: string
   parentId: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets: boolean
+  allowsInternal: boolean
+  canCreateTickets: boolean
   enabled: boolean
+  createdAt: Date
+  updatedAt: Date
   _count: AreaCountAggregateOutputType | null
   _min: AreaMinAggregateOutputType | null
   _max: AreaMaxAggregateOutputType | null
@@ -171,33 +241,85 @@ export type AreaWhereInput = {
   OR?: Prisma.AreaWhereInput[]
   NOT?: Prisma.AreaWhereInput | Prisma.AreaWhereInput[]
   id?: Prisma.UuidFilter<"Area"> | string
-  name?: Prisma.StringFilter<"Area"> | string
   parentId?: Prisma.UuidNullableFilter<"Area"> | string | null
+  code?: Prisma.StringFilter<"Area"> | string
+  name?: Prisma.StringFilter<"Area"> | string
+  responsibility?: Prisma.StringFilter<"Area"> | string
+  managerName?: Prisma.StringFilter<"Area"> | string
+  managerDocument?: Prisma.StringFilter<"Area"> | string
+  managerEmail?: Prisma.StringFilter<"Area"> | string
+  receivesTickets?: Prisma.BoolFilter<"Area"> | boolean
+  allowsInternal?: Prisma.BoolFilter<"Area"> | boolean
+  canCreateTickets?: Prisma.BoolFilter<"Area"> | boolean
   enabled?: Prisma.BoolFilter<"Area"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Area"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Area"> | Date | string
+  parent?: Prisma.XOR<Prisma.AreaNullableScalarRelationFilter, Prisma.AreaWhereInput> | null
+  children?: Prisma.AreaListRelationFilter
+  categories?: Prisma.TicketCategoryListRelationFilter
+  tickets?: Prisma.TicketListRelationFilter
 }
 
 export type AreaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  responsibility?: Prisma.SortOrder
+  managerName?: Prisma.SortOrder
+  managerDocument?: Prisma.SortOrder
+  managerEmail?: Prisma.SortOrder
+  receivesTickets?: Prisma.SortOrder
+  allowsInternal?: Prisma.SortOrder
+  canCreateTickets?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+  parent?: Prisma.AreaOrderByWithRelationInput
+  children?: Prisma.AreaOrderByRelationAggregateInput
+  categories?: Prisma.TicketCategoryOrderByRelationAggregateInput
+  tickets?: Prisma.TicketOrderByRelationAggregateInput
 }
 
 export type AreaWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  code?: string
   AND?: Prisma.AreaWhereInput | Prisma.AreaWhereInput[]
   OR?: Prisma.AreaWhereInput[]
   NOT?: Prisma.AreaWhereInput | Prisma.AreaWhereInput[]
-  name?: Prisma.StringFilter<"Area"> | string
   parentId?: Prisma.UuidNullableFilter<"Area"> | string | null
+  name?: Prisma.StringFilter<"Area"> | string
+  responsibility?: Prisma.StringFilter<"Area"> | string
+  managerName?: Prisma.StringFilter<"Area"> | string
+  managerDocument?: Prisma.StringFilter<"Area"> | string
+  managerEmail?: Prisma.StringFilter<"Area"> | string
+  receivesTickets?: Prisma.BoolFilter<"Area"> | boolean
+  allowsInternal?: Prisma.BoolFilter<"Area"> | boolean
+  canCreateTickets?: Prisma.BoolFilter<"Area"> | boolean
   enabled?: Prisma.BoolFilter<"Area"> | boolean
-}, "id">
+  createdAt?: Prisma.DateTimeFilter<"Area"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Area"> | Date | string
+  parent?: Prisma.XOR<Prisma.AreaNullableScalarRelationFilter, Prisma.AreaWhereInput> | null
+  children?: Prisma.AreaListRelationFilter
+  categories?: Prisma.TicketCategoryListRelationFilter
+  tickets?: Prisma.TicketListRelationFilter
+}, "id" | "code">
 
 export type AreaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  responsibility?: Prisma.SortOrder
+  managerName?: Prisma.SortOrder
+  managerDocument?: Prisma.SortOrder
+  managerEmail?: Prisma.SortOrder
+  receivesTickets?: Prisma.SortOrder
+  allowsInternal?: Prisma.SortOrder
+  canCreateTickets?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.AreaCountOrderByAggregateInput
   _max?: Prisma.AreaMaxOrderByAggregateInput
   _min?: Prisma.AreaMinOrderByAggregateInput
@@ -208,133 +330,916 @@ export type AreaScalarWhereWithAggregatesInput = {
   OR?: Prisma.AreaScalarWhereWithAggregatesInput[]
   NOT?: Prisma.AreaScalarWhereWithAggregatesInput | Prisma.AreaScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"Area"> | string
-  name?: Prisma.StringWithAggregatesFilter<"Area"> | string
   parentId?: Prisma.UuidNullableWithAggregatesFilter<"Area"> | string | null
+  code?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  name?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  responsibility?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  managerName?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  managerDocument?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  managerEmail?: Prisma.StringWithAggregatesFilter<"Area"> | string
+  receivesTickets?: Prisma.BoolWithAggregatesFilter<"Area"> | boolean
+  allowsInternal?: Prisma.BoolWithAggregatesFilter<"Area"> | boolean
+  canCreateTickets?: Prisma.BoolWithAggregatesFilter<"Area"> | boolean
   enabled?: Prisma.BoolWithAggregatesFilter<"Area"> | boolean
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Area"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Area"> | Date | string
 }
 
 export type AreaCreateInput = {
   id?: string
+  code: string
   name: string
-  parentId?: string | null
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AreaCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateInput = {
   id?: string
-  name: string
   parentId?: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AreaUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateManyInput = {
   id?: string
-  name: string
   parentId?: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type AreaUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AreaUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
   enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type AreaNullableScalarRelationFilter = {
+  is?: Prisma.AreaWhereInput | null
+  isNot?: Prisma.AreaWhereInput | null
+}
+
+export type AreaListRelationFilter = {
+  every?: Prisma.AreaWhereInput
+  some?: Prisma.AreaWhereInput
+  none?: Prisma.AreaWhereInput
+}
+
+export type AreaOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type AreaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  responsibility?: Prisma.SortOrder
+  managerName?: Prisma.SortOrder
+  managerDocument?: Prisma.SortOrder
+  managerEmail?: Prisma.SortOrder
+  receivesTickets?: Prisma.SortOrder
+  allowsInternal?: Prisma.SortOrder
+  canCreateTickets?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AreaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  responsibility?: Prisma.SortOrder
+  managerName?: Prisma.SortOrder
+  managerDocument?: Prisma.SortOrder
+  managerEmail?: Prisma.SortOrder
+  receivesTickets?: Prisma.SortOrder
+  allowsInternal?: Prisma.SortOrder
+  canCreateTickets?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type AreaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  name?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
+  code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  responsibility?: Prisma.SortOrder
+  managerName?: Prisma.SortOrder
+  managerDocument?: Prisma.SortOrder
+  managerEmail?: Prisma.SortOrder
+  receivesTickets?: Prisma.SortOrder
+  allowsInternal?: Prisma.SortOrder
+  canCreateTickets?: Prisma.SortOrder
   enabled?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
+}
+
+export type AreaScalarRelationFilter = {
+  is?: Prisma.AreaWhereInput
+  isNot?: Prisma.AreaWhereInput
+}
+
+export type AreaCreateNestedOneWithoutChildrenInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutChildrenInput, Prisma.AreaUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutChildrenInput
+  connect?: Prisma.AreaWhereUniqueInput
+}
+
+export type AreaCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutParentInput, Prisma.AreaUncheckedCreateWithoutParentInput> | Prisma.AreaCreateWithoutParentInput[] | Prisma.AreaUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutParentInput | Prisma.AreaCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.AreaCreateManyParentInputEnvelope
+  connect?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+}
+
+export type AreaUncheckedCreateNestedManyWithoutParentInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutParentInput, Prisma.AreaUncheckedCreateWithoutParentInput> | Prisma.AreaCreateWithoutParentInput[] | Prisma.AreaUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutParentInput | Prisma.AreaCreateOrConnectWithoutParentInput[]
+  createMany?: Prisma.AreaCreateManyParentInputEnvelope
+  connect?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
 }
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type DateTimeFieldUpdateOperationsInput = {
+  set?: Date | string
+}
+
+export type AreaUpdateOneWithoutChildrenNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutChildrenInput, Prisma.AreaUncheckedCreateWithoutChildrenInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutChildrenInput
+  upsert?: Prisma.AreaUpsertWithoutChildrenInput
+  disconnect?: Prisma.AreaWhereInput | boolean
+  delete?: Prisma.AreaWhereInput | boolean
+  connect?: Prisma.AreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutChildrenInput, Prisma.AreaUpdateWithoutChildrenInput>, Prisma.AreaUncheckedUpdateWithoutChildrenInput>
+}
+
+export type AreaUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutParentInput, Prisma.AreaUncheckedCreateWithoutParentInput> | Prisma.AreaCreateWithoutParentInput[] | Prisma.AreaUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutParentInput | Prisma.AreaCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.AreaUpsertWithWhereUniqueWithoutParentInput | Prisma.AreaUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.AreaCreateManyParentInputEnvelope
+  set?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  disconnect?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  delete?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  connect?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  update?: Prisma.AreaUpdateWithWhereUniqueWithoutParentInput | Prisma.AreaUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.AreaUpdateManyWithWhereWithoutParentInput | Prisma.AreaUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.AreaScalarWhereInput | Prisma.AreaScalarWhereInput[]
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type AreaUncheckedUpdateManyWithoutParentNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutParentInput, Prisma.AreaUncheckedCreateWithoutParentInput> | Prisma.AreaCreateWithoutParentInput[] | Prisma.AreaUncheckedCreateWithoutParentInput[]
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutParentInput | Prisma.AreaCreateOrConnectWithoutParentInput[]
+  upsert?: Prisma.AreaUpsertWithWhereUniqueWithoutParentInput | Prisma.AreaUpsertWithWhereUniqueWithoutParentInput[]
+  createMany?: Prisma.AreaCreateManyParentInputEnvelope
+  set?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  disconnect?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  delete?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  connect?: Prisma.AreaWhereUniqueInput | Prisma.AreaWhereUniqueInput[]
+  update?: Prisma.AreaUpdateWithWhereUniqueWithoutParentInput | Prisma.AreaUpdateWithWhereUniqueWithoutParentInput[]
+  updateMany?: Prisma.AreaUpdateManyWithWhereWithoutParentInput | Prisma.AreaUpdateManyWithWhereWithoutParentInput[]
+  deleteMany?: Prisma.AreaScalarWhereInput | Prisma.AreaScalarWhereInput[]
+}
+
+export type AreaCreateNestedOneWithoutCategoriesInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutCategoriesInput, Prisma.AreaUncheckedCreateWithoutCategoriesInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutCategoriesInput
+  connect?: Prisma.AreaWhereUniqueInput
+}
+
+export type AreaUpdateOneRequiredWithoutCategoriesNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutCategoriesInput, Prisma.AreaUncheckedCreateWithoutCategoriesInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutCategoriesInput
+  upsert?: Prisma.AreaUpsertWithoutCategoriesInput
+  connect?: Prisma.AreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutCategoriesInput, Prisma.AreaUpdateWithoutCategoriesInput>, Prisma.AreaUncheckedUpdateWithoutCategoriesInput>
+}
+
+export type AreaCreateNestedOneWithoutTicketsInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutTicketsInput, Prisma.AreaUncheckedCreateWithoutTicketsInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutTicketsInput
+  connect?: Prisma.AreaWhereUniqueInput
+}
+
+export type AreaUpdateOneRequiredWithoutTicketsNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutTicketsInput, Prisma.AreaUncheckedCreateWithoutTicketsInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutTicketsInput
+  upsert?: Prisma.AreaUpsertWithoutTicketsInput
+  connect?: Prisma.AreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutTicketsInput, Prisma.AreaUpdateWithoutTicketsInput>, Prisma.AreaUncheckedUpdateWithoutTicketsInput>
+}
+
+export type AreaCreateWithoutChildrenInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
+  categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutChildrenInput = {
+  id?: string
+  parentId?: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutChildrenInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutChildrenInput, Prisma.AreaUncheckedCreateWithoutChildrenInput>
+}
+
+export type AreaCreateWithoutParentInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AreaCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutParentInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutParentInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutParentInput, Prisma.AreaUncheckedCreateWithoutParentInput>
+}
+
+export type AreaCreateManyParentInputEnvelope = {
+  data: Prisma.AreaCreateManyParentInput | Prisma.AreaCreateManyParentInput[]
+  skipDuplicates?: boolean
+}
+
+export type AreaUpsertWithoutChildrenInput = {
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutChildrenInput, Prisma.AreaUncheckedUpdateWithoutChildrenInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutChildrenInput, Prisma.AreaUncheckedCreateWithoutChildrenInput>
+  where?: Prisma.AreaWhereInput
+}
+
+export type AreaUpdateToOneWithWhereWithoutChildrenInput = {
+  where?: Prisma.AreaWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutChildrenInput, Prisma.AreaUncheckedUpdateWithoutChildrenInput>
+}
+
+export type AreaUpdateWithoutChildrenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
+  categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutChildrenInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUpsertWithWhereUniqueWithoutParentInput = {
+  where: Prisma.AreaWhereUniqueInput
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutParentInput, Prisma.AreaUncheckedUpdateWithoutParentInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutParentInput, Prisma.AreaUncheckedCreateWithoutParentInput>
+}
+
+export type AreaUpdateWithWhereUniqueWithoutParentInput = {
+  where: Prisma.AreaWhereUniqueInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutParentInput, Prisma.AreaUncheckedUpdateWithoutParentInput>
+}
+
+export type AreaUpdateManyWithWhereWithoutParentInput = {
+  where: Prisma.AreaScalarWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateManyMutationInput, Prisma.AreaUncheckedUpdateManyWithoutParentInput>
+}
+
+export type AreaScalarWhereInput = {
+  AND?: Prisma.AreaScalarWhereInput | Prisma.AreaScalarWhereInput[]
+  OR?: Prisma.AreaScalarWhereInput[]
+  NOT?: Prisma.AreaScalarWhereInput | Prisma.AreaScalarWhereInput[]
+  id?: Prisma.UuidFilter<"Area"> | string
+  parentId?: Prisma.UuidNullableFilter<"Area"> | string | null
+  code?: Prisma.StringFilter<"Area"> | string
+  name?: Prisma.StringFilter<"Area"> | string
+  responsibility?: Prisma.StringFilter<"Area"> | string
+  managerName?: Prisma.StringFilter<"Area"> | string
+  managerDocument?: Prisma.StringFilter<"Area"> | string
+  managerEmail?: Prisma.StringFilter<"Area"> | string
+  receivesTickets?: Prisma.BoolFilter<"Area"> | boolean
+  allowsInternal?: Prisma.BoolFilter<"Area"> | boolean
+  canCreateTickets?: Prisma.BoolFilter<"Area"> | boolean
+  enabled?: Prisma.BoolFilter<"Area"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Area"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Area"> | Date | string
+}
+
+export type AreaCreateWithoutCategoriesInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AreaCreateNestedManyWithoutParentInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutCategoriesInput = {
+  id?: string
+  parentId?: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutCategoriesInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutCategoriesInput, Prisma.AreaUncheckedCreateWithoutCategoriesInput>
+}
+
+export type AreaUpsertWithoutCategoriesInput = {
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutCategoriesInput, Prisma.AreaUncheckedUpdateWithoutCategoriesInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutCategoriesInput, Prisma.AreaUncheckedCreateWithoutCategoriesInput>
+  where?: Prisma.AreaWhereInput
+}
+
+export type AreaUpdateToOneWithWhereWithoutCategoriesInput = {
+  where?: Prisma.AreaWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutCategoriesInput, Prisma.AreaUncheckedUpdateWithoutCategoriesInput>
+}
+
+export type AreaUpdateWithoutCategoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AreaUpdateManyWithoutParentNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutCategoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaCreateWithoutTicketsInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AreaCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutTicketsInput = {
+  id?: string
+  parentId?: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutTicketsInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutTicketsInput, Prisma.AreaUncheckedCreateWithoutTicketsInput>
+}
+
+export type AreaUpsertWithoutTicketsInput = {
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutTicketsInput, Prisma.AreaUncheckedUpdateWithoutTicketsInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutTicketsInput, Prisma.AreaUncheckedCreateWithoutTicketsInput>
+  where?: Prisma.AreaWhereInput
+}
+
+export type AreaUpdateToOneWithWhereWithoutTicketsInput = {
+  where?: Prisma.AreaWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutTicketsInput, Prisma.AreaUncheckedUpdateWithoutTicketsInput>
+}
+
+export type AreaUpdateWithoutTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AreaUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutTicketsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaCreateManyParentInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type AreaUpdateWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AreaUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateManyWithoutParentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type AreaCountOutputType
+ */
+
+export type AreaCountOutputType = {
+  children: number
+  categories: number
+  tickets: number
+}
+
+export type AreaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  children?: boolean | AreaCountOutputTypeCountChildrenArgs
+  categories?: boolean | AreaCountOutputTypeCountCategoriesArgs
+  tickets?: boolean | AreaCountOutputTypeCountTicketsArgs
+}
+
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AreaCountOutputType
+   */
+  select?: Prisma.AreaCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeCountChildrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AreaWhereInput
+}
+
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeCountCategoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TicketCategoryWhereInput
+}
+
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeCountTicketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TicketWhereInput
+}
 
 
 export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  name?: boolean
   parentId?: boolean
+  code?: boolean
+  name?: boolean
+  responsibility?: boolean
+  managerName?: boolean
+  managerDocument?: boolean
+  managerEmail?: boolean
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  parent?: boolean | Prisma.Area$parentArgs<ExtArgs>
+  children?: boolean | Prisma.Area$childrenArgs<ExtArgs>
+  categories?: boolean | Prisma.Area$categoriesArgs<ExtArgs>
+  tickets?: boolean | Prisma.Area$ticketsArgs<ExtArgs>
+  _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["area"]>
 
 export type AreaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  name?: boolean
   parentId?: boolean
+  code?: boolean
+  name?: boolean
+  responsibility?: boolean
+  managerName?: boolean
+  managerDocument?: boolean
+  managerEmail?: boolean
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  parent?: boolean | Prisma.Area$parentArgs<ExtArgs>
 }, ExtArgs["result"]["area"]>
 
 export type AreaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  name?: boolean
   parentId?: boolean
+  code?: boolean
+  name?: boolean
+  responsibility?: boolean
+  managerName?: boolean
+  managerDocument?: boolean
+  managerEmail?: boolean
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  parent?: boolean | Prisma.Area$parentArgs<ExtArgs>
 }, ExtArgs["result"]["area"]>
 
 export type AreaSelectScalar = {
   id?: boolean
-  name?: boolean
   parentId?: boolean
+  code?: boolean
+  name?: boolean
+  responsibility?: boolean
+  managerName?: boolean
+  managerDocument?: boolean
+  managerEmail?: boolean
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
   enabled?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type AreaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "parentId" | "enabled", ExtArgs["result"]["area"]>
+export type AreaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentId" | "code" | "name" | "responsibility" | "managerName" | "managerDocument" | "managerEmail" | "receivesTickets" | "allowsInternal" | "canCreateTickets" | "enabled" | "createdAt" | "updatedAt", ExtArgs["result"]["area"]>
+export type AreaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Area$parentArgs<ExtArgs>
+  children?: boolean | Prisma.Area$childrenArgs<ExtArgs>
+  categories?: boolean | Prisma.Area$categoriesArgs<ExtArgs>
+  tickets?: boolean | Prisma.Area$ticketsArgs<ExtArgs>
+  _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type AreaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Area$parentArgs<ExtArgs>
+}
+export type AreaIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  parent?: boolean | Prisma.Area$parentArgs<ExtArgs>
+}
 
 export type $AreaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Area"
-  objects: {}
+  objects: {
+    parent: Prisma.$AreaPayload<ExtArgs> | null
+    children: Prisma.$AreaPayload<ExtArgs>[]
+    categories: Prisma.$TicketCategoryPayload<ExtArgs>[]
+    tickets: Prisma.$TicketPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    name: string
     parentId: string | null
+    code: string
+    name: string
+    responsibility: string
+    managerName: string
+    managerDocument: string
+    managerEmail: string
+    receivesTickets: boolean
+    allowsInternal: boolean
+    canCreateTickets: boolean
     enabled: boolean
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["area"]>
   composites: {}
 }
@@ -729,6 +1634,10 @@ readonly fields: AreaFieldRefs;
  */
 export interface Prisma__AreaClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  parent<T extends Prisma.Area$parentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$parentArgs<ExtArgs>>): Prisma.Prisma__AreaClient<runtime.Types.Result.GetResult<Prisma.$AreaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  children<T extends Prisma.Area$childrenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AreaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  categories<T extends Prisma.Area$categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tickets<T extends Prisma.Area$ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -759,9 +1668,19 @@ export interface Prisma__AreaClient<T, Null = never, ExtArgs extends runtime.Typ
  */
 export interface AreaFieldRefs {
   readonly id: Prisma.FieldRef<"Area", 'String'>
-  readonly name: Prisma.FieldRef<"Area", 'String'>
   readonly parentId: Prisma.FieldRef<"Area", 'String'>
+  readonly code: Prisma.FieldRef<"Area", 'String'>
+  readonly name: Prisma.FieldRef<"Area", 'String'>
+  readonly responsibility: Prisma.FieldRef<"Area", 'String'>
+  readonly managerName: Prisma.FieldRef<"Area", 'String'>
+  readonly managerDocument: Prisma.FieldRef<"Area", 'String'>
+  readonly managerEmail: Prisma.FieldRef<"Area", 'String'>
+  readonly receivesTickets: Prisma.FieldRef<"Area", 'Boolean'>
+  readonly allowsInternal: Prisma.FieldRef<"Area", 'Boolean'>
+  readonly canCreateTickets: Prisma.FieldRef<"Area", 'Boolean'>
   readonly enabled: Prisma.FieldRef<"Area", 'Boolean'>
+  readonly createdAt: Prisma.FieldRef<"Area", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Area", 'DateTime'>
 }
     
 
@@ -778,6 +1697,10 @@ export type AreaFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Area
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
   /**
    * Filter, which Area to fetch.
    */
@@ -797,6 +1720,10 @@ export type AreaFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  /**
    * Filter, which Area to fetch.
    */
   where: Prisma.AreaWhereUniqueInput
@@ -814,6 +1741,10 @@ export type AreaFindFirstArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    * Omit specific fields from the Area
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
   /**
    * Filter, which Area to fetch.
    */
@@ -863,6 +1794,10 @@ export type AreaFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  /**
    * Filter, which Area to fetch.
    */
   where?: Prisma.AreaWhereInput
@@ -910,6 +1845,10 @@ export type AreaFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Area
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
   /**
    * Filter, which Areas to fetch.
    */
@@ -959,6 +1898,10 @@ export type AreaCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  /**
    * The data needed to create a Area.
    */
   data: Prisma.XOR<Prisma.AreaCreateInput, Prisma.AreaUncheckedCreateInput>
@@ -992,6 +1935,10 @@ export type AreaCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    */
   data: Prisma.AreaCreateManyInput | Prisma.AreaCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1006,6 +1953,10 @@ export type AreaUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    * Omit specific fields from the Area
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
   /**
    * The data needed to update a Area.
    */
@@ -1058,6 +2009,10 @@ export type AreaUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many Areas to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1072,6 +2027,10 @@ export type AreaUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    * Omit specific fields from the Area
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
   /**
    * The filter to search for the Area to update in case it exists.
    */
@@ -1099,6 +2058,10 @@ export type AreaDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  /**
    * Filter which Area to delete.
    */
   where: Prisma.AreaWhereUniqueInput
@@ -1119,6 +2082,97 @@ export type AreaDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
+ * Area.parent
+ */
+export type Area$parentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Area
+   */
+  select?: Prisma.AreaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Area
+   */
+  omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  where?: Prisma.AreaWhereInput
+}
+
+/**
+ * Area.children
+ */
+export type Area$childrenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Area
+   */
+  select?: Prisma.AreaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Area
+   */
+  omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
+  where?: Prisma.AreaWhereInput
+  orderBy?: Prisma.AreaOrderByWithRelationInput | Prisma.AreaOrderByWithRelationInput[]
+  cursor?: Prisma.AreaWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AreaScalarFieldEnum | Prisma.AreaScalarFieldEnum[]
+}
+
+/**
+ * Area.categories
+ */
+export type Area$categoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TicketCategory
+   */
+  select?: Prisma.TicketCategorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TicketCategory
+   */
+  omit?: Prisma.TicketCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketCategoryInclude<ExtArgs> | null
+  where?: Prisma.TicketCategoryWhereInput
+  orderBy?: Prisma.TicketCategoryOrderByWithRelationInput | Prisma.TicketCategoryOrderByWithRelationInput[]
+  cursor?: Prisma.TicketCategoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TicketCategoryScalarFieldEnum | Prisma.TicketCategoryScalarFieldEnum[]
+}
+
+/**
+ * Area.tickets
+ */
+export type Area$ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ticket
+   */
+  select?: Prisma.TicketSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ticket
+   */
+  omit?: Prisma.TicketOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TicketInclude<ExtArgs> | null
+  where?: Prisma.TicketWhereInput
+  orderBy?: Prisma.TicketOrderByWithRelationInput | Prisma.TicketOrderByWithRelationInput[]
+  cursor?: Prisma.TicketWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TicketScalarFieldEnum | Prisma.TicketScalarFieldEnum[]
+}
+
+/**
  * Area without action
  */
 export type AreaDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1130,4 +2184,8 @@ export type AreaDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Area
    */
   omit?: Prisma.AreaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaInclude<ExtArgs> | null
 }

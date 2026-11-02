@@ -12,21 +12,36 @@
 export const TicketStatus = {
   CREATED: 'CREATED',
   IN_REVIEW: 'IN_REVIEW',
-  ASSIGNED: 'ASSIGNED',
-  DERIVED: 'DERIVED',
+  RETURNED: 'RETURNED',
   RESOLVED: 'RESOLVED',
-  CLOSED: 'CLOSED',
+  DERIVED: 'DERIVED',
   REOPENED: 'REOPENED'
 } as const
 
 export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus]
 
 
+export const TicketKind = {
+  EXTERNAL: 'EXTERNAL',
+  INTERNAL: 'INTERNAL'
+} as const
+
+export type TicketKind = (typeof TicketKind)[keyof typeof TicketKind]
+
+
 export const TicketPriority = {
-  LOW: 'LOW',
-  MEDIUM: 'MEDIUM',
   HIGH: 'HIGH',
-  CRITICAL: 'CRITICAL'
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW'
 } as const
 
 export type TicketPriority = (typeof TicketPriority)[keyof typeof TicketPriority]
+
+
+export const TicketAbout = {
+  SELF: 'SELF',
+  STUDENT: 'STUDENT',
+  TEACHER: 'TEACHER'
+} as const
+
+export type TicketAbout = (typeof TicketAbout)[keyof typeof TicketAbout]
