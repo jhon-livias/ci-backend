@@ -34,6 +34,8 @@ export class TicketsService {
     const aboutLabel = dto.about === 'self'
       ? `Yo mismo/a · ${actor.displayName}`
       : `${dto.about === 'student' ? 'Alumno' : 'Docente'} · ${dto.otherName}`;
+    const requesterDocument = actor.documentNumber;
+    const affectedDocument = dto.about === 'self' ? '' : (dto.otherDocument ?? '');
     const priority = await this.priorityFor(category.name);
     return this.createTicket({
       kind: 'EXTERNAL',
@@ -46,6 +48,8 @@ export class TicketsService {
       destinationAreaCode: area.code,
       about: dto.about === 'self' ? 'SELF' : dto.about === 'student' ? 'STUDENT' : 'TEACHER',
       aboutLabel,
+      requesterDocument,
+      affectedDocument,
       description: dto.description,
       priority: priority.level,
       estimate: priority.estimate,
@@ -76,6 +80,8 @@ export class TicketsService {
       destinationAreaCode: area.code,
       about: 'SELF',
       aboutLabel: `Responsable de TI · ${actor.displayName}`,
+      requesterDocument: actor.documentNumber,
+      affectedDocument: '',
       description: dto.description,
       priority: dto.priority,
       estimate: (await this.priorityFor(category.name)).estimate,
@@ -178,6 +184,8 @@ export class TicketsService {
     readonly destinationAreaCode: string;
     readonly about: 'SELF' | 'STUDENT' | 'TEACHER';
     readonly aboutLabel: string;
+    readonly requesterDocument: string;
+    readonly affectedDocument: string;
     readonly description: string;
     readonly priority: 'HIGH' | 'MEDIUM' | 'LOW';
     readonly estimate: string;
@@ -201,9 +209,11 @@ export class TicketsService {
           kind: input.kind,
           requesterUserId: input.actor.id,
           requesterName: input.actor.displayName,
+          requesterDocument: input.requesterDocument,
           requesterRole: input.requesterRole,
           about: input.about,
           aboutLabel: input.aboutLabel,
+          affectedDocument: input.affectedDocument,
           areaId: input.areaId,
           categoryId: input.categoryId,
           categoryName: input.categoryName,
@@ -243,7 +253,10 @@ const toTicketView = (ticket: {
   kind: 'EXTERNAL' | 'INTERNAL';
   createdAt: Date;
   academicArea: string;
+  about: 'SELF' | 'STUDENT' | 'TEACHER';
   aboutLabel: string;
+  requesterDocument: string;
+  affectedDocument: string;
   categoryName: string;
   status: TicketStatus;
   estimate: string;
@@ -265,7 +278,10 @@ const toTicketView = (ticket: {
   kind: ticket.kind,
   createdAt: ticket.createdAt.toISOString(),
   academicArea: ticket.academicArea,
+  about: ticket.about,
   aboutLabel: ticket.aboutLabel,
+  requesterDocument: ticket.requesterDocument,
+  affectedDocument: ticket.affectedDocument,
   categoryName: ticket.categoryName,
   status: ticket.status,
   estimate: ticket.estimate,

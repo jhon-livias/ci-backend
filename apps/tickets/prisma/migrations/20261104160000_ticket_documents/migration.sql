@@ -1,0 +1,2 @@
+ALTER TABLE "tickets" ADD COLUMN "requesterDocument" VARCHAR(12) NOT NULL DEFAULT '';
+ALTER TABLE "tickets" ADD COLUMN "affectedDocument" VARCHAR(12) NOT NULL DEFAULT '';

@@ -27,7 +27,7 @@ export interface AuthenticatedUser {
   readonly roles: readonly UserRoleName[];
   readonly applicationRoles: readonly string[];
   readonly mustChangePassword: boolean;
-  readonly profile: { readonly firstName: string; readonly paternalLastName: string } | null;
+  readonly profile: { readonly firstName: string; readonly paternalLastName: string; readonly documentNumber: string } | null;
 }
 
 @Injectable()
@@ -195,6 +195,7 @@ export class AuthenticationService {
       displayName: user.profile
         ? `${user.profile.firstName} ${user.profile.paternalLastName}`.trim()
         : user.username,
+      documentNumber: user.profile?.documentNumber ?? '',
       roles: user.roles,
       applicationRoles: user.applicationRoles,
       csrf: csrfToken,
@@ -208,7 +209,7 @@ export class AuthenticationService {
     mustChangePassword: boolean;
     roles: readonly { role: UserRoleName }[];
     applicationRoles?: readonly { applicationRole: { code: string; enabled: boolean } }[];
-    profile: { firstName: string; paternalLastName: string } | null;
+    profile: { firstName: string; paternalLastName: string; documentNumber?: string | null } | null;
   }): AuthenticatedUser {
     return {
       id: user.id,
@@ -218,7 +219,13 @@ export class AuthenticationService {
         .filter(({ applicationRole }) => applicationRole.enabled)
         .map(({ applicationRole }) => applicationRole.code),
       mustChangePassword: user.mustChangePassword,
-      profile: user.profile ? { firstName: user.profile.firstName, paternalLastName: user.profile.paternalLastName } : null,
+      profile: user.profile
+        ? {
+            firstName: user.profile.firstName,
+            paternalLastName: user.profile.paternalLastName,
+            documentNumber: user.profile.documentNumber ?? '',
+          }
+        : null,
     };
   }
 

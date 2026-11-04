@@ -118,7 +118,9 @@ model Ticket {
   kind               TicketKind
   requesterUserId    String           @db.Uuid
   requesterName      String           @db.VarChar(160)
+  requesterDocument  String           @default("") @db.VarChar(12)
   requesterRole      String           @db.VarChar(80)
+  affectedDocument   String           @default("") @db.VarChar(12)
   academicArea       String           @db.VarChar(80) @default("")
   about              TicketAbout      @default(SELF)
   aboutLabel         String           @db.VarChar(200)

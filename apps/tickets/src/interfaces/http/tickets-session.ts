@@ -16,6 +16,7 @@ export interface TicketsActor {
   readonly id: string;
   readonly username: string;
   readonly displayName: string;
+  readonly documentNumber: string;
   readonly role: TicketsRole;
 }
 
@@ -24,6 +25,7 @@ interface AccessTokenPayload {
   readonly csrf?: unknown;
   readonly username?: unknown;
   readonly displayName?: unknown;
+  readonly documentNumber?: unknown;
   readonly applicationRoles?: unknown;
 }
 
@@ -65,6 +67,7 @@ export class TicketsSessionGuard implements CanActivate {
       id: payload.sub,
       username,
       displayName: typeof payload.displayName === 'string' && payload.displayName ? payload.displayName : username || 'Usuario',
+      documentNumber: typeof payload.documentNumber === 'string' ? payload.documentNumber : '',
       role: resolveTicketsRole(roles, username),
     };
     return true;
