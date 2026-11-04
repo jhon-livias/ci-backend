@@ -1,11 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { canReopenTicket } from '../domain/reopen-policy.js';
+import { statusChangeError } from '../domain/status-transition.js';
 import { formatTicketCode, ticketCodePrefix } from '../domain/ticket-code.js';
 import { TicketsPrismaService } from '../infrastructure/persistence/tickets-prisma.service.js';
 import type { TicketStatus } from '../infrastructure/persistence/generated/client.js';
 import type { TicketsActor } from '../interfaces/http/tickets-session.js';
-import type { ChangeTicketStatusDto, CreateExternalTicketDto, CreateInternalTicketDto } from '../interfaces/http/dto/ticket.dto.js';
+import type { ChangeTicketStatusDto, CreateExternalTicketDto, CreateInternalTicketDto, UpdateInternalTicketDto } from '../interfaces/http/dto/ticket.dto.js';
 
 @Injectable()
 export class TicketsService {
@@ -106,9 +107,37 @@ export class TicketsService {
     });
   }
 
+  async updateInternal(actor: TicketsActor, id: string, dto: UpdateInternalTicketDto) {
+    if (actor.role !== 'area_manager' && actor.role !== 'admin') throw new ForbiddenException();
+    const ticket = await this.requireTicket(id);
+    if (ticket.kind !== 'INTERNAL' || !ticket.emittedInternally) {
+      throw new BadRequestException('Solo se pueden editar tickets internos emitidos.');
+    }
+    if (ticket.status !== 'CREATED') throw new BadRequestException('El ticket ya no se puede editar.');
+    const area = await this.prisma.area.findFirst({ where: { code: 'TI' } });
+    const category = await this.prisma.ticketCategory.findFirst({ where: { areaId: area?.id, name: dto.categoryName } });
+    if (!area || !category) throw new BadRequestException('No encontramos la categoría.');
+    const assignee = await this.prisma.teamMember.findFirst({ where: { fullName: dto.assignedName } });
+    await this.prisma.ticket.update({
+      where: { id: ticket.id },
+      data: {
+        assignedName: dto.assignedName,
+        assignedMemberId: assignee?.id ?? null,
+        dueOn: new Date(`${dto.dueOn}T00:00:00.000Z`),
+        priority: dto.priority,
+        categoryId: category.id,
+        categoryName: category.name,
+        estimate: (await this.priorityFor(category.name)).estimate,
+        description: dto.description,
+      },
+    });
+  }
+
   async changeStatus(actor: TicketsActor, id: string, dto: ChangeTicketStatusDto) {
     if (actor.role === 'requester') throw new ForbiddenException();
     const ticket = await this.requireTicket(id);
+    const error = statusChangeError(ticket.status, dto.status, dto.note ?? '', dto.assignedName ?? '');
+    if (error) throw new BadRequestException(error);
     const assignee = dto.assignedName
       ? await this.prisma.teamMember.findFirst({ where: { fullName: dto.assignedName } })
       : null;
@@ -117,8 +146,8 @@ export class TicketsService {
       where: { id: ticket.id },
       data: {
         status,
-        assignedName: dto.assignedName || ticket.assignedName,
-        assignedMemberId: assignee?.id ?? ticket.assignedMemberId,
+        assignedName: status === 'DERIVED' ? dto.assignedName : ticket.assignedName,
+        assignedMemberId: status === 'DERIVED' ? assignee?.id ?? null : ticket.assignedMemberId,
         receiverResponse: dto.note || ticket.receiverResponse,
         resolvedAt: status === 'RESOLVED' ? new Date() : ticket.resolvedAt,
         history: {
@@ -126,10 +155,14 @@ export class TicketsService {
             status,
             actorName: actor.displayName,
             actorArea: 'TI',
-            toName: dto.assignedName || undefined,
+            fromName: status === 'DERIVED' ? actor.displayName : undefined,
+            toName: status === 'DERIVED' ? dto.assignedName : undefined,
             note: dto.note || undefined,
           },
         },
+        attachments: dto.attachmentNames?.length
+          ? { create: dto.attachmentNames.map((fileName) => ({ fileName })) }
+          : undefined,
       },
     });
   }

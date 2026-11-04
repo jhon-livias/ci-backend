@@ -97,6 +97,19 @@ export class AccountProfileService {
     return this.present(user);
   }
 
+  async updateMobile(userId: string, mobileCountry: string, mobile: string): Promise<AccountProfileView> {
+    if (!COUNTRIES.has(mobileCountry) || !/^\d{6,15}$/.test(mobile)) {
+      throw new BadRequestException('Revisa el número de contacto.');
+    }
+    await this.find(userId);
+    await this.prisma.userProfile.update({
+      where: { userId },
+      data: { mobileCountry, mobile },
+    });
+    await this.audit?.recordFor(userId, 'Sesión', 'Actualizó su número de contacto.');
+    return this.get(userId);
+  }
+
   async update(userId: string, input: AccountProfileUpdate): Promise<AccountProfileView> {
     const draft = normalizeAccountProfile(input);
     const user = await this.find(userId);

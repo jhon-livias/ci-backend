@@ -53,6 +53,7 @@ export class CatalogService {
           level,
           description: row?.description ?? '',
           activities: (row?.activities ?? []).map((activity) => ({
+            id: activity.id,
             categoryName: activity.categoryName,
             activity: activity.activity,
             estimate: activity.estimate,
@@ -128,10 +129,10 @@ export class CatalogService {
       schedule: dto.schedule,
     };
     if (id) {
-      const current = await this.requireMember(id);
+      await this.requireMember(id);
       return this.prisma.teamMember.update({
         where: { id },
-        data: { ...data, roleTitle: current.isManager ? current.roleTitle : dto.roleTitle },
+        data: { functions: dto.functions, schedule: dto.schedule },
       });
     }
     return this.prisma.teamMember.create({ data: { ...data, isManager: false } });
@@ -153,6 +154,12 @@ export class CatalogService {
     return this.prisma.priorityActivity.create({
       data: { level: dto.level, categoryName: dto.categoryName, activity: dto.activity, estimate: dto.estimate },
     });
+  }
+
+  async removePriorityActivity(id: string) {
+    const activity = await this.prisma.priorityActivity.findUnique({ where: { id } });
+    if (!activity) throw new NotFoundException('No encontramos la actividad.');
+    await this.prisma.priorityActivity.delete({ where: { id } });
   }
 
   private async requireArea(id: string) {

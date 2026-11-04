@@ -4,6 +4,7 @@ import type { FastifyRequest } from 'fastify';
 
 import { AccountProfileService } from '../../application/account-profile.service.js';
 import { AuthenticationService } from '../../application/authentication.service.js';
+import { UpdateAccountContactDto } from './dto/update-account-contact.dto.js';
 import { UpdateAccountProfileDto } from './dto/update-account-profile.dto.js';
 
 @Controller('auth/profile')
@@ -18,6 +19,16 @@ export class AccountProfileController {
   async get(@Req() request: FastifyRequest) {
     const session = await this.session(request);
     return this.profiles.get(session.user.id);
+  }
+
+  @Patch('contact')
+  @RouteConfig({ rateLimit: { max: 20, timeWindow: '1 minute' } })
+  @Header('Cache-Control', 'no-store')
+  async updateContact(@Req() request: FastifyRequest, @Body() dto: UpdateAccountContactDto) {
+    const session = await this.session(request);
+    const csrf = Array.isArray(request.headers['x-csrf-token']) ? request.headers['x-csrf-token'][0] : request.headers['x-csrf-token'];
+    if (!csrf || csrf !== session.csrfToken) throw new UnauthorizedException();
+    return this.profiles.updateMobile(session.user.id, dto.mobileCountry, dto.mobile);
   }
 
   @Patch()

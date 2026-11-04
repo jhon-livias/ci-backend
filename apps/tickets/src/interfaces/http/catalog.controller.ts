@@ -84,4 +84,11 @@ export class CatalogController {
   addActivity(@Body() dto: AddPriorityActivityDto) {
     return this.catalog.addPriorityActivity(dto);
   }
+
+  @Delete('priorities/activities/:id')
+  @UseGuards(TicketsRolesGuard('area_manager', 'admin'))
+  @Header('Cache-Control', 'no-store')
+  removeActivity(@Param('id', ParseUUIDPipe) id: string) {
+    return this.catalog.removePriorityActivity(id);
+  }
 }

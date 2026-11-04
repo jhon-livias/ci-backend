@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Header, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
 
 import { TicketsService } from '../../application/tickets.service.js';
-import { ChangeTicketStatusDto, CreateExternalTicketDto, CreateInternalTicketDto, ReopenTicketDto } from './dto/ticket.dto.js';
+import { ChangeTicketStatusDto, CreateExternalTicketDto, CreateInternalTicketDto, ReopenTicketDto, UpdateInternalTicketDto } from './dto/ticket.dto.js';
 import { CurrentTicketsActor, TicketsRolesGuard, TicketsSessionGuard, type TicketsActor } from './tickets-session.js';
 
 @Controller('tickets')
@@ -28,6 +28,17 @@ export class TicketsController {
   @Header('Cache-Control', 'no-store')
   createInternal(@CurrentTicketsActor() actor: TicketsActor, @Body() dto: CreateInternalTicketDto) {
     return this.tickets.createInternal(actor, dto);
+  }
+
+  @Put('internal/:id')
+  @UseGuards(TicketsRolesGuard('area_manager', 'admin'))
+  @Header('Cache-Control', 'no-store')
+  updateInternal(
+    @CurrentTicketsActor() actor: TicketsActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateInternalTicketDto,
+  ) {
+    return this.tickets.updateInternal(actor, id, dto);
   }
 
   @Post(':id/reopen')
