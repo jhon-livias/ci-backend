@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, Optional, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -9,6 +9,7 @@ import type { LoginDto } from '../interfaces/http/dto/login.dto.js';
 import { loginIdentifier, normalizeInstitutionalEmail } from '../domain/institutional-email.js';
 import { AuditLogService } from './audit-log.service.js';
 import { NotificationService } from './notification.service.js';
+import { TotpService } from './totp.service.js';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
@@ -37,6 +38,7 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
     private readonly notifications: NotificationService,
     @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(TotpService) private readonly totp: TotpService | null = null,
   ) {}
 
   async login(input: LoginDto, userAgent?: string | string[]): Promise<AuthenticatedSession> {
@@ -58,6 +60,13 @@ export class AuthenticationService {
     if (!passwordMatches) {
       await this.recordFailedAttempt(user.id, user.failedLoginAttempts);
       throw new UnauthorizedException('Credenciales inválidas.');
+    }
+    if (user.totpEnabled) {
+      if (!input.totpCode) throw new UnauthorizedException('Ingresa el código de tu aplicación de autenticación.');
+      if (!this.totp?.matches(user.totpSecret, input.totpCode)) {
+        await this.recordFailedAttempt(user.id, user.failedLoginAttempts);
+        throw new UnauthorizedException('El código de autenticación no es válido.');
+      }
     }
 
     const authenticatedUser = this.toAuthenticatedUser(user);
@@ -91,6 +100,7 @@ export class AuthenticationService {
     if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
+    if (user.totpEnabled) throw new ForbiddenException('Esta cuenta usa autenticación de dos pasos. Ingresa con tu contraseña y el código de la aplicación.');
 
     const session = await this.createSession(user.id, requestUserAgent(userAgent));
     await this.prisma.user.update({

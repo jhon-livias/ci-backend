@@ -1,4 +1,4 @@
-import { IsString, Length, Matches } from 'class-validator';
+import { IsOptional, IsString, Length, Matches } from 'class-validator';
 
 export class LoginDto {
   @IsString()
@@ -14,4 +14,9 @@ export class LoginDto {
   @IsString()
   @Length(20, 4096)
   readonly recaptchaToken!: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{6}$/u)
+  readonly totpCode?: string;
 }

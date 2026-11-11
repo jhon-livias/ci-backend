@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { createHealthController } from '../../../libs/common/src/index.js';
 import { AccountProfileService } from './application/account-profile.service.js';
 import { AuthenticationService } from './application/authentication.service.js';
+import { TotpService } from './application/totp.service.js';
 import { PasswordRecoveryService } from './application/password-recovery.service.js';
 import { AccountProfileController } from './interfaces/http/account-profile.controller.js';
 import { AuthController } from './interfaces/http/auth.controller.js';
@@ -29,6 +30,7 @@ import { UserDirectoryService } from './application/user-directory.service.js';
 import { UserDirectoryController } from './interfaces/http/user-directory.controller.js';
 import { PermissionsController } from './interfaces/http/permissions.controller.js';
 import { PermissionCatalogService } from './application/permission-catalog.service.js';
+import { TotpController } from './interfaces/http/totp.controller.js';
 import { UserTypesController } from './interfaces/http/user-types.controller.js';
 import { UserTypeCatalogService } from './application/user-type-catalog.service.js';
 import { SystemModulesController } from './interfaces/http/system-modules.controller.js';
@@ -86,10 +88,12 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     NotificationsController,
     PermissionsController,
     UserTypesController,
+    TotpController,
   ],
   providers: [
     AuthPrismaService,
     AuthenticationService,
+    TotpService,
     SsoService,
     AccountProfileService,
     PasswordRecoveryService,

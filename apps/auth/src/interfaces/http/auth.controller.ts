@@ -150,7 +150,7 @@ export class AuthController {
         : (session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio');
       return response.redirect(destination, 302);
     } catch (error) {
-      const destination = error instanceof UnauthorizedException ? 'unknown' : 'failed';
+      const destination = error instanceof ForbiddenException ? 'totp' : error instanceof UnauthorizedException ? 'unknown' : 'failed';
       return response.redirect(`/login?google=${destination}`, 302);
     }
   }
