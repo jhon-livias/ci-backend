@@ -55,10 +55,13 @@ export interface UserDirectoryQuery {
   readonly direction?: 'asc' | 'desc';
 }
 
+const ACADEMIC_SYSTEM = 'Centro de idiomas';
+
 const selection = {
   id: true,
   profile: { select: { documentNumber: true, firstName: true, paternalLastName: true, maternalLastName: true } },
   roles: { select: { role: true } },
+  applicationRoles: { select: { applicationRole: { select: { enabled: true, application: { select: { name: true, enabled: true } } } } } },
 } as const;
 
 @Injectable()
@@ -277,11 +280,7 @@ export class UserDirectoryService {
     }));
   }
 
-  private page(query: UserDirectoryQuery, total: number, users: readonly {
-    id: string;
-    profile: { documentNumber: string; firstName: string; paternalLastName: string; maternalLastName: string | null } | null;
-    roles: readonly { role: string }[];
-  }[]) {
+  private page(query: UserDirectoryQuery, total: number, users: readonly Parameters<typeof present>[0][]) {
     return {
       page: query.page,
       pageSize: query.pageSize,
@@ -492,8 +491,16 @@ const present = (user: {
   id: string;
   profile: { documentNumber: string; firstName: string; paternalLastName: string; maternalLastName: string | null } | null;
   roles: readonly { role: string }[];
+  applicationRoles?: readonly { applicationRole: { enabled: boolean; application: { name: string; enabled: boolean } } }[];
 }) => {
   const roles = [...user.roles].sort((left, right) => (ROLE_ORDER.get(left.role) ?? 0) - (ROLE_ORDER.get(right.role) ?? 0));
+  const systems = new Set<string>();
+  if (roles.length > 0) systems.add(ACADEMIC_SYSTEM);
+  for (const assignment of user.applicationRoles ?? []) {
+    if (assignment.applicationRole.enabled && assignment.applicationRole.application.enabled) {
+      systems.add(assignment.applicationRole.application.name);
+    }
+  }
   return {
     id: user.id,
     documentNumber: user.profile?.documentNumber ?? '',
@@ -502,6 +509,7 @@ const present = (user: {
     maternalLastName: user.profile?.maternalLastName ?? '',
     typeName: roles.map((item) => ROLE_NAMES.get(item.role)).filter((name): name is string => Boolean(name)).join(' - '),
     roles: roles.map((item) => item.role),
+    systems: [...systems],
   };
 };
 
