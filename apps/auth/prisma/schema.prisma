@@ -65,6 +65,8 @@ model User {
   /// Secreto TOTP cifrado. Lo usan Google Authenticator y Microsoft Authenticator.
   totpEnabled         Boolean              @default(false)
   totpSecret          String?              @db.VarChar(255)
+  /// El administrador exige activar el segundo paso antes del próximo ingreso.
+  totpRequired        Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   deletedAt           DateTime?

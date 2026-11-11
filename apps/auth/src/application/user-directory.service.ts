@@ -61,6 +61,8 @@ const selection = {
   id: true,
   profile: { select: { documentNumber: true, firstName: true, paternalLastName: true, maternalLastName: true } },
   roles: { select: { role: true } },
+  totpEnabled: true,
+  totpRequired: true,
   applicationRoles: { select: { applicationRole: { select: { enabled: true, application: { select: { name: true, enabled: true } } } } } },
 } as const;
 
@@ -253,6 +255,16 @@ export class UserDirectoryService {
     if (!result.count) throw new NotFoundException();
     await this.prisma.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
     await this.note(actorId, `Eliminó la cuenta de ${personName(current?.profile?.firstName ?? '', current?.profile?.paternalLastName ?? '')}.`);
+  }
+
+  async requireTotp(id: string, required: boolean, actorId?: string): Promise<void> {
+    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null }, select: { id: true, totpEnabled: true, profile: { select: { firstName: true, paternalLastName: true } } } });
+    if (!user) throw new NotFoundException();
+    await this.prisma.user.update({ where: { id }, data: { totpRequired: required } });
+    const name = personName(user.profile?.firstName ?? '', user.profile?.paternalLastName ?? '');
+    await this.note(actorId, required
+      ? `Exigió la autenticación de dos pasos a ${name}.`
+      : `Quitó la obligación de autenticación de dos pasos a ${name}.`);
   }
 
   async requirePasswordChange(id: string, mustChangePassword: boolean, actorId?: string): Promise<void> {
@@ -491,6 +503,8 @@ const present = (user: {
   id: string;
   profile: { documentNumber: string; firstName: string; paternalLastName: string; maternalLastName: string | null } | null;
   roles: readonly { role: string }[];
+  totpEnabled?: boolean;
+  totpRequired?: boolean;
   applicationRoles?: readonly { applicationRole: { enabled: boolean; application: { name: string; enabled: boolean } } }[];
 }) => {
   const roles = [...user.roles].sort((left, right) => (ROLE_ORDER.get(left.role) ?? 0) - (ROLE_ORDER.get(right.role) ?? 0));
@@ -510,6 +524,8 @@ const present = (user: {
     typeName: roles.map((item) => ROLE_NAMES.get(item.role)).filter((name): name is string => Boolean(name)).join(' - '),
     roles: roles.map((item) => item.role),
     systems: [...systems],
+    totpEnabled: user.totpEnabled === true,
+    totpRequired: user.totpRequired === true,
   };
 };
 

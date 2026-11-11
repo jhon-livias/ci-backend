@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "totpRequired" BOOLEAN NOT NULL DEFAULT false;

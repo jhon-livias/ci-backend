@@ -42,6 +42,8 @@ describe('UserDirectoryService', () => {
       typeName: 'Administrador',
       roles: ['ADMINISTRATOR'],
       systems: ['Centro de idiomas'],
+      totpEnabled: false,
+      totpRequired: false,
     }]);
     expect(result.users[0]).not.toHaveProperty('email');
     expect(result.users[0]).not.toHaveProperty('passwordHash');

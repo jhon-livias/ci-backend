@@ -22,6 +22,10 @@ export interface AuthenticatedSession {
   readonly user: AuthenticatedUser;
 }
 
+export type LoginResult =
+  | ({ readonly status: 'session' } & AuthenticatedSession)
+  | { readonly status: 'enroll'; readonly enrollmentToken: string };
+
 export interface AuthenticatedUser {
   readonly id: string;
   readonly username: string;
@@ -41,7 +45,7 @@ export class AuthenticationService {
     @Optional() @Inject(TotpService) private readonly totp: TotpService | null = null,
   ) {}
 
-  async login(input: LoginDto, userAgent?: string | string[]): Promise<AuthenticatedSession> {
+  async login(input: LoginDto, userAgent?: string | string[]): Promise<LoginResult> {
     const identifier = loginIdentifier(input.username);
     if (!identifier) throw new UnauthorizedException('Credenciales inválidas.');
     const user = await this.prisma.user.findFirst({
@@ -60,6 +64,10 @@ export class AuthenticationService {
     if (!passwordMatches) {
       await this.recordFailedAttempt(user.id, user.failedLoginAttempts);
       throw new UnauthorizedException('Credenciales inválidas.');
+    }
+    if (user.totpRequired && !user.totpEnabled) {
+      await this.prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, lockedUntil: null } });
+      return { status: 'enroll', enrollmentToken: await this.enrollmentToken(user.id, user.username) };
     }
     if (user.totpEnabled) {
       if (!input.totpCode) throw new UnauthorizedException('Ingresa el código de tu aplicación de autenticación.');
@@ -87,7 +95,7 @@ export class AuthenticationService {
     };
     void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
     await this.audit?.recordFor(user.id, 'Sesión', 'Inició sesión.');
-    return this.issueTokens(authenticatedUser, session.refreshToken);
+    return { status: 'session', ...(await this.issueTokens(authenticatedUser, session.refreshToken)) };
   }
 
   async loginWithGoogle(email: string, userAgent?: string | string[]): Promise<AuthenticatedSession> {
@@ -100,6 +108,7 @@ export class AuthenticationService {
     if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
+    if (user.totpRequired && !user.totpEnabled) throw new ForbiddenException('Debes activar la autenticación de dos pasos. Ingresa con tu usuario y contraseña.');
     if (user.totpEnabled) throw new ForbiddenException('Esta cuenta usa autenticación de dos pasos. Ingresa con tu contraseña y el código de la aplicación.');
 
     const session = await this.createSession(user.id, requestUserAgent(userAgent));
@@ -152,6 +161,34 @@ export class AuthenticationService {
     return this.issueTokens(this.toAuthenticatedUser(existing.user), replacement.refreshToken);
   }
 
+  async readEnrollment(token: string): Promise<{ id: string; username: string }> {
+    let payload: { sub?: string; purpose?: string; username?: string };
+    try {
+      payload = await this.jwtService.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException('La activación expiró. Vuelve a ingresar tu contraseña.');
+    }
+    if (payload.purpose !== 'totp-enroll' || !payload.sub) throw new UnauthorizedException('La activación expiró. Vuelve a ingresar tu contraseña.');
+    const user = await this.prisma.user.findFirst({
+      where: { id: payload.sub, deletedAt: null, status: UserStatus.ACTIVE, totpRequired: true, totpEnabled: false },
+      select: { id: true, username: true },
+    });
+    if (!user) throw new UnauthorizedException('La activación expiró. Vuelve a ingresar tu contraseña.');
+    return user;
+  }
+
+  async completeEnrollment(userId: string, userAgent?: string | string[]): Promise<AuthenticatedSession> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null, status: UserStatus.ACTIVE, totpEnabled: true },
+      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
+    });
+    if (!user) throw new UnauthorizedException('La activación expiró. Vuelve a ingresar tu contraseña.');
+    const session = await this.createSession(user.id, requestUserAgent(userAgent));
+    await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    await this.audit?.recordFor(user.id, 'Sesión', 'Activó la autenticación de dos pasos e inició sesión.');
+    return this.issueTokens(this.toAuthenticatedUser(user), session.refreshToken);
+  }
+
   async replacePassword(userId: string, password: string): Promise<void> {
     if (!/^[^<>]{8,72}$/u.test(password)) throw new BadRequestException('La contraseña debe tener al menos 8 caracteres.');
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
@@ -195,6 +232,10 @@ export class AuthenticationService {
       data: { refreshTokenHash: await argon2.hash(refreshToken, { type: argon2.argon2id }) },
     });
     return { refreshToken };
+  }
+
+  private async enrollmentToken(userId: string, username: string): Promise<string> {
+    return this.jwtService.signAsync({ sub: userId, purpose: 'totp-enroll', username }, { expiresIn: '10m' });
   }
 
   private async issueTokens(user: AuthenticatedUser, refreshToken: string): Promise<AuthenticatedSession> {

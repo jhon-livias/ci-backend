@@ -6,6 +6,7 @@ import { UserDirectoryService } from '../../application/user-directory.service.j
 import { UsersCreateGuard, UsersDeleteGuard, UsersReadGuard, UsersUpdateGuard } from './access-policy.guard.js';
 import { ListUsersDto } from './dto/list-users.dto.js';
 import { RequirePasswordChangeDto } from './dto/require-password-change.dto.js';
+import { RequireTotpDto } from './dto/require-totp.dto.js';
 import { SaveUserDto, UpdateUserDto } from './dto/save-user.dto.js';
 
 @Controller('auth/admin/users')
@@ -41,6 +42,14 @@ export class UserDirectoryController {
   @Header('Cache-Control', 'no-store')
   async resetPassword(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string) {
     return this.directory.resetPassword(id, await this.actorId(request));
+  }
+
+  @Patch(':id/mfa')
+  @UseGuards(UsersUpdateGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Header('Cache-Control', 'no-store')
+  async requireTotp(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RequireTotpDto): Promise<void> {
+    await this.directory.requireTotp(id, dto.required, await this.actorId(request));
   }
 
   @Patch(':id/password-policy')

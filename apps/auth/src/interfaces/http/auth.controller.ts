@@ -150,7 +150,8 @@ export class AuthController {
         : (session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio');
       return response.redirect(destination, 302);
     } catch (error) {
-      const destination = error instanceof ForbiddenException ? 'totp' : error instanceof UnauthorizedException ? 'unknown' : 'failed';
+      const message = error instanceof ForbiddenException ? String(error.message) : '';
+      const destination = message.includes('Debes activar') ? 'enroll' : error instanceof ForbiddenException ? 'totp' : error instanceof UnauthorizedException ? 'unknown' : 'failed';
       return response.redirect(`/login?google=${destination}`, 302);
     }
   }
@@ -168,6 +169,7 @@ export class AuthController {
       input,
       request.headers['user-agent'],
     );
+    if (session.status === 'enroll') return { enrollmentRequired: true, enrollmentToken: session.enrollmentToken };
     this.setSessionCookies(response, session.accessToken, session.refreshToken);
     return { user: session.user, csrfToken: session.csrfToken };
   }
