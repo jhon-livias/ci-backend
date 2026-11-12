@@ -22,6 +22,7 @@ const ports: Record<ServiceName, number> = {
   exams: 3006,
   payments: 3007,
   tickets: 3008,
+  'study-plans': 3009,
 };
 
 const parseAllowedOrigins = (): string[] =>
@@ -34,6 +35,7 @@ export const bootstrapRestApplication = async (
   rootModule: Type<unknown>,
   service: ServiceName,
   configure?: (application: NestFastifyApplication) => Promise<void>,
+  options?: { readonly bodyLimit?: number },
 ): Promise<void> => {
   startTelemetry(service);
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -50,6 +52,7 @@ export const bootstrapRestApplication = async (
   const app = await NestFactory.create<NestFastifyApplication>(
     rootModule,
     new FastifyAdapter({
+      bodyLimit: options?.bodyLimit ?? 1_048_576,
       logger: {
         level: process.env.LOG_LEVEL ?? (isDevelopment ? 'debug' : 'info'),
         redact: {

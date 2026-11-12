@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/persistence/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Modality {
+  id         String       @id @default(uuid()) @db.Uuid
+  code       String       @unique @db.VarChar(40)
+  name       String       @db.VarChar(120)
+  enabled    Boolean      @default(true)
+  curricula  Curriculum[]
+  @@map("modalities")
+}
+
+model AcademicArea {
+  id       String   @id @default(uuid()) @db.Uuid
+  code     String   @unique @db.VarChar(12)
+  name     String   @db.VarChar(120)
+  enabled  Boolean  @default(true)
+  careers  Career[]
+  @@map("academic_areas")
+}
+
+model Career {
+  id         String       @id @default(uuid()) @db.Uuid
+  areaId     String       @db.Uuid
+  area       AcademicArea @relation(fields: [areaId], references: [id])
+  code       String       @unique @db.VarChar(12)
+  name       String       @db.VarChar(160)
+  enabled    Boolean      @default(true)
+  curricula  Curriculum[]
+  @@index([areaId])
+  @@map("careers")
+}
+
+enum CurriculumStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Curriculum {
+  id          String            @id @default(uuid()) @db.Uuid
+  careerId    String            @db.Uuid
+  career      Career            @relation(fields: [careerId], references: [id])
+  modalityId  String            @db.Uuid
+  modality    Modality          @relation(fields: [modalityId], references: [id])
+  year        String            @db.VarChar(4)
+  status      CurriculumStatus  @default(INACTIVE)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  cycles      Cycle[]
+  @@unique([careerId, modalityId, year])
+  @@index([careerId, status])
+  @@map("curricula")
+}
+
+model Cycle {
+  id            String     @id @default(uuid()) @db.Uuid
+  curriculumId  String     @db.Uuid
+  curriculum    Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  number        Int
+  courses       Course[]
+  @@unique([curriculumId, number])
+  @@map("cycles")
+}
+
+model Course {
+  id        String     @id @default(uuid()) @db.Uuid
+  cycleId   String     @db.Uuid
+  cycle     Cycle      @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  position  Int
+  code      String     @db.VarChar(16)
+  name      String     @db.VarChar(180)
+  credits   Decimal    @db.Decimal(4, 1)
+  syllabi   Syllabus[]
+  @@unique([cycleId, position])
+  @@unique([cycleId, code])
+  @@map("courses")
+}
+
+enum SyllabusStatus {
+  PUBLISHED
+  RETIRED
+}
+
+model Syllabus {
+  id          String          @id @default(uuid()) @db.Uuid
+  courseId    String          @db.Uuid
+  course      Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  version     Int
+  status      SyllabusStatus
+  content     Bytes
+  sha256      String          @db.Char(64)
+  sizeBytes   Int
+  uploadedBy  String          @db.Uuid
+  createdAt   DateTime        @default(now())
+  @@unique([courseId, version])
+  @@index([courseId, status])
+  @@map("syllabi")
+}

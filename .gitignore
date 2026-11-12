@@ -12,6 +12,7 @@
 /apps/enrollment/src/infrastructure/persistence/generated
 /apps/language-center/*/src/infrastructure/persistence/generated
 /apps/tickets/src/infrastructure/persistence/generated
+/apps/study-plans/src/infrastructure/persistence/generated
 
 # TypeScript build cache
 *.tsbuildinfo

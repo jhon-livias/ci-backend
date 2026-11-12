@@ -70,6 +70,7 @@ const main = async (): Promise<void> => {
               passwordHash,
               status: 'ACTIVE',
               mustChangePassword: false,
+              totpRequired: account.role === 'tickets.admin' || account.role === 'tickets.area_manager',
               failedLoginAttempts: 0,
               lockedUntil: null,
               deletedAt: null,
@@ -89,6 +90,7 @@ const main = async (): Promise<void> => {
               passwordHash,
               status: 'ACTIVE',
               mustChangePassword: false,
+              totpRequired: account.role === 'tickets.admin' || account.role === 'tickets.area_manager',
               profile: {
                 create: { documentNumber: account.documentNumber, firstName: account.firstName, paternalLastName: account.paternalLastName, phone: account.phone, mobile: account.phone, mobileCountry: '+51' },
               },

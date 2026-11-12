@@ -1,19 +1,17 @@
 import { Body, Controller, Get, Header, Injectable, Post, Query, ParseUUIDPipe, UnauthorizedException, UseGuards, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import { IsInt, IsString, IsUUID, Max, MaxLength, Min, ValidateIf } from 'class-validator';
-import { timingSafeEqual } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
+
+import { internalSecretMatches } from '../../../../../../libs/common/src/internal-secret.js';
 
 import { EnrollmentService } from '../../application/enrollment.service.js';
 
 @Injectable()
 export class InternalEnrollmentGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const supplied = context.switchToHttp().getRequest<FastifyRequest>().headers['x-internal-secret'];
-    if (!secret || secret.length < 32 || typeof supplied !== 'string') throw new UnauthorizedException();
-    const a = Buffer.from(secret); const b = Buffer.from(supplied);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) throw new UnauthorizedException();
+    if (!internalSecretMatches('enrollment', supplied)) throw new UnauthorizedException();
     return true;
   }
 }

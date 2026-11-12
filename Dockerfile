@@ -12,6 +12,7 @@ RUN AUTH_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=auth
   && ENROLLMENT_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=enrollment' npm run enrollment:db:generate \
   && ATTENDANCE_GRADES_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=attendance' npm run attendance:db:generate \
   && TICKETS_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=tickets' npm run tickets:db:generate \
+  && STUDY_PLANS_DATABASE_URL='postgresql://build:build@localhost:5432/build?schema=study_plans' npm run study-plans:db:generate \
   && npm run build
 
 FROM node:22-alpine AS production-dependencies
@@ -27,4 +28,4 @@ COPY --from=build --chown=node:node /app/dist ./dist
 USER node
 
 # SERVICE is set by ci-deploy for gateway or an internal microservice.
-CMD ["sh", "-c", "case \"${SERVICE:-gateway}\" in auth|tickets|gateway) APP=\"${SERVICE:-gateway}\" ;; *) APP=\"language-center/${SERVICE:-gateway}\" ;; esac; node dist/apps/$APP/src/main.js"]
+CMD ["sh", "-c", "case \"${SERVICE:-gateway}\" in auth|tickets|gateway|study-plans) APP=\"${SERVICE:-gateway}\" ;; *) APP=\"language-center/${SERVICE:-gateway}\" ;; esac; node dist/apps/$APP/src/main.js"]

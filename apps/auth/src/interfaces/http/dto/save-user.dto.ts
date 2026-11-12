@@ -93,11 +93,25 @@ export class SaveUserDto {
   enabled!: boolean;
 
   @IsArray()
-  @ArrayMinSize(1)
   @ArrayMaxSize(200)
   @ValidateNested({ each: true })
   @Type(() => UserGrantDto)
   grants!: UserGrantDto[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => StudyPlansAssignmentDto)
+  studyPlans?: StudyPlansAssignmentDto;
+}
+
+export class StudyPlansAssignmentDto {
+  @IsIn(['faculty', 'teacher', 'none'])
+  role!: 'faculty' | 'teacher' | 'none';
+
+  @IsArray()
+  @ArrayMaxSize(20)
+  @Matches(/^[A-Z]{2,8}$/u, { each: true })
+  careerCodes!: string[];
 }
 
 export class UpdateUserDto {
@@ -176,4 +190,9 @@ export class UpdateUserDto {
   @ValidateNested({ each: true })
   @Type(() => UserGrantDto)
   grants?: UserGrantDto[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => StudyPlansAssignmentDto)
+  studyPlans?: StudyPlansAssignmentDto;
 }

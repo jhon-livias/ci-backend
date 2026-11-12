@@ -80,7 +80,7 @@ export const normalizeUserAccount = (input: {
   readonly password?: string;
   readonly enabled: boolean;
   readonly grants: readonly { readonly permissionId: string; readonly name: string; readonly enabled: boolean }[];
-}, requirePassword: boolean): NormalizedUserAccount => {
+}, requirePassword: boolean, options?: { readonly allowEmptyGrants?: boolean }): NormalizedUserAccount => {
   const firstName = clean(input.firstName);
   const paternalLastName = clean(input.paternalLastName);
   const maternalLastName = clean(input.maternalLastName);
@@ -109,8 +109,9 @@ export const normalizeUserAccount = (input: {
   if (siteId && !PERMISSION_ID.test(siteId)) throw new UserAccountRuleError('site');
   if (requirePassword && !PERMISSION_ID.test(siteId)) throw new UserAccountRuleError('site');
   const incomingGrants = input.grants ?? [];
-  if (requirePassword && (incomingGrants.length < 1 || incomingGrants.length > 200)) throw new UserAccountRuleError('permission');
-  if (!requirePassword && incomingGrants.length > 200) throw new UserAccountRuleError('permission');
+  const allowEmptyGrants = options?.allowEmptyGrants === true;
+  if (incomingGrants.length > 200) throw new UserAccountRuleError('permission');
+  if (requirePassword && !allowEmptyGrants && incomingGrants.length < 1) throw new UserAccountRuleError('permission');
 
   const seen = new Set<string>();
   const grants = incomingGrants.map((item) => {
@@ -121,8 +122,9 @@ export const normalizeUserAccount = (input: {
     seen.add(key);
     return { permissionId, name, enabled: item.enabled };
   });
-  if (requirePassword && !grants.some((item) => item.enabled)) throw new UserAccountRuleError('permission');
-  if (!requirePassword && grants.length > 0 && !grants.some((item) => item.enabled)) throw new UserAccountRuleError('permission');
+  const hasEnabledGrant = grants.some((item) => item.enabled);
+  if (grants.length > 0 && !hasEnabledGrant) throw new UserAccountRuleError('permission');
+  if (requirePassword && !allowEmptyGrants && !hasEnabledGrant) throw new UserAccountRuleError('permission');
 
   return {
     documentType,

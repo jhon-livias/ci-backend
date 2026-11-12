@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Header, HttpCode, HttpException, Param, ParseUUIDPipe, Post, Put, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { AcademicConfigError, ACADEMIC_CATALOG_TITLES, isAcademicCatalogKind, normalizeAcademicRules, normalizeCatalogName } from '../../../../../libs/contracts/src/academic-config.js';
 import { AcademicCatalogItemDto, AcademicRulesDto } from '../../../../../libs/contracts/src/academic-config.dto.js';
 import { AuditLogService } from '../../application/audit-log.service.js';
@@ -82,9 +83,9 @@ export class AcademicConfigProxyController {
   }
 
   private async forward(method: string, path?: string, body?: unknown): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const upstream = process.env.ACADEMIC_UPSTREAM ?? 'http://academic:3002';
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}/api/v1/internal/academic-config${path ? `/${path}` : ''}`, {

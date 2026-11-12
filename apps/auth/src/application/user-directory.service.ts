@@ -2,8 +2,10 @@ import { BadRequestException, ConflictException, Inject, Injectable, NotFoundExc
 import * as argon2 from 'argon2';
 
 import { FIXED_ROLES, type FixedRole } from '../domain/access-policy.js';
+import { requiresMfa } from '../domain/privileged-mfa.js';
 import { normalizeUserAccount, temporaryPassword, UserAccountRuleError, type NormalizedUserAccount } from '../domain/user-account.js';
 import { AuditLogService } from './audit-log.service.js';
+import { SessionControl } from './session-control.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
 import { UserRoleName } from '../infrastructure/persistence/generated/client.js';
 
@@ -22,6 +24,24 @@ const MODULE_ROLE: Readonly<Record<string, UserRoleName>> = {
   asesora: UserRoleName.ADVISOR,
   director: UserRoleName.DIRECTOR,
   administrador: UserRoleName.ADMINISTRATOR,
+};
+
+export interface StudyPlansAssignment {
+  readonly role: 'faculty' | 'teacher' | 'none';
+  readonly careerCodes: readonly string[];
+}
+
+type DirectoryInput = Parameters<typeof normalizeUserAccount>[0] & {
+  readonly studyPlans?: StudyPlansAssignment;
+};
+
+const studyPlansOf = (dto: DirectoryInput): StudyPlansAssignment | undefined => {
+  const value = dto.studyPlans;
+  if (!value || (value.role !== 'faculty' && value.role !== 'teacher' && value.role !== 'none')) return undefined;
+  return {
+    role: value.role,
+    careerCodes: value.careerCodes.filter((code) => /^[A-Z]{2,8}$/u.test(code)),
+  };
 };
 
 const detailSelection = {
@@ -71,6 +91,7 @@ export class UserDirectoryService {
   constructor(
     private readonly prisma: AuthPrismaService,
     @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(SessionControl) private readonly sessions: SessionControl | null = null,
   ) {}
 
   async list(query: UserDirectoryQuery) {
@@ -94,7 +115,7 @@ export class UserDirectoryService {
   async get(id: string) {
     const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null }, select: detailSelection });
     if (!user) throw new NotFoundException();
-    return presentDetail(user);
+    return { ...presentDetail(user), studyPlans: await this.readStudyPlans(id) };
   }
 
   async createTeacher(input: {
@@ -153,25 +174,35 @@ export class UserDirectoryService {
     return users.map(presentDetail);
   }
 
-  async create(dto: Parameters<typeof normalizeUserAccount>[0], actorId?: string) {
-    const draft = this.normalize(dto, true);
+  async create(dto: DirectoryInput, actorId?: string) {
+    const assignment = studyPlansOf(dto);
+    const hasStudyPlans = assignment?.role === 'faculty' || assignment?.role === 'teacher';
+    const draft = this.normalize(dto, true, { allowEmptyGrants: hasStudyPlans });
     await this.ensureAvailable(draft);
-    const resolved = await this.resolveGrants(draft.grants);
+    const resolved = draft.grants.some((grant) => grant.enabled)
+      ? await this.resolveGrants(draft.grants)
+      : { grants: [], roles: [] as UserRoleName[] };
+    if (resolved.roles.length === 0 && !hasStudyPlans) throw new BadRequestException('Activa al menos una funcionalidad.');
     const passwordHash = await argon2.hash(draft.password ?? '', { type: argon2.argon2id });
     try {
-      const created = await this.prisma.$transaction(async (tx) => tx.user.create({
-        data: {
-          username: draft.documentNumber.toLowerCase(),
-          email: draft.email,
-          passwordHash,
-          status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
-          siteId: draft.siteId,
-          profile: { create: this.profileData(draft) },
-          roles: { create: resolved.roles.map((role) => ({ role })) },
-          grants: { create: resolved.grants },
-        },
-        select: detailSelection,
-      }));
+      const created = await this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            username: draft.documentNumber.toLowerCase(),
+            email: draft.email,
+            passwordHash,
+            status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
+            siteId: draft.siteId,
+            profile: { create: this.profileData(draft) },
+            totpRequired: requiresMfa(resolved.roles) || assignment?.role === 'faculty',
+            ...(resolved.roles.length > 0 ? { roles: { create: resolved.roles.map((role) => ({ role })) } } : {}),
+            ...(resolved.grants.length > 0 ? { grants: { create: resolved.grants } } : {}),
+          },
+          select: detailSelection,
+        });
+        if (assignment) await this.applyStudyPlans(tx, user.id, assignment);
+        return user;
+      });
       const detail = presentDetail(created);
       await this.note(actorId, `Creó la cuenta de ${personName(detail.firstName, detail.paternalLastName)}.`);
       return detail;
@@ -180,17 +211,28 @@ export class UserDirectoryService {
     }
   }
 
-  async update(id: string, dto: Parameters<typeof normalizeUserAccount>[0], actorId: string) {
+  async update(id: string, dto: DirectoryInput, actorId: string) {
+    const assignment = studyPlansOf(dto);
+    const grantsProvided = dto.grants !== undefined;
     const draft = this.normalize(dto, false);
     await this.ensureAvailable(draft, id);
-    const resolved = draft.grants.length > 0 ? await this.resolveGrants(draft.grants) : null;
+    const resolved = grantsProvided
+      ? draft.grants.some((grant) => grant.enabled)
+        ? await this.resolveGrants(draft.grants)
+        : { grants: [], roles: [] as UserRoleName[] }
+      : null;
+    const keepsStudyPlans = assignment?.role === 'faculty' || assignment?.role === 'teacher';
+    if (resolved && resolved.roles.length === 0 && !keepsStudyPlans) {
+      throw new BadRequestException('Activa al menos una funcionalidad.');
+    }
     if (actorId === id && (!draft.enabled || (resolved !== null && !resolved.roles.includes(UserRoleName.ADMINISTRATOR)))) {
       throw new BadRequestException('No puedes quitar tu propio acceso de administrador.');
     }
     const passwordHash = draft.password ? await argon2.hash(draft.password, { type: argon2.argon2id }) : null;
+    const cutAccess = Boolean(passwordHash) || !draft.enabled || resolved !== null || assignment !== undefined;
     try {
       const detail = await this.prisma.$transaction(async (tx) => {
-        const current = await tx.user.findFirst({ where: { id, deletedAt: null }, select: { id: true } });
+        const current = await tx.user.findFirst({ where: { id, deletedAt: null }, select: { id: true, sessionVersion: true } });
         if (!current) throw new NotFoundException();
         const updated = await tx.user.update({
           where: { id },
@@ -200,21 +242,25 @@ export class UserDirectoryService {
             status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
             siteId: draft.siteId || null,
             ...(passwordHash ? { passwordHash, passwordChangedAt: new Date() } : {}),
+            ...(resolved && requiresMfa(resolved.roles) || assignment?.role === 'faculty' ? { totpRequired: true } : {}),
+            ...(cutAccess ? { sessionVersion: { increment: 1 } } : {}),
             profile: { upsert: { create: this.profileData(draft), update: this.profileData(draft) } },
             ...(resolved ? {
               roles: { deleteMany: {}, create: resolved.roles.map((role) => ({ role })) },
               grants: { deleteMany: {}, create: resolved.grants },
             } : {}),
           },
-          select: detailSelection,
+          select: { ...detailSelection, sessionVersion: true },
         });
-        if (passwordHash || !draft.enabled) {
+        if (assignment) await this.applyStudyPlans(tx, id, assignment);
+        if (cutAccess) {
           await tx.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
         }
-        return presentDetail(updated);
+        return { detail: presentDetail(updated), sessionVersion: updated.sessionVersion };
       });
-      await this.note(actorId, `Modificó la cuenta de ${personName(detail.firstName, detail.paternalLastName)}.`);
-      return detail;
+      if (cutAccess) await this.sessions?.publish(id, detail.sessionVersion);
+      await this.note(actorId, `Modificó la cuenta de ${personName(detail.detail.firstName, detail.detail.paternalLastName)}.`);
+      return detail.detail;
     } catch (error) {
       this.rethrowPersistence(error);
     }
@@ -225,19 +271,17 @@ export class UserDirectoryService {
     if (!user) throw new NotFoundException();
     const password = temporaryPassword();
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id },
-        data: {
-          passwordHash,
-          passwordChangedAt: new Date(),
-          mustChangePassword: false,
-          failedLoginAttempts: 0,
-          lockedUntil: null,
-        },
-      }),
-      this.prisma.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } }),
-    ]);
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash,
+        passwordChangedAt: new Date(),
+        mustChangePassword: false,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+    await this.endSessions(id);
     await this.note(actorId, `Restableció la contraseña de ${user.username}.`);
     return { username: user.username, password };
   }
@@ -253,14 +297,30 @@ export class UserDirectoryService {
       data: { deletedAt: new Date(), status: 'SUSPENDED' },
     });
     if (!result.count) throw new NotFoundException();
-    await this.prisma.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
+    await this.endSessions(id);
     await this.note(actorId, `Eliminó la cuenta de ${personName(current?.profile?.firstName ?? '', current?.profile?.paternalLastName ?? '')}.`);
   }
 
   async requireTotp(id: string, required: boolean, actorId?: string): Promise<void> {
-    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null }, select: { id: true, totpEnabled: true, profile: { select: { firstName: true, paternalLastName: true } } } });
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+      select: {
+        id: true,
+        totpEnabled: true,
+        roles: { select: { role: true } },
+        applicationRoles: { select: { applicationRole: { select: { code: true, enabled: true } } } },
+        profile: { select: { firstName: true, paternalLastName: true } },
+      },
+    });
     if (!user) throw new NotFoundException();
+    const applicationRoles = user.applicationRoles
+      .filter(({ applicationRole }) => applicationRole.enabled)
+      .map(({ applicationRole }) => applicationRole.code);
+    if (!required && requiresMfa(user.roles.map(({ role }) => role), applicationRoles)) {
+      throw new BadRequestException('Esta cuenta debe mantener la autenticación de dos pasos.');
+    }
     await this.prisma.user.update({ where: { id }, data: { totpRequired: required } });
+    await this.endSessions(id);
     const name = personName(user.profile?.firstName ?? '', user.profile?.paternalLastName ?? '');
     await this.note(actorId, required
       ? `Exigió la autenticación de dos pasos a ${name}.`
@@ -275,6 +335,14 @@ export class UserDirectoryService {
     await this.note(actorId, mustChangePassword
       ? `Marcó el cambio de contraseña al iniciar sesión de ${user.username}.`
       : `Quitó el cambio de contraseña al iniciar sesión de ${user.username}.`);
+  }
+
+  private async endSessions(userId: string): Promise<void> {
+    if (this.sessions) {
+      await this.sessions.cutAll(userId);
+      return;
+    }
+    await this.prisma.authSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
   }
 
   private async note(actorId: string | undefined, action: string): Promise<void> {
@@ -352,13 +420,54 @@ export class UserDirectoryService {
     return roles.reduce((rank, item) => Math.min(rank, ROLE_ORDER.get(item.role) ?? ROLE_ORDER.size), ROLE_ORDER.size);
   }
 
-  private normalize(input: Parameters<typeof normalizeUserAccount>[0], requirePassword: boolean): NormalizedUserAccount {
+  private normalize(
+    input: Parameters<typeof normalizeUserAccount>[0],
+    requirePassword: boolean,
+    options?: { readonly allowEmptyGrants?: boolean },
+  ): NormalizedUserAccount {
     try {
-      return normalizeUserAccount(input, requirePassword);
+      return normalizeUserAccount(input, requirePassword, options);
     } catch (error) {
       if (error instanceof UserAccountRuleError) throw new BadRequestException(accountMessage(error.rule));
       throw error;
     }
+  }
+
+  private async applyStudyPlans(
+    tx: Pick<AuthPrismaService, 'applicationRole' | 'userApplicationRole' | 'userCareerScope'>,
+    userId: string,
+    assignment: StudyPlansAssignment,
+  ): Promise<void> {
+    const codes = [...new Set(assignment.careerCodes)];
+    if (assignment.role !== 'none' && codes.length === 0) {
+      throw new BadRequestException('Indica al menos una carrera.');
+    }
+    await tx.userApplicationRole.deleteMany({
+      where: { userId, applicationRole: { application: { code: 'study-plans' } } },
+    });
+    await tx.userCareerScope.deleteMany({ where: { userId } });
+    if (assignment.role === 'none') return;
+    const code = assignment.role === 'faculty' ? 'study-plans.faculty' : 'study-plans.teacher';
+    const role = await tx.applicationRole.findFirst({
+      where: { code, enabled: true, application: { code: 'study-plans' } },
+      select: { id: true },
+    });
+    if (!role) throw new BadRequestException('El rol de planes de estudio no está registrado.');
+    await tx.userApplicationRole.create({ data: { userId, applicationRoleId: role.id } });
+    await tx.userCareerScope.createMany({ data: codes.map((careerCode) => ({ userId, careerCode })) });
+  }
+
+  private async readStudyPlans(userId: string): Promise<StudyPlansAssignment> {
+    const [links, scopes] = await Promise.all([
+      this.prisma.userApplicationRole.findMany({
+        where: { userId, applicationRole: { enabled: true, application: { code: 'study-plans' } } },
+        select: { applicationRole: { select: { code: true } } },
+      }),
+      this.prisma.userCareerScope.findMany({ where: { userId }, select: { careerCode: true }, orderBy: { careerCode: 'asc' } }),
+    ]);
+    const codes = links.map((link) => link.applicationRole.code);
+    const role = codes.includes('study-plans.faculty') ? 'faculty' : codes.includes('study-plans.teacher') ? 'teacher' : 'none';
+    return { role, careerCodes: scopes.map((scope) => scope.careerCode) };
   }
 
   private async resolveGrants(grants: readonly NormalizedUserAccount['grants'][number][]) {

@@ -3,6 +3,7 @@ import { ArrayMaxSize, IsArray, IsIn, IsNumber, IsOptional, IsString, IsUUID, Ma
 import { Type } from 'class-transformer';
 import type { FastifyRequest } from 'fastify';
 
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { AuthenticationService } from '../../application/authentication.service.js';
 import { AccountProfileService } from '../../application/account-profile.service.js';
 import { hasAccessPermission, type AccessPermission } from '../../domain/access-policy.js';
@@ -171,8 +172,8 @@ export class TeacherPortalController {
   }
 
   private async forward(method: string, upstream: string, path: string, body?: unknown): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}${path}`, {

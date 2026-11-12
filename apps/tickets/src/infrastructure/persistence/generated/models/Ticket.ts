@@ -30,7 +30,9 @@ export type TicketMinAggregateOutputType = {
   kind: $Enums.TicketKind | null
   requesterUserId: string | null
   requesterName: string | null
+  requesterDocument: string | null
   requesterRole: string | null
+  affectedDocument: string | null
   academicArea: string | null
   about: $Enums.TicketAbout | null
   aboutLabel: string | null
@@ -58,7 +60,9 @@ export type TicketMaxAggregateOutputType = {
   kind: $Enums.TicketKind | null
   requesterUserId: string | null
   requesterName: string | null
+  requesterDocument: string | null
   requesterRole: string | null
+  affectedDocument: string | null
   academicArea: string | null
   about: $Enums.TicketAbout | null
   aboutLabel: string | null
@@ -86,7 +90,9 @@ export type TicketCountAggregateOutputType = {
   kind: number
   requesterUserId: number
   requesterName: number
+  requesterDocument: number
   requesterRole: number
+  affectedDocument: number
   academicArea: number
   about: number
   aboutLabel: number
@@ -116,7 +122,9 @@ export type TicketMinAggregateInputType = {
   kind?: true
   requesterUserId?: true
   requesterName?: true
+  requesterDocument?: true
   requesterRole?: true
+  affectedDocument?: true
   academicArea?: true
   about?: true
   aboutLabel?: true
@@ -144,7 +152,9 @@ export type TicketMaxAggregateInputType = {
   kind?: true
   requesterUserId?: true
   requesterName?: true
+  requesterDocument?: true
   requesterRole?: true
+  affectedDocument?: true
   academicArea?: true
   about?: true
   aboutLabel?: true
@@ -172,7 +182,9 @@ export type TicketCountAggregateInputType = {
   kind?: true
   requesterUserId?: true
   requesterName?: true
+  requesterDocument?: true
   requesterRole?: true
+  affectedDocument?: true
   academicArea?: true
   about?: true
   aboutLabel?: true
@@ -273,7 +285,9 @@ export type TicketGroupByOutputType = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument: string
   requesterRole: string
+  affectedDocument: string
   academicArea: string
   about: $Enums.TicketAbout
   aboutLabel: string
@@ -322,7 +336,9 @@ export type TicketWhereInput = {
   kind?: Prisma.EnumTicketKindFilter<"Ticket"> | $Enums.TicketKind
   requesterUserId?: Prisma.UuidFilter<"Ticket"> | string
   requesterName?: Prisma.StringFilter<"Ticket"> | string
+  requesterDocument?: Prisma.StringFilter<"Ticket"> | string
   requesterRole?: Prisma.StringFilter<"Ticket"> | string
+  affectedDocument?: Prisma.StringFilter<"Ticket"> | string
   academicArea?: Prisma.StringFilter<"Ticket"> | string
   about?: Prisma.EnumTicketAboutFilter<"Ticket"> | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFilter<"Ticket"> | string
@@ -355,7 +371,9 @@ export type TicketOrderByWithRelationInput = {
   kind?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   requesterName?: Prisma.SortOrder
+  requesterDocument?: Prisma.SortOrder
   requesterRole?: Prisma.SortOrder
+  affectedDocument?: Prisma.SortOrder
   academicArea?: Prisma.SortOrder
   about?: Prisma.SortOrder
   aboutLabel?: Prisma.SortOrder
@@ -391,7 +409,9 @@ export type TicketWhereUniqueInput = Prisma.AtLeast<{
   kind?: Prisma.EnumTicketKindFilter<"Ticket"> | $Enums.TicketKind
   requesterUserId?: Prisma.UuidFilter<"Ticket"> | string
   requesterName?: Prisma.StringFilter<"Ticket"> | string
+  requesterDocument?: Prisma.StringFilter<"Ticket"> | string
   requesterRole?: Prisma.StringFilter<"Ticket"> | string
+  affectedDocument?: Prisma.StringFilter<"Ticket"> | string
   academicArea?: Prisma.StringFilter<"Ticket"> | string
   about?: Prisma.EnumTicketAboutFilter<"Ticket"> | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFilter<"Ticket"> | string
@@ -424,7 +444,9 @@ export type TicketOrderByWithAggregationInput = {
   kind?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   requesterName?: Prisma.SortOrder
+  requesterDocument?: Prisma.SortOrder
   requesterRole?: Prisma.SortOrder
+  affectedDocument?: Prisma.SortOrder
   academicArea?: Prisma.SortOrder
   about?: Prisma.SortOrder
   aboutLabel?: Prisma.SortOrder
@@ -458,7 +480,9 @@ export type TicketScalarWhereWithAggregatesInput = {
   kind?: Prisma.EnumTicketKindWithAggregatesFilter<"Ticket"> | $Enums.TicketKind
   requesterUserId?: Prisma.UuidWithAggregatesFilter<"Ticket"> | string
   requesterName?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
+  requesterDocument?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
   requesterRole?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
+  affectedDocument?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
   academicArea?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
   about?: Prisma.EnumTicketAboutWithAggregatesFilter<"Ticket"> | $Enums.TicketAbout
   aboutLabel?: Prisma.StringWithAggregatesFilter<"Ticket"> | string
@@ -486,7 +510,9 @@ export type TicketCreateInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -516,7 +542,9 @@ export type TicketUncheckedCreateInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -546,7 +574,9 @@ export type TicketUpdateInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -576,7 +606,9 @@ export type TicketUncheckedUpdateInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -606,7 +638,9 @@ export type TicketCreateManyInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -634,7 +668,9 @@ export type TicketUpdateManyMutationInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -659,7 +695,9 @@ export type TicketUncheckedUpdateManyInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -697,7 +735,9 @@ export type TicketCountOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   requesterName?: Prisma.SortOrder
+  requesterDocument?: Prisma.SortOrder
   requesterRole?: Prisma.SortOrder
+  affectedDocument?: Prisma.SortOrder
   academicArea?: Prisma.SortOrder
   about?: Prisma.SortOrder
   aboutLabel?: Prisma.SortOrder
@@ -725,7 +765,9 @@ export type TicketMaxOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   requesterName?: Prisma.SortOrder
+  requesterDocument?: Prisma.SortOrder
   requesterRole?: Prisma.SortOrder
+  affectedDocument?: Prisma.SortOrder
   academicArea?: Prisma.SortOrder
   about?: Prisma.SortOrder
   aboutLabel?: Prisma.SortOrder
@@ -753,7 +795,9 @@ export type TicketMinOrderByAggregateInput = {
   kind?: Prisma.SortOrder
   requesterUserId?: Prisma.SortOrder
   requesterName?: Prisma.SortOrder
+  requesterDocument?: Prisma.SortOrder
   requesterRole?: Prisma.SortOrder
+  affectedDocument?: Prisma.SortOrder
   academicArea?: Prisma.SortOrder
   about?: Prisma.SortOrder
   aboutLabel?: Prisma.SortOrder
@@ -956,7 +1000,9 @@ export type TicketCreateWithoutAreaInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -985,7 +1031,9 @@ export type TicketUncheckedCreateWithoutAreaInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1043,7 +1091,9 @@ export type TicketScalarWhereInput = {
   kind?: Prisma.EnumTicketKindFilter<"Ticket"> | $Enums.TicketKind
   requesterUserId?: Prisma.UuidFilter<"Ticket"> | string
   requesterName?: Prisma.StringFilter<"Ticket"> | string
+  requesterDocument?: Prisma.StringFilter<"Ticket"> | string
   requesterRole?: Prisma.StringFilter<"Ticket"> | string
+  affectedDocument?: Prisma.StringFilter<"Ticket"> | string
   academicArea?: Prisma.StringFilter<"Ticket"> | string
   about?: Prisma.EnumTicketAboutFilter<"Ticket"> | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFilter<"Ticket"> | string
@@ -1071,7 +1121,9 @@ export type TicketCreateWithoutCategoryInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1100,7 +1152,9 @@ export type TicketUncheckedCreateWithoutCategoryInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1155,7 +1209,9 @@ export type TicketCreateWithoutAssignedMemberInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1184,7 +1240,9 @@ export type TicketUncheckedCreateWithoutAssignedMemberInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1239,7 +1297,9 @@ export type TicketCreateWithoutHistoryInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1268,7 +1328,9 @@ export type TicketUncheckedCreateWithoutHistoryInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1313,7 +1375,9 @@ export type TicketUpdateWithoutHistoryInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1342,7 +1406,9 @@ export type TicketUncheckedUpdateWithoutHistoryInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1371,7 +1437,9 @@ export type TicketCreateWithoutAttachmentsInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1400,7 +1468,9 @@ export type TicketUncheckedCreateWithoutAttachmentsInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1445,7 +1515,9 @@ export type TicketUpdateWithoutAttachmentsInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1474,7 +1546,9 @@ export type TicketUncheckedUpdateWithoutAttachmentsInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1503,7 +1577,9 @@ export type TicketCreateManyAreaInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1530,7 +1606,9 @@ export type TicketUpdateWithoutAreaInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1559,7 +1637,9 @@ export type TicketUncheckedUpdateWithoutAreaInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1588,7 +1668,9 @@ export type TicketUncheckedUpdateManyWithoutAreaInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1615,7 +1697,9 @@ export type TicketCreateManyCategoryInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1642,7 +1726,9 @@ export type TicketUpdateWithoutCategoryInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1671,7 +1757,9 @@ export type TicketUncheckedUpdateWithoutCategoryInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1700,7 +1788,9 @@ export type TicketUncheckedUpdateManyWithoutCategoryInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1727,7 +1817,9 @@ export type TicketCreateManyAssignedMemberInput = {
   kind: $Enums.TicketKind
   requesterUserId: string
   requesterName: string
+  requesterDocument?: string
   requesterRole: string
+  affectedDocument?: string
   academicArea?: string
   about?: $Enums.TicketAbout
   aboutLabel: string
@@ -1754,7 +1846,9 @@ export type TicketUpdateWithoutAssignedMemberInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1783,7 +1877,9 @@ export type TicketUncheckedUpdateWithoutAssignedMemberInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1812,7 +1908,9 @@ export type TicketUncheckedUpdateManyWithoutAssignedMemberInput = {
   kind?: Prisma.EnumTicketKindFieldUpdateOperationsInput | $Enums.TicketKind
   requesterUserId?: Prisma.StringFieldUpdateOperationsInput | string
   requesterName?: Prisma.StringFieldUpdateOperationsInput | string
+  requesterDocument?: Prisma.StringFieldUpdateOperationsInput | string
   requesterRole?: Prisma.StringFieldUpdateOperationsInput | string
+  affectedDocument?: Prisma.StringFieldUpdateOperationsInput | string
   academicArea?: Prisma.StringFieldUpdateOperationsInput | string
   about?: Prisma.EnumTicketAboutFieldUpdateOperationsInput | $Enums.TicketAbout
   aboutLabel?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1879,7 +1977,9 @@ export type TicketSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   kind?: boolean
   requesterUserId?: boolean
   requesterName?: boolean
+  requesterDocument?: boolean
   requesterRole?: boolean
+  affectedDocument?: boolean
   academicArea?: boolean
   about?: boolean
   aboutLabel?: boolean
@@ -1913,7 +2013,9 @@ export type TicketSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   kind?: boolean
   requesterUserId?: boolean
   requesterName?: boolean
+  requesterDocument?: boolean
   requesterRole?: boolean
+  affectedDocument?: boolean
   academicArea?: boolean
   about?: boolean
   aboutLabel?: boolean
@@ -1944,7 +2046,9 @@ export type TicketSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   kind?: boolean
   requesterUserId?: boolean
   requesterName?: boolean
+  requesterDocument?: boolean
   requesterRole?: boolean
+  affectedDocument?: boolean
   academicArea?: boolean
   about?: boolean
   aboutLabel?: boolean
@@ -1975,7 +2079,9 @@ export type TicketSelectScalar = {
   kind?: boolean
   requesterUserId?: boolean
   requesterName?: boolean
+  requesterDocument?: boolean
   requesterRole?: boolean
+  affectedDocument?: boolean
   academicArea?: boolean
   about?: boolean
   aboutLabel?: boolean
@@ -1997,7 +2103,7 @@ export type TicketSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "kind" | "requesterUserId" | "requesterName" | "requesterRole" | "academicArea" | "about" | "aboutLabel" | "areaId" | "categoryId" | "categoryName" | "destinationAreaCode" | "status" | "priority" | "estimate" | "assignedMemberId" | "assignedName" | "dueOn" | "description" | "receiverResponse" | "emittedInternally" | "resolvedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["ticket"]>
+export type TicketOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "kind" | "requesterUserId" | "requesterName" | "requesterDocument" | "requesterRole" | "affectedDocument" | "academicArea" | "about" | "aboutLabel" | "areaId" | "categoryId" | "categoryName" | "destinationAreaCode" | "status" | "priority" | "estimate" | "assignedMemberId" | "assignedName" | "dueOn" | "description" | "receiverResponse" | "emittedInternally" | "resolvedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["ticket"]>
 export type TicketInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   area?: boolean | Prisma.AreaDefaultArgs<ExtArgs>
   category?: boolean | Prisma.TicketCategoryDefaultArgs<ExtArgs>
@@ -2032,7 +2138,9 @@ export type $TicketPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     kind: $Enums.TicketKind
     requesterUserId: string
     requesterName: string
+    requesterDocument: string
     requesterRole: string
+    affectedDocument: string
     academicArea: string
     about: $Enums.TicketAbout
     aboutLabel: string
@@ -2485,7 +2593,9 @@ export interface TicketFieldRefs {
   readonly kind: Prisma.FieldRef<"Ticket", 'TicketKind'>
   readonly requesterUserId: Prisma.FieldRef<"Ticket", 'String'>
   readonly requesterName: Prisma.FieldRef<"Ticket", 'String'>
+  readonly requesterDocument: Prisma.FieldRef<"Ticket", 'String'>
   readonly requesterRole: Prisma.FieldRef<"Ticket", 'String'>
+  readonly affectedDocument: Prisma.FieldRef<"Ticket", 'String'>
   readonly academicArea: Prisma.FieldRef<"Ticket", 'String'>
   readonly about: Prisma.FieldRef<"Ticket", 'TicketAbout'>
   readonly aboutLabel: Prisma.FieldRef<"Ticket", 'String'>

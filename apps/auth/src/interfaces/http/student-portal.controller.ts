@@ -2,6 +2,7 @@ import { Body, Controller, ForbiddenException, Get, Header, HttpException, Param
 import { Equals, IsBoolean, IsString, IsUUID, MaxLength } from 'class-validator';
 import type { FastifyRequest } from 'fastify';
 
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { AccountProfileService } from '../../application/account-profile.service.js';
 import { AuthenticationService } from '../../application/authentication.service.js';
 import { hasAccessPermission, type AccessPermission } from '../../domain/access-policy.js';
@@ -287,8 +288,8 @@ export class StudentPortalController {
   }
 
   private async forward(method: string, upstream: string, path: string, body?: unknown): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}${path}`, {

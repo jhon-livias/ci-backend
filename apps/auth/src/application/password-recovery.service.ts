@@ -8,6 +8,7 @@ import { UserStatus } from '../infrastructure/persistence/generated/client.js';
 import { AuthPrismaService } from '../infrastructure/persistence/auth-prisma.service.js';
 import { SmtpMailChannel } from '../infrastructure/mail/smtp-mail.channel.js';
 import { AuditLogService } from './audit-log.service.js';
+import { SessionControl } from './session-control.js';
 
 const RECOVERY_TTL_MS = 15 * 60 * 1000;
 const GENERIC_FAILURE = 'No pudimos restablecer la contraseña. Revisa el código e inténtalo nuevamente.';
@@ -22,6 +23,7 @@ export class PasswordRecoveryService {
     private readonly prisma: AuthPrismaService,
     private readonly mail: SmtpMailChannel,
     @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
+    @Optional() @Inject(SessionControl) private readonly sessions: SessionControl | null = null,
   ) {}
 
   async request(email: string): Promise<void> {
@@ -94,6 +96,7 @@ export class PasswordRecoveryService {
         }),
         this.prisma.authSession.updateMany({ where: { userId: user!.id, revokedAt: null }, data: { revokedAt: now } }),
       ]);
+      await this.sessions?.cutAll(user!.id);
       await this.audit?.recordFor(user!.id, 'Sesión', 'Restableció su contraseña con un código.');
       return;
     }

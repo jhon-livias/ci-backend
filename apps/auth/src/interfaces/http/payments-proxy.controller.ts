@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, Header, HttpException, Param, ParseUUIDPipe, Patch, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { formatSoles, PaymentCatalogError, normalizeAmountCents } from '../../../../../libs/contracts/src/payment-catalog.js';
 import { UpdateTariffDto } from '../../../../../libs/contracts/src/payment-catalog.dto.js';
 import { AuditLogService } from '../../application/audit-log.service.js';
@@ -63,9 +64,9 @@ export class PaymentsProxyController {
   }
 
   private async forward(method: string, path?: string, body?: unknown): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const upstream = process.env.PAYMENTS_UPSTREAM ?? 'http://payments:3007';
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}/api/v1/internal/payments${path ? `/${path}` : ''}`, {

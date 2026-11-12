@@ -15,4 +15,9 @@ void bootstrapRestApplication(AppModule, 'gateway', async (application) => {
     prefix: '/api/v1/tickets',
     rewritePrefix: '/api/v1/tickets',
   });
-});
+  await application.register(fastifyHttpProxy, {
+    upstream: process.env.STUDY_PLANS_UPSTREAM ?? 'http://study-plans:3009',
+    prefix: '/api/v1/study-plans',
+    rewritePrefix: '/api/v1/study-plans',
+  });
+}, { bodyLimit: 12 * 1024 * 1024 });

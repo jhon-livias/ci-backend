@@ -1,19 +1,17 @@
 import { Body, Controller, Delete, Get, Header, HttpCode, Injectable, Param, ParseUUIDPipe, Post, Put, Query, UnauthorizedException, UseGuards, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { timingSafeEqual } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
+
+import { internalSecretMatches } from '../../../../../../libs/common/src/internal-secret.js';
 import { SiteDto } from '../../../../../../libs/contracts/src/site.dto.js';
 import { SitesService } from '../../application/sites.service.js';
 
 @Injectable()
 export class InternalSitesGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const supplied = context.switchToHttp().getRequest<FastifyRequest>().headers['x-internal-secret'];
-    if (!secret || secret.length < 32 || typeof supplied !== 'string') throw new UnauthorizedException();
-    const a = Buffer.from(secret); const b = Buffer.from(supplied);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) throw new UnauthorizedException();
+    if (!internalSecretMatches('academic', supplied)) throw new UnauthorizedException();
     return true;
   }
 }

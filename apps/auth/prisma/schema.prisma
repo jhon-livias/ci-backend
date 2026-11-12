@@ -67,6 +67,8 @@ model User {
   totpSecret          String?              @db.VarChar(255)
   /// El administrador exige activar el segundo paso antes del próximo ingreso.
   totpRequired        Boolean              @default(false)
+  /// Sube al quitar un rol, suspender la cuenta o cambiar la contraseña. La cookie de acceso deja de valer.
+  sessionVersion      Int                  @default(0)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   deletedAt           DateTime?
@@ -79,6 +81,7 @@ model User {
   notifications       UserNotification[]
   grants              UserFunctionalityGrant[]
   applicationRoles    UserApplicationRole[]
+  careerScopes        UserCareerScope[]
   ssoAuthorizationCodes SsoAuthorizationCode[]
   auditEvents         AuditEvent[]
 
@@ -125,6 +128,16 @@ model UserApplicationRole {
   @@id([userId, applicationRoleId])
   @@index([applicationRoleId])
   @@map("user_application_roles")
+}
+
+/// Carreras que esta cuenta puede ver o editar en planes de estudio. El código viaja en el token.
+model UserCareerScope {
+  userId     String @db.Uuid
+  careerCode String @db.VarChar(12)
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, careerCode])
+  @@map("user_career_scopes")
 }
 
 /// Código efímero para el inicio de sesión único. El valor que circula por el

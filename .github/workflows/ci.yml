@@ -29,6 +29,7 @@ jobs:
           ATTENDANCE_GRADES_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=attendance
           PAYMENTS_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=payments
           TICKETS_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=tickets
+          STUDY_PLANS_DATABASE_URL: postgresql://build:build@localhost:5432/build?schema=study_plans
         run: |
           npm run auth:db:generate
           npm run academic:db:generate
@@ -37,6 +38,7 @@ jobs:
           npm run attendance:db:generate
           npm run payments:db:generate
           npm run tickets:db:generate
+          npm run study-plans:db:generate
       - run: npm run build
       - run: npm run lint
       - run: npm run test

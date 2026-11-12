@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, ForbiddenException, Get, Header, HttpCode, HttpException, Param, ParseUUIDPipe, Patch, Post, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { AuditLogService } from '../../application/audit-log.service.js';
 import { AuthenticationService } from '../../application/authentication.service.js';
 import { hasAccessPermission, type AccessPermission } from '../../domain/access-policy.js';
@@ -112,9 +113,9 @@ export class DirectorAcademicProxyController {
   }
 
   private async enrollmentCounts(): Promise<readonly { groupId: string; enrolled: number }[]> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const upstream = process.env.ENROLLMENT_UPSTREAM ?? 'http://enrollment:3004';
-    if (!secret || secret.length < 32) return [];
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) return [];
     try {
       const response = await fetch(`${upstream}/api/v1/internal/enrollment/counts`, {
         headers: { 'x-internal-secret': secret },
@@ -133,9 +134,9 @@ export class DirectorAcademicProxyController {
   }
 
   private async forward(method: string, path: string, body?: unknown): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const upstream = process.env.ACADEMIC_UPSTREAM ?? 'http://academic:3002';
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}${path}`, {

@@ -2,6 +2,7 @@ import { Body, Controller, Delete, ForbiddenException, Get, Header, HttpCode, Ht
 import { IsString, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import type { FastifyRequest } from 'fastify';
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { SiteDto } from '../../../../../libs/contracts/src/site.dto.js';
 import { AuditLogService } from '../../application/audit-log.service.js';
 import { AuthenticationService, type AuthenticatedUser } from '../../application/authentication.service.js';
@@ -59,9 +60,9 @@ export class SitesProxyController {
   }
 
   private async forward(method: string, path?: string, dto?: SiteDto): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const upstream = process.env.ACADEMIC_UPSTREAM ?? 'http://academic:3002';
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}/api/v1/internal/sites${path ? `/${path}` : ''}`, {

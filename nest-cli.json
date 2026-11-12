@@ -16,6 +16,7 @@
     "attendance-grades": { "type": "application", "root": "apps/language-center/attendance-grades", "sourceRoot": "apps/language-center/attendance-grades/src", "entryFile": "main" },
     "exams": { "type": "application", "root": "apps/language-center/exams", "sourceRoot": "apps/language-center/exams/src", "entryFile": "main" },
     "payments": { "type": "application", "root": "apps/language-center/payments", "sourceRoot": "apps/language-center/payments/src", "entryFile": "main" },
-    "tickets": { "type": "application", "root": "apps/tickets", "sourceRoot": "apps/tickets/src", "entryFile": "main" }
+    "tickets": { "type": "application", "root": "apps/tickets", "sourceRoot": "apps/tickets/src", "entryFile": "main" },
+    "study-plans": { "type": "application", "root": "apps/study-plans", "sourceRoot": "apps/study-plans/src", "entryFile": "main" }
   }
 }

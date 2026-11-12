@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Header, Injectable, Param, ParseUUIDPipe, Patch, UnauthorizedException, UseGuards, type CanActivate, type ExecutionContext } from '@nestjs/common';
-import { timingSafeEqual } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
+
+import { internalSecretMatches } from '../../../../../../libs/common/src/internal-secret.js';
 
 import { UpdateTariffDto } from '../../../../../../libs/contracts/src/payment-catalog.dto.js';
 import { PaymentCatalogService } from '../../application/payment-catalog.service.js';
@@ -8,11 +9,8 @@ import { PaymentCatalogService } from '../../application/payment-catalog.service
 @Injectable()
 export class InternalPaymentsGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const supplied = context.switchToHttp().getRequest<FastifyRequest>().headers['x-internal-secret'];
-    if (!secret || secret.length < 32 || typeof supplied !== 'string') throw new UnauthorizedException();
-    const a = Buffer.from(secret); const b = Buffer.from(supplied);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) throw new UnauthorizedException();
+    if (!internalSecretMatches('payments', supplied)) throw new UnauthorizedException();
     return true;
   }
 }

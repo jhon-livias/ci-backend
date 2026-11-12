@@ -1,6 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Header, Param, ParseUUIDPipe, Post, Query, Req, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
+import { internalSecretForUpstream } from '../../../../../libs/common/src/internal-secret.js';
 import { AuthenticationService } from '../../application/authentication.service.js';
 import { hasAccessPermission } from '../../domain/access-policy.js';
 
@@ -15,9 +16,9 @@ export class FollowUpProxyController {
     if (!token) throw new UnauthorizedException();
     const session = await this.auth.restore(token);
     if (!hasAccessPermission(session.user.roles, 'attendance.read')) throw new ForbiddenException();
-    const secret = process.env.SITES_INTERNAL_SECRET;
     const upstream = process.env.ATTENDANCE_GRADES_UPSTREAM ?? 'http://attendance-grades:3005';
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     let response: Response;
     try {
       response = await fetch(`${upstream}/api/v1/internal/follow-up`, {
@@ -72,8 +73,9 @@ export class FollowUpProxyController {
   }
 
   private async forward(method: string, path: string, body?: unknown): Promise<unknown> {
-    const secret = process.env.SITES_INTERNAL_SECRET; const upstream = process.env.ATTENDANCE_GRADES_UPSTREAM ?? 'http://attendance-grades:3005';
-    if (!secret || secret.length < 32) throw new ServiceUnavailableException();
+    const upstream = process.env.ATTENDANCE_GRADES_UPSTREAM ?? 'http://attendance-grades:3005';
+    const secret = internalSecretForUpstream(upstream);
+    if (!secret) throw new ServiceUnavailableException();
     const response = await fetch(`${upstream}${path}`, { method, headers: { 'x-internal-secret': secret, ...(body ? { 'content-type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(5000) }).catch(() => null);
     if (!response || !response.ok) throw new ServiceUnavailableException(); return response.json();
   }

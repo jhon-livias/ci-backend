@@ -9,6 +9,7 @@ import type { LoginDto } from '../interfaces/http/dto/login.dto.js';
 import { loginIdentifier, normalizeInstitutionalEmail } from '../domain/institutional-email.js';
 import { AuditLogService } from './audit-log.service.js';
 import { NotificationService } from './notification.service.js';
+import { SessionControl } from './session-control.js';
 import { TotpService } from './totp.service.js';
 
 const MAX_FAILED_ATTEMPTS = 5;
@@ -31,7 +32,9 @@ export interface AuthenticatedUser {
   readonly username: string;
   readonly roles: readonly UserRoleName[];
   readonly applicationRoles: readonly string[];
+  readonly scopes: readonly string[];
   readonly mustChangePassword: boolean;
+  readonly sessionVersion: number;
   readonly profile: { readonly firstName: string; readonly paternalLastName: string; readonly documentNumber: string } | null;
 }
 
@@ -41,6 +44,7 @@ export class AuthenticationService {
     private readonly prisma: AuthPrismaService,
     private readonly jwtService: JwtService,
     private readonly notifications: NotificationService,
+    private readonly sessions: SessionControl,
     @Optional() @Inject(AuditLogService) private readonly audit: AuditLogService | null = null,
     @Optional() @Inject(TotpService) private readonly totp: TotpService | null = null,
   ) {}
@@ -53,7 +57,7 @@ export class AuthenticationService {
         deletedAt: null,
         OR: [{ username: identifier }, { email: identifier }],
       },
-      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
+      include: { profile: true, roles: true, careerScopes: true, applicationRoles: { include: { applicationRole: true } } },
     });
 
     if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
@@ -95,7 +99,7 @@ export class AuthenticationService {
     };
     void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
     await this.audit?.recordFor(user.id, 'Sesión', 'Inició sesión.');
-    return { status: 'session', ...(await this.issueTokens(authenticatedUser, session.refreshToken)) };
+    return { status: 'session', ...(await this.issueTokens(authenticatedUser, session.refreshToken, session.sessionId)) };
   }
 
   async loginWithGoogle(email: string, userAgent?: string | string[]): Promise<AuthenticatedSession> {
@@ -103,7 +107,7 @@ export class AuthenticationService {
     if (!normalized) throw new UnauthorizedException('Credenciales inválidas.');
     const user = await this.prisma.user.findFirst({
       where: { deletedAt: null, email: { equals: normalized, mode: 'insensitive' } },
-      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
+      include: { profile: true, roles: true, careerScopes: true, applicationRoles: { include: { applicationRole: true } } },
     });
     if (!user || user.status !== UserStatus.ACTIVE || (user.lockedUntil && user.lockedUntil > new Date())) {
       throw new UnauthorizedException('Credenciales inválidas.');
@@ -126,10 +130,10 @@ export class AuthenticationService {
     };
     void this.notifications.record(event).then(() => this.notifications.publish(event)).catch(() => undefined);
     await this.audit?.recordFor(user.id, 'Sesión', 'Inició sesión con Google.');
-    return this.issueTokens(this.toAuthenticatedUser(user), session.refreshToken);
+    return this.issueTokens(this.toAuthenticatedUser(user), session.refreshToken, session.sessionId);
   }
 
-  async restore(accessToken: string): Promise<{ user: AuthenticatedUser; csrfToken: string }> {
+  async restore(accessToken: string): Promise<{ user: AuthenticatedUser; csrfToken: string; sessionId: string }> {
     let payload: AccessTokenPayload;
     try {
       payload = await this.jwtService.verifyAsync<AccessTokenPayload>(accessToken);
@@ -137,12 +141,20 @@ export class AuthenticationService {
       throw new UnauthorizedException();
     }
     if (!payload.sub || !payload.csrf || !Array.isArray(payload.roles)) throw new UnauthorizedException();
+    if (typeof payload.sid !== 'string' || typeof payload.sv !== 'number') throw new UnauthorizedException();
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
+      include: { profile: true, roles: true, careerScopes: true, applicationRoles: { include: { applicationRole: true } } },
     });
-    if (!user || user.deletedAt || user.status !== UserStatus.ACTIVE) throw new UnauthorizedException();
-    return { user: this.toAuthenticatedUser(user), csrfToken: payload.csrf };
+    if (!user || user.deletedAt || user.status !== UserStatus.ACTIVE || user.sessionVersion !== payload.sv) {
+      throw new UnauthorizedException();
+    }
+    const accessSession = await this.prisma.authSession.findUnique({
+      where: { id: payload.sid },
+      select: { userId: true, revokedAt: true },
+    });
+    if (!accessSession || accessSession.userId !== user.id || accessSession.revokedAt) throw new UnauthorizedException();
+    return { user: this.toAuthenticatedUser(user), csrfToken: payload.csrf, sessionId: payload.sid };
   }
 
   async refresh(refreshToken: string, userAgent?: string | string[]): Promise<AuthenticatedSession> {
@@ -150,15 +162,16 @@ export class AuthenticationService {
     if (!sessionId) throw new UnauthorizedException();
     const existing = await this.prisma.authSession.findUnique({
       where: { id: sessionId },
-      include: { user: { include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } } } },
+      include: { user: { include: { profile: true, roles: true, careerScopes: true, applicationRoles: { include: { applicationRole: true } } } } },
     });
     if (!existing || existing.revokedAt || existing.expiresAt <= new Date()) throw new UnauthorizedException();
     if (!(await argon2.verify(existing.refreshTokenHash, refreshToken))) throw new UnauthorizedException();
     if (existing.user.deletedAt || existing.user.status !== UserStatus.ACTIVE) throw new UnauthorizedException();
 
     const replacement = await this.createSession(existing.userId, requestUserAgent(userAgent));
+    await this.sessions.cutOne(existing.id);
     await this.prisma.authSession.delete({ where: { id: existing.id } });
-    return this.issueTokens(this.toAuthenticatedUser(existing.user), replacement.refreshToken);
+    return this.issueTokens(this.toAuthenticatedUser(existing.user), replacement.refreshToken, replacement.sessionId);
   }
 
   async readEnrollment(token: string): Promise<{ id: string; username: string }> {
@@ -180,13 +193,13 @@ export class AuthenticationService {
   async completeEnrollment(userId: string, userAgent?: string | string[]): Promise<AuthenticatedSession> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, deletedAt: null, status: UserStatus.ACTIVE, totpEnabled: true },
-      include: { profile: true, roles: true, applicationRoles: { include: { applicationRole: true } } },
+      include: { profile: true, roles: true, careerScopes: true, applicationRoles: { include: { applicationRole: true } } },
     });
     if (!user) throw new UnauthorizedException('La activación expiró. Vuelve a ingresar tu contraseña.');
     const session = await this.createSession(user.id, requestUserAgent(userAgent));
     await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
     await this.audit?.recordFor(user.id, 'Sesión', 'Activó la autenticación de dos pasos e inició sesión.');
-    return this.issueTokens(this.toAuthenticatedUser(user), session.refreshToken);
+    return this.issueTokens(this.toAuthenticatedUser(user), session.refreshToken, session.sessionId);
   }
 
   async replacePassword(userId: string, password: string): Promise<void> {
@@ -203,6 +216,7 @@ export class AuthenticationService {
       },
     });
     await this.audit?.recordFor(userId, 'Sesión', 'Cambió su contraseña.');
+    await this.sessions.cutAll(userId);
   }
 
   async logout(accessToken: string | undefined, refreshToken: string | undefined, csrfToken: string | undefined): Promise<void> {
@@ -210,12 +224,14 @@ export class AuthenticationService {
       const restored = await this.restore(accessToken);
       if (!csrfToken || csrfToken !== restored.csrfToken) throw new UnauthorizedException();
       await this.audit?.recordFor(restored.user.id, 'Sesión', 'Cerró sesión.');
+      await this.sessions.cutOne(restored.sessionId);
+      return;
     }
     const sessionId = refreshToken?.split('.', 1)[0];
-    if (sessionId) await this.prisma.authSession.deleteMany({ where: { id: sessionId } });
+    if (sessionId) await this.sessions.cutOne(sessionId);
   }
 
-  private async createSession(userId: string, userAgent?: string): Promise<{ refreshToken: string }> {
+  private async createSession(userId: string, userAgent?: string): Promise<{ refreshToken: string; sessionId: string }> {
     const secret = randomBytes(48).toString('base64url');
     const session = await this.prisma.authSession.create({
       data: {
@@ -231,14 +247,15 @@ export class AuthenticationService {
       where: { id: session.id },
       data: { refreshTokenHash: await argon2.hash(refreshToken, { type: argon2.argon2id }) },
     });
-    return { refreshToken };
+    return { refreshToken, sessionId: session.id };
   }
 
   private async enrollmentToken(userId: string, username: string): Promise<string> {
     return this.jwtService.signAsync({ sub: userId, purpose: 'totp-enroll', username }, { expiresIn: '10m' });
   }
 
-  private async issueTokens(user: AuthenticatedUser, refreshToken: string): Promise<AuthenticatedSession> {
+  private async issueTokens(user: AuthenticatedUser, refreshToken: string, sessionId: string): Promise<AuthenticatedSession> {
+    await this.sessions.publish(user.id, user.sessionVersion);
     const csrfToken = randomBytes(32).toString('base64url');
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
@@ -249,6 +266,9 @@ export class AuthenticationService {
       documentNumber: user.profile?.documentNumber ?? '',
       roles: user.roles,
       applicationRoles: user.applicationRoles,
+      scopes: user.scopes,
+      sid: sessionId,
+      sv: user.sessionVersion,
       csrf: csrfToken,
     });
     return { accessToken, refreshToken, csrfToken, user };
@@ -258,8 +278,10 @@ export class AuthenticationService {
     id: string;
     username: string;
     mustChangePassword: boolean;
+    sessionVersion: number;
     roles: readonly { role: UserRoleName }[];
     applicationRoles?: readonly { applicationRole: { code: string; enabled: boolean } }[];
+    careerScopes?: readonly { careerCode: string }[];
     profile: { firstName: string; paternalLastName: string; documentNumber?: string | null } | null;
   }): AuthenticatedUser {
     return {
@@ -269,7 +291,9 @@ export class AuthenticationService {
       applicationRoles: (user.applicationRoles ?? [])
         .filter(({ applicationRole }) => applicationRole.enabled)
         .map(({ applicationRole }) => applicationRole.code),
+      scopes: (user.careerScopes ?? []).map((scope) => scope.careerCode),
       mustChangePassword: user.mustChangePassword,
+      sessionVersion: user.sessionVersion,
       profile: user.profile
         ? {
             firstName: user.profile.firstName,
@@ -296,6 +320,8 @@ interface AccessTokenPayload {
   readonly sub: string;
   readonly roles: readonly UserRoleName[];
   readonly csrf: string;
+  readonly sid?: unknown;
+  readonly sv?: unknown;
 }
 
 const requestUserAgent = (userAgent: string | string[] | undefined): string | undefined => {

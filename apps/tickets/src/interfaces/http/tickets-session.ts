@@ -10,6 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import type { FastifyRequest } from 'fastify';
 
+import { SessionAccess } from '../../../../../libs/common/src/session-access.js';
 import { resolveTicketsRole, type TicketsRole } from '../../domain/tickets-role.js';
 
 export interface TicketsActor {
@@ -27,6 +28,8 @@ interface AccessTokenPayload {
   readonly displayName?: unknown;
   readonly documentNumber?: unknown;
   readonly applicationRoles?: unknown;
+  readonly sid?: unknown;
+  readonly sv?: unknown;
 }
 
 type AuthedRequest = FastifyRequest & { ticketsActor?: TicketsActor };
@@ -43,6 +46,8 @@ const headerCsrf = (request: FastifyRequest): string => {
 
 @Injectable()
 export class TicketsSessionGuard implements CanActivate {
+  private readonly access = SessionAccess.open();
+
   constructor(private readonly jwt: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -56,6 +61,8 @@ export class TicketsSessionGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     if (typeof payload.sub !== 'string' || typeof payload.csrf !== 'string') throw new UnauthorizedException();
+    if (typeof payload.sid !== 'string' || typeof payload.sv !== 'number') throw new UnauthorizedException();
+    if (!(await this.access.allows(payload.sub, payload.sv, payload.sid))) throw new UnauthorizedException();
     if (request.method !== 'GET' && request.method !== 'HEAD' && headerCsrf(request) !== payload.csrf) {
       throw new ForbiddenException();
     }
