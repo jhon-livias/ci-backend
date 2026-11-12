@@ -27,6 +27,16 @@ export class UserGrantDto {
   enabled!: boolean;
 }
 
+export class StudyPlansAssignmentDto {
+  @IsIn(['faculty', 'teacher', 'none'])
+  role!: 'faculty' | 'teacher' | 'none';
+
+  @IsArray()
+  @ArrayMaxSize(20)
+  @Matches(/^[A-Z]{2,8}$/u, { each: true })
+  careerCodes!: string[];
+}
+
 export class SaveUserDto {
   @IsIn(DOCUMENT_TYPES)
   documentType!: (typeof DOCUMENT_TYPES)[number];
@@ -102,16 +112,6 @@ export class SaveUserDto {
   @ValidateNested()
   @Type(() => StudyPlansAssignmentDto)
   studyPlans?: StudyPlansAssignmentDto;
-}
-
-export class StudyPlansAssignmentDto {
-  @IsIn(['faculty', 'teacher', 'none'])
-  role!: 'faculty' | 'teacher' | 'none';
-
-  @IsArray()
-  @ArrayMaxSize(20)
-  @Matches(/^[A-Z]{2,8}$/u, { each: true })
-  careerCodes!: string[];
 }
 
 export class UpdateUserDto {
