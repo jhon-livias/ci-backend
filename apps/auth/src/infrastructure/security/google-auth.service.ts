@@ -12,6 +12,7 @@ export const googleAuthConfigured = (): boolean =>
   googleClientId().length > 0 && googleClientSecret().length > 0 && googleRedirectUri().length > 0;
 
 export const ticketsGoogleRedirectUri = (): string => process.env.TICKETS_GOOGLE_REDIRECT_URI?.trim() ?? '';
+export const studyPlansGoogleRedirectUri = (): string => process.env.STUDY_PLANS_GOOGLE_REDIRECT_URI?.trim() ?? '';
 
 export const googleAuthorizationUrl = (state: string, redirectUri = googleRedirectUri()): string => {
   const url = new URL(authorizationEndpoint);

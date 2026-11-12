@@ -23,6 +23,7 @@ import {
   googleAuthConfigured,
   googleAuthorizationUrl,
   googleStatesMatch,
+  studyPlansGoogleRedirectUri,
   ticketsGoogleRedirectUri,
 } from '../../infrastructure/security/google-auth.service.js';
 import { RecaptchaService } from '../../infrastructure/security/recaptcha.service.js';
@@ -38,7 +39,7 @@ const refreshCookieName = 'ci_refresh';
 const googleStateCookieName = 'ci_google_state';
 const googleApplicationCookieName = 'ci_google_application';
 const useSecureCookies = process.env.AUTH_COOKIE_SECURE !== 'false';
-type GoogleApplication = 'language-center' | 'tickets';
+type GoogleApplication = 'language-center' | 'tickets' | 'study-plans';
 
 @Controller('auth')
 export class AuthController {
@@ -54,8 +55,8 @@ export class AuthController {
   @RouteConfig({ rateLimit: { max: 20, timeWindow: '1 minute' } })
   startGoogle(@Req() request: FastifyRequest, @Res() response: FastifyReply): FastifyReply {
     const application = this.googleApplication(request);
-    const redirectUri = application === 'tickets' ? ticketsGoogleRedirectUri() : undefined;
-    if (!googleAuthConfigured() || (application === 'tickets' && !redirectUri)) {
+    const redirectUri = googleRedirectFor(application);
+    if (!googleAuthConfigured() || (application !== 'language-center' && !redirectUri)) {
       return response.redirect('/login?google=unconfigured', 302);
     }
     const state = randomBytes(32).toString('base64url');
@@ -127,10 +128,8 @@ export class AuthController {
     const state = typeof query['state'] === 'string' ? query['state'] : '';
     const code = typeof query['code'] === 'string' ? query['code'] : '';
     const expected = request.cookies[googleStateCookieName];
-    const application: GoogleApplication = request.cookies[googleApplicationCookieName] === 'tickets'
-      ? 'tickets'
-      : 'language-center';
-    const redirectUri = application === 'tickets' ? ticketsGoogleRedirectUri() : undefined;
+    const application = googleApplicationFromCookie(request.cookies[googleApplicationCookieName]);
+    const redirectUri = googleRedirectFor(application);
     response.clearCookie(googleStateCookieName, { path: '/api/v1/auth/google' });
     response.clearCookie(googleApplicationCookieName, { path: '/api/v1/auth/google' });
     if (query['error'] === 'access_denied') return response.redirect('/login?google=denied', 302);
@@ -145,9 +144,9 @@ export class AuthController {
         request.headers['user-agent'],
       );
       this.setSessionCookies(response, session.accessToken, session.refreshToken);
-      const destination = application === 'tickets'
-        ? (session.user.mustChangePassword ? '/cambiar-contrasena' : '/')
-        : (session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio');
+      const destination = application === 'language-center'
+        ? (session.user.mustChangePassword ? '/cambiar-contrasena' : '/inicio')
+        : (session.user.mustChangePassword ? '/cambiar-contrasena' : '/');
       return response.redirect(destination, 302);
     } catch (error) {
       const message = error instanceof ForbiddenException ? String(error.message) : '';
@@ -288,6 +287,15 @@ export class AuthController {
 
   private googleApplication(request: FastifyRequest): GoogleApplication {
     const application = (request.query as Record<string, unknown>)['application'];
-    return application === 'tickets' ? 'tickets' : 'language-center';
+    return application === 'tickets' || application === 'study-plans' ? application : 'language-center';
   }
 }
+
+const googleApplicationFromCookie = (value: string | undefined): GoogleApplication =>
+  value === 'tickets' || value === 'study-plans' ? value : 'language-center';
+
+const googleRedirectFor = (application: GoogleApplication): string | undefined => {
+  if (application === 'tickets') return ticketsGoogleRedirectUri() || undefined;
+  if (application === 'study-plans') return studyPlansGoogleRedirectUri() || undefined;
+  return undefined;
+};
