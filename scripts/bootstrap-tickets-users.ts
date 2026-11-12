@@ -69,6 +69,7 @@ const main = async (): Promise<void> => {
               email: account.email,
               passwordHash,
               status: 'ACTIVE',
+              sessionVersion: { increment: 1 },
               mustChangePassword: false,
               totpRequired: account.role === 'tickets.admin' || account.role === 'tickets.area_manager',
               failedLoginAttempts: 0,
@@ -101,10 +102,51 @@ const main = async (): Promise<void> => {
         where: { userId, applicationRole: { applicationId: application.id } },
       });
       await prisma.userApplicationRole.create({ data: { userId, applicationRoleId: roleId } });
+      if (account.username === 'administrador') await grantEverySystem(prisma, userId);
     }
     console.info('Cuentas de Tickets listas: administrador, jefe-area, asistente, solicitante.');
   } finally {
     await prisma.$disconnect();
+  }
+};
+
+const grantEverySystem = async (prisma: PrismaClient, userId: string): Promise<void> => {
+  await prisma.userRole.upsert({
+    where: { userId_role: { userId, role: 'ADMINISTRATOR' } },
+    update: {},
+    create: { userId, role: 'ADMINISTRATOR' },
+  });
+  const plans = await prisma.identityApplication.findUnique({ where: { code: 'study-plans' }, select: { id: true } });
+  if (plans) {
+    const faculty = await prisma.applicationRole.findUnique({
+      where: { applicationId_code: { applicationId: plans.id, code: 'study-plans.faculty' } },
+      select: { id: true },
+    });
+    if (faculty) {
+      await prisma.userApplicationRole.upsert({
+        where: { userId_applicationRoleId: { userId, applicationRoleId: faculty.id } },
+        update: {},
+        create: { userId, applicationRoleId: faculty.id },
+      });
+    }
+  }
+  for (const careerCode of ['IC', 'AU']) {
+    await prisma.userCareerScope.upsert({
+      where: { userId_careerCode: { userId, careerCode } },
+      update: {},
+      create: { userId, careerCode },
+    });
+  }
+  const functionalities = await prisma.permissionFunctionality.findMany({
+    where: { enabled: true, permission: { enabled: true, deletedAt: null } },
+    select: { permissionId: true, name: true },
+  });
+  for (const item of functionalities) {
+    await prisma.userFunctionalityGrant.upsert({
+      where: { userId_permissionId_functionalityName: { userId, permissionId: item.permissionId, functionalityName: item.name } },
+      update: { enabled: true },
+      create: { userId, permissionId: item.permissionId, functionalityName: item.name, enabled: true },
+    });
   }
 };
 
