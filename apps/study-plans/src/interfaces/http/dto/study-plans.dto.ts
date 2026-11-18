@@ -24,7 +24,7 @@ export class SaveCourseDto {
   @Max(40)
   position!: number;
 
-  @Matches(/^[A-Z]{2}\d{3}$/u)
+  @Matches(/^(?=.*[A-Z])[A-Z0-9-]{2,16}$/u)
   code!: string;
 
   @IsString()

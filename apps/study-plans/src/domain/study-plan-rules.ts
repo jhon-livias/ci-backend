@@ -2,7 +2,7 @@ export const MAX_PDF_BYTES = 8_000_000;
 
 export const isCurriculumYear = (value: string): boolean => /^20\d{2}$/u.test(value);
 
-export const isCourseCode = (value: string): boolean => /^[A-Z]{2}\d{3}$/u.test(value);
+export const isCourseCode = (value: string): boolean => /^(?=.*[A-Z])[A-Z0-9-]{2,16}$/u.test(value);
 
 export const isCreditValue = (value: number): boolean =>
   Number.isFinite(value) && value >= 0.5 && value <= 20 && Math.abs(value * 2 - Math.round(value * 2)) < 1e-9;

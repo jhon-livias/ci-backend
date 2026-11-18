@@ -7,7 +7,11 @@ describe('reglas de planes de estudio', () => {
     expect(isCurriculumYear('2024')).toBe(true);
     expect(isCurriculumYear('1999')).toBe(false);
     expect(isCourseCode('EG101')).toBe(true);
+    expect(isCourseCode('EE-301')).toBe(true);
+    expect(isCourseCode('AD1001')).toBe(true);
     expect(isCourseCode('eg101')).toBe(false);
+    expect(isCourseCode('A')).toBe(false);
+    expect(isCourseCode('--')).toBe(false);
     expect(isCreditValue(4)).toBe(true);
     expect(isCreditValue(3.5)).toBe(true);
     expect(isCreditValue(3.2)).toBe(false);
