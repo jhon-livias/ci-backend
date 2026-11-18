@@ -52,6 +52,7 @@ model Area {
   updatedAt         DateTime         @updatedAt
   categories        TicketCategory[]
   tickets           Ticket[]
+  memberships       AreaMembership[]
   @@index([parentId])
   @@map("areas")
 }
@@ -81,10 +82,34 @@ model TeamMember {
   functions   String   @db.VarChar(400)
   schedule    String   @db.VarChar(200)
   isManager   Boolean  @default(false)
+  userId      String?  @unique @db.Uuid
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tickets     Ticket[]
   @@map("team_members")
+}
+
+enum MembershipKind {
+  MANAGER
+  COLLABORATOR
+}
+
+model AreaMembership {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @db.Uuid
+  areaId    String         @db.Uuid
+  area      Area           @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  email     String         @db.VarChar(254)
+  fullName  String         @db.VarChar(160)
+  document  String         @db.VarChar(12)
+  phone     String         @default("") @db.VarChar(20)
+  roleTitle String         @default("") @db.VarChar(160)
+  kind      MembershipKind
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  @@unique([userId, areaId])
+  @@index([areaId])
+  @@map("area_memberships")
 }
 
 model PriorityLevel {

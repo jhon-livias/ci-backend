@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
+import { canOperateArea, decideCreate, ticketScope, type MembershipArea } from '../domain/membership-access.js';
 import { canReopenTicket } from '../domain/reopen-policy.js';
 import { statusChangeError } from '../domain/status-transition.js';
 import { formatTicketCode, ticketCodePrefix } from '../domain/ticket-code.js';
@@ -14,7 +15,7 @@ export class TicketsService {
 
   async list(actor: TicketsActor) {
     const tickets = await this.prisma.ticket.findMany({
-      where: actor.role === 'requester' ? { requesterUserId: actor.id } : {},
+      where: this.visibleTickets(actor.id, ticketScope(actor.role, await this.membershipsOf(actor.id))),
       include: { history: { orderBy: { at: 'asc' } }, attachments: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -30,6 +31,13 @@ export class TicketsService {
     if (!area || !area.enabled || !area.receivesTickets || !category || !category.enabled || category.areaId !== area.id) {
       throw new BadRequestException('No pudimos registrar el ticket. Revisa el área y la categoría.');
     }
+    const decision = decideCreate(await this.membershipsOf(actor.id), dto.originAreaId);
+    if (!decision.allowed) {
+      throw new ForbiddenException(decision.reason === 'origin'
+        ? 'Selecciona el área a la que perteneces.'
+        : 'Tu área no puede crear tickets.');
+    }
+    const origin = decision.originName ? { name: decision.originName } : null;
     const now = new Date();
     const aboutLabel = dto.about === 'self'
       ? `Yo mismo/a · ${actor.displayName}`
@@ -40,7 +48,8 @@ export class TicketsService {
     return this.createTicket({
       kind: 'EXTERNAL',
       actor,
-      actorArea: 'Solicitante',
+      actorArea: origin?.name ?? 'Solicitante',
+      academicArea: origin?.name ?? '',
       requesterRole: 'Solicitante',
       areaId: area.id,
       categoryId: category.id,
@@ -140,8 +149,8 @@ export class TicketsService {
   }
 
   async changeStatus(actor: TicketsActor, id: string, dto: ChangeTicketStatusDto) {
-    if (actor.role === 'requester') throw new ForbiddenException();
     const ticket = await this.requireTicket(id);
+    if (!canOperateArea(actor.role, await this.membershipsOf(actor.id), ticket.areaId)) throw new ForbiddenException();
     const error = statusChangeError(ticket.status, dto.status, dto.note ?? '', dto.assignedName ?? '');
     if (error) throw new BadRequestException(error);
     const assignee = dto.assignedName
@@ -177,6 +186,7 @@ export class TicketsService {
     readonly kind: 'EXTERNAL' | 'INTERNAL';
     readonly actor: TicketsActor;
     readonly actorArea: string;
+    readonly academicArea?: string;
     readonly requesterRole: string;
     readonly areaId: string;
     readonly categoryId: string;
@@ -209,6 +219,7 @@ export class TicketsService {
           kind: input.kind,
           requesterUserId: input.actor.id,
           requesterName: input.actor.displayName,
+          academicArea: input.academicArea ?? '',
           requesterDocument: input.requesterDocument,
           requesterRole: input.requesterRole,
           about: input.about,
@@ -232,6 +243,25 @@ export class TicketsService {
       });
       return toTicketView(ticket);
     });
+  }
+
+  private async membershipsOf(userId: string): Promise<readonly MembershipArea[]> {
+    const rows = await this.prisma.areaMembership.findMany({ where: { userId }, include: { area: true } });
+    return rows.map((row) => ({
+      areaId: row.areaId,
+      name: row.area.name,
+      enabled: row.area.enabled,
+      canCreateTickets: row.area.canCreateTickets,
+      receivesTickets: row.area.receivesTickets,
+    }));
+  }
+
+  private visibleTickets(userId: string, scope: ReturnType<typeof ticketScope>) {
+    if (scope.type === 'all') return {};
+    if (scope.type === 'own') return { requesterUserId: userId };
+    if (scope.type === 'queue') return { areaId: { in: [...scope.areaIds] } };
+    if (scope.type === 'own-or-queue') return { OR: [{ requesterUserId: userId }, { areaId: { in: [...scope.areaIds] } }] };
+    return { id: { in: [] } };
   }
 
   private async priorityFor(categoryName: string): Promise<{ level: 'HIGH' | 'MEDIUM' | 'LOW'; estimate: string }> {
@@ -261,6 +291,7 @@ const toTicketView = (ticket: {
   status: TicketStatus;
   estimate: string;
   priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  requesterUserId: string;
   requesterName: string;
   requesterRole: string;
   assignedName: string | null;
@@ -286,6 +317,7 @@ const toTicketView = (ticket: {
   status: ticket.status,
   estimate: ticket.estimate,
   priority: ticket.priority,
+  requesterUserId: ticket.requesterUserId,
   requesterName: ticket.requesterName,
   requesterRole: ticket.requesterRole,
   assignedName: ticket.assignedName,

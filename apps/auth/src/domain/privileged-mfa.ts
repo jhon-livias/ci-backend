@@ -2,6 +2,7 @@ const PRIVILEGED_ROLES = new Set(['ADMINISTRATOR', 'DIRECTOR']);
 const PRIVILEGED_APPLICATION_ROLES = new Set([
   'tickets.admin',
   'tickets.area_manager',
+  'tickets.assistant',
   'study-plans.faculty',
 ]);
 

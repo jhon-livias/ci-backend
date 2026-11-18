@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 
 import { createHealthController } from '../../../libs/common/src/index.js';
+import { AccountProvisionClient } from './application/account-provision.client.js';
 import { CatalogService } from './application/catalog.service.js';
 import { TicketsService } from './application/tickets.service.js';
 import { TicketsPrismaService } from './infrastructure/persistence/tickets-prisma.service.js';
 import { CatalogController } from './interfaces/http/catalog.controller.js';
 import { TicketsController } from './interfaces/http/tickets.controller.js';
+import { TicketsExceptionFilter } from './interfaces/http/tickets-exception.filter.js';
 import { TicketsSessionGuard } from './interfaces/http/tickets-session.js';
 
 const HealthController = createHealthController('tickets');
@@ -25,6 +28,13 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     }),
   ],
   controllers: [HealthController, CatalogController, TicketsController],
-  providers: [TicketsPrismaService, CatalogService, TicketsService, TicketsSessionGuard],
+  providers: [
+    TicketsPrismaService,
+    AccountProvisionClient,
+    CatalogService,
+    TicketsService,
+    TicketsSessionGuard,
+    { provide: APP_FILTER, useClass: TicketsExceptionFilter },
+  ],
 })
 export class AppModule {}

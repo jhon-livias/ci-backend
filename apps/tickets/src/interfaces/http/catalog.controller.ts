@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Header, Param, ParseUUIDPipe, Post, Put,
 
 import { CatalogService } from '../../application/catalog.service.js';
 import { AddPriorityActivityDto, SaveAreaDto, SaveCategoryDto, SaveMemberDto } from './dto/catalog.dto.js';
-import { TicketsRolesGuard, TicketsSessionGuard } from './tickets-session.js';
+import { CurrentTicketsActor, TicketsRolesGuard, TicketsSessionGuard, type TicketsActor } from './tickets-session.js';
 
 @Controller('tickets')
 @UseGuards(TicketsSessionGuard)
@@ -13,6 +13,12 @@ export class CatalogController {
   @Header('Cache-Control', 'no-store')
   snapshot() {
     return this.catalog.snapshot();
+  }
+
+  @Get('access')
+  @Header('Cache-Control', 'no-store')
+  access(@CurrentTicketsActor() actor: TicketsActor) {
+    return this.catalog.accessFor(actor.id);
   }
 
   @Post('areas')

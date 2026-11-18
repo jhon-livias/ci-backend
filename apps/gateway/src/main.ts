@@ -4,6 +4,12 @@ import fastifyHttpProxy from '@fastify/http-proxy';
 import { AppModule } from './app.module.js';
 
 void bootstrapRestApplication(AppModule, 'gateway', async (application) => {
+  application.getHttpAdapter().getInstance().addHook('onRequest', async (request, reply) => {
+    const path = request.url.split('?')[0] ?? '';
+    if (path.startsWith('/api/v1/auth/internal/')) {
+      return reply.code(404).send({ message: 'No encontrado.' });
+    }
+  });
   await application.register(fastifyHttpProxy, {
     upstream: process.env.AUTH_UPSTREAM ?? 'http://auth:3001',
     prefix: '/api/v1/auth',

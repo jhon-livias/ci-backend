@@ -33,6 +33,11 @@ export type TicketCategory = Prisma.TicketCategoryModel
  */
 export type TeamMember = Prisma.TeamMemberModel
 /**
+ * Model AreaMembership
+ * 
+ */
+export type AreaMembership = Prisma.AreaMembershipModel
+/**
  * Model PriorityLevel
  * 
  */

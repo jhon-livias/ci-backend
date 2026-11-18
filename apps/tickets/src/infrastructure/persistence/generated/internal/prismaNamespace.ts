@@ -400,6 +400,7 @@ export const ModelName = {
   Area: 'Area',
   TicketCategory: 'TicketCategory',
   TeamMember: 'TeamMember',
+  AreaMembership: 'AreaMembership',
   PriorityLevel: 'PriorityLevel',
   PriorityActivity: 'PriorityActivity',
   TicketSequence: 'TicketSequence',
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "area" | "ticketCategory" | "teamMember" | "priorityLevel" | "priorityActivity" | "ticketSequence" | "ticket" | "ticketHistory" | "ticketAttachment"
+    modelProps: "area" | "ticketCategory" | "teamMember" | "areaMembership" | "priorityLevel" | "priorityActivity" | "ticketSequence" | "ticket" | "ticketHistory" | "ticketAttachment"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -644,6 +645,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TeamMemberCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TeamMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    AreaMembership: {
+      payload: Prisma.$AreaMembershipPayload<ExtArgs>
+      fields: Prisma.AreaMembershipFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AreaMembershipFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AreaMembershipFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>
+        }
+        findFirst: {
+          args: Prisma.AreaMembershipFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AreaMembershipFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>
+        }
+        findMany: {
+          args: Prisma.AreaMembershipFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>[]
+        }
+        create: {
+          args: Prisma.AreaMembershipCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>
+        }
+        createMany: {
+          args: Prisma.AreaMembershipCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AreaMembershipCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>[]
+        }
+        delete: {
+          args: Prisma.AreaMembershipDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>
+        }
+        update: {
+          args: Prisma.AreaMembershipUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>
+        }
+        deleteMany: {
+          args: Prisma.AreaMembershipDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AreaMembershipUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AreaMembershipUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>[]
+        }
+        upsert: {
+          args: Prisma.AreaMembershipUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AreaMembershipPayload>
+        }
+        aggregate: {
+          args: Prisma.AreaMembershipAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAreaMembership>
+        }
+        groupBy: {
+          args: Prisma.AreaMembershipGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AreaMembershipGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AreaMembershipCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AreaMembershipCountAggregateOutputType> | number
         }
       }
     }
@@ -1173,11 +1248,29 @@ export const TeamMemberScalarFieldEnum = {
   functions: 'functions',
   schedule: 'schedule',
   isManager: 'isManager',
+  userId: 'userId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
+
+
+export const AreaMembershipScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  areaId: 'areaId',
+  email: 'email',
+  fullName: 'fullName',
+  document: 'document',
+  phone: 'phone',
+  roleTitle: 'roleTitle',
+  kind: 'kind',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AreaMembershipScalarFieldEnum = (typeof AreaMembershipScalarFieldEnum)[keyof typeof AreaMembershipScalarFieldEnum]
 
 
 export const PriorityLevelScalarFieldEnum = {
@@ -1327,6 +1420,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MembershipKind'
+ */
+export type EnumMembershipKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MembershipKind'>
+    
+
+
+/**
+ * Reference to a field of type 'MembershipKind[]'
+ */
+export type ListEnumMembershipKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MembershipKind[]'>
     
 
 
@@ -1567,6 +1674,7 @@ export type GlobalOmitConfig = {
   area?: Prisma.AreaOmit
   ticketCategory?: Prisma.TicketCategoryOmit
   teamMember?: Prisma.TeamMemberOmit
+  areaMembership?: Prisma.AreaMembershipOmit
   priorityLevel?: Prisma.PriorityLevelOmit
   priorityActivity?: Prisma.PriorityActivityOmit
   ticketSequence?: Prisma.TicketSequenceOmit

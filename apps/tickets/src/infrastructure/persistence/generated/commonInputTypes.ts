@@ -144,6 +144,23 @@ export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
 }
 
+export type EnumMembershipKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipKind | Prisma.EnumMembershipKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipKindFilter<$PrismaModel> | $Enums.MembershipKind
+}
+
+export type EnumMembershipKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipKind | Prisma.EnumMembershipKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipKindWithAggregatesFilter<$PrismaModel> | $Enums.MembershipKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMembershipKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMembershipKindFilter<$PrismaModel>
+}
+
 export type EnumTicketPriorityFilter<$PrismaModel = never> = {
   equals?: $Enums.TicketPriority | Prisma.EnumTicketPriorityFieldRefInput<$PrismaModel>
   in?: $Enums.TicketPriority[] | Prisma.ListEnumTicketPriorityFieldRefInput<$PrismaModel>
@@ -450,6 +467,23 @@ export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeFilter<$PrismaModel>
+}
+
+export type NestedEnumMembershipKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipKind | Prisma.EnumMembershipKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipKindFilter<$PrismaModel> | $Enums.MembershipKind
+}
+
+export type NestedEnumMembershipKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MembershipKind | Prisma.EnumMembershipKindFieldRefInput<$PrismaModel>
+  in?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MembershipKind[] | Prisma.ListEnumMembershipKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMembershipKindWithAggregatesFilter<$PrismaModel> | $Enums.MembershipKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMembershipKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMembershipKindFilter<$PrismaModel>
 }
 
 export type NestedEnumTicketPriorityFilter<$PrismaModel = never> = {

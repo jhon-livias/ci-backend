@@ -11,6 +11,7 @@
 export type * from './models/Area.js'
 export type * from './models/TicketCategory.js'
 export type * from './models/TeamMember.js'
+export type * from './models/AreaMembership.js'
 export type * from './models/PriorityLevel.js'
 export type * from './models/PriorityActivity.js'
 export type * from './models/TicketSequence.js'

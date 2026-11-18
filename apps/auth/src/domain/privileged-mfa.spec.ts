@@ -8,6 +8,7 @@ describe('requiresMfa', () => {
     expect(requiresMfa(['DIRECTOR'])).toBe(true);
     expect(requiresMfa([], ['tickets.admin'])).toBe(true);
     expect(requiresMfa([], ['tickets.area_manager'])).toBe(true);
+    expect(requiresMfa([], ['tickets.assistant'])).toBe(true);
     expect(requiresMfa([], ['study-plans.faculty'])).toBe(true);
   });
 
@@ -15,7 +16,6 @@ describe('requiresMfa', () => {
     expect(requiresMfa(['STUDENT'])).toBe(false);
     expect(requiresMfa(['TEACHER'])).toBe(false);
     expect(requiresMfa(['ADVISOR'])).toBe(false);
-    expect(requiresMfa([], ['tickets.assistant'])).toBe(false);
     expect(requiresMfa([], ['tickets.requester'])).toBe(false);
     expect(requiresMfa([], ['study-plans.teacher'])).toBe(false);
   });

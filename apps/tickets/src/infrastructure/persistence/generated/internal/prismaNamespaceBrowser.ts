@@ -54,6 +54,7 @@ export const ModelName = {
   Area: 'Area',
   TicketCategory: 'TicketCategory',
   TeamMember: 'TeamMember',
+  AreaMembership: 'AreaMembership',
   PriorityLevel: 'PriorityLevel',
   PriorityActivity: 'PriorityActivity',
   TicketSequence: 'TicketSequence',
@@ -121,11 +122,29 @@ export const TeamMemberScalarFieldEnum = {
   functions: 'functions',
   schedule: 'schedule',
   isManager: 'isManager',
+  userId: 'userId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
+
+
+export const AreaMembershipScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  areaId: 'areaId',
+  email: 'email',
+  fullName: 'fullName',
+  document: 'document',
+  phone: 'phone',
+  roleTitle: 'roleTitle',
+  kind: 'kind',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AreaMembershipScalarFieldEnum = (typeof AreaMembershipScalarFieldEnum)[keyof typeof AreaMembershipScalarFieldEnum]
 
 
 export const PriorityLevelScalarFieldEnum = {

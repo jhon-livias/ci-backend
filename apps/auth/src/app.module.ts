@@ -31,6 +31,7 @@ import { UserDirectoryService } from './application/user-directory.service.js';
 import { UserDirectoryController } from './interfaces/http/user-directory.controller.js';
 import { PermissionsController } from './interfaces/http/permissions.controller.js';
 import { PermissionCatalogService } from './application/permission-catalog.service.js';
+import { TicketsAccountController } from './interfaces/http/tickets-account.controller.js';
 import { TotpController } from './interfaces/http/totp.controller.js';
 import { UserTypesController } from './interfaces/http/user-types.controller.js';
 import { UserTypeCatalogService } from './application/user-type-catalog.service.js';
@@ -90,6 +91,7 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     PermissionsController,
     UserTypesController,
     TotpController,
+    TicketsAccountController,
   ],
   providers: [
     AuthPrismaService,

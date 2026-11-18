@@ -5,6 +5,7 @@ const trim = () => Transform(({ value }: { value: unknown }) => (typeof value ==
 
 export class CreateExternalTicketDto {
   @IsUUID() areaId!: string;
+  @IsOptional() @IsUUID() originAreaId?: string;
   @IsIn(['self', 'student', 'teacher']) about!: 'self' | 'student' | 'teacher';
   @trim() @IsOptional() @IsString() @MaxLength(160) otherName?: string;
   @trim() @IsOptional() @IsString() @Matches(/^$|^\d{8}$/u) otherDocument?: string;

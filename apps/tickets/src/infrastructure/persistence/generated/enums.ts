@@ -45,3 +45,11 @@ export const TicketAbout = {
 } as const
 
 export type TicketAbout = (typeof TicketAbout)[keyof typeof TicketAbout]
+
+
+export const MembershipKind = {
+  MANAGER: 'MANAGER',
+  COLLABORATOR: 'COLLABORATOR'
+} as const
+
+export type MembershipKind = (typeof MembershipKind)[keyof typeof MembershipKind]

@@ -3,6 +3,7 @@ import * as argon2 from 'argon2';
 
 import { FIXED_ROLES, type FixedRole } from '../domain/access-policy.js';
 import { requiresMfa } from '../domain/privileged-mfa.js';
+import { normalizeInstitutionalEmail } from '../domain/institutional-email.js';
 import { normalizeUserAccount, temporaryPassword, UserAccountRuleError, type NormalizedUserAccount } from '../domain/user-account.js';
 import { AuditLogService } from './audit-log.service.js';
 import { SessionControl } from './session-control.js';
@@ -492,6 +493,90 @@ export class UserDirectoryService {
     return { grants: selected, roles };
   }
 
+  async provisionTicketsAccount(input: {
+    readonly email: string;
+    readonly documentNumber: string;
+    readonly fullName: string;
+    readonly phone?: string;
+    readonly roles: readonly ('tickets.area_manager' | 'tickets.assistant' | 'tickets.requester')[];
+  }): Promise<{ userId: string; created: boolean; username: string }> {
+    const email = normalizeInstitutionalEmail(input.email);
+    if (!email) throw new BadRequestException('Solo se acepta el dominio @uprit.edu.pe.');
+    if (email.length > 64) throw new BadRequestException('El correo es demasiado largo para usarse como usuario.');
+    if (!/^\d{8}$/u.test(input.documentNumber)) throw new BadRequestException('El DNI debe tener 8 dígitos.');
+    const name = splitPersonName(input.fullName);
+    if (!name) throw new BadRequestException('Revisa los nombres.');
+    const roles = [...new Set(input.roles)];
+    if (roles.length < 1) throw new BadRequestException('Indica el rol de la cuenta.');
+    const application = await this.prisma.identityApplication.findUnique({ where: { code: 'ci-tickets' } });
+    if (!application?.enabled) throw new BadRequestException('La aplicación de tickets no está registrada.');
+    const roleRows = await this.prisma.applicationRole.findMany({
+      where: { applicationId: application.id, code: { in: roles }, enabled: true },
+      select: { id: true, code: true },
+    });
+    if (roleRows.length !== roles.length) throw new BadRequestException('No está definido el rol de tickets.');
+
+    const existing = await this.prisma.user.findFirst({
+      where: { deletedAt: null, email: { equals: email, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    if (existing) {
+      await this.grantTicketsRoles(existing.id, roleRows.map((role) => role.id));
+      return { userId: existing.id, created: false, username: email };
+    }
+    const documentOwner = await this.prisma.user.findFirst({
+      where: { deletedAt: null, profile: { is: { documentNumber: input.documentNumber } } },
+      select: { id: true },
+    });
+    if (documentOwner) throw new ConflictException('Ese documento ya está registrado.');
+
+    const passwordHash = await argon2.hash(input.documentNumber, { type: argon2.argon2id });
+    const phone = (input.phone ?? '').trim();
+    try {
+      const created = await this.prisma.user.create({
+        data: {
+          username: email,
+          email,
+          passwordHash,
+          status: 'ACTIVE',
+          mustChangePassword: true,
+          totpRequired: true,
+          profile: {
+            create: {
+              documentType: 'DNI',
+              documentNumber: input.documentNumber,
+              firstName: name.firstName,
+              paternalLastName: name.paternalLastName,
+              ...(phone ? { phone } : {}),
+              ...(phone.replace(/\D/g, '').length >= 6
+                ? { mobile: phone.replace(/\D/g, '').slice(0, 15), mobileCountry: '+51' }
+                : {}),
+            },
+          },
+          applicationRoles: { create: roleRows.map((role) => ({ applicationRoleId: role.id })) },
+        },
+        select: { id: true },
+      });
+      await this.note(undefined, `Creó la cuenta de tickets de ${name.firstName} ${name.paternalLastName}.`);
+      return { userId: created.id, created: true, username: email };
+    } catch (error) {
+      this.rethrowPersistence(error);
+    }
+  }
+
+  private async grantTicketsRoles(userId: string, roleIds: readonly string[]): Promise<void> {
+    const current = await this.prisma.userApplicationRole.findMany({
+      where: { userId, applicationRoleId: { in: [...roleIds] } },
+      select: { applicationRoleId: true },
+    });
+    const owned = new Set(current.map((item) => item.applicationRoleId));
+    const missing = roleIds.filter((id) => !owned.has(id));
+    if (missing.length === 0) return;
+    await this.prisma.userApplicationRole.createMany({
+      data: missing.map((applicationRoleId) => ({ userId, applicationRoleId })),
+    });
+  }
+
   private profileData(draft: NormalizedUserAccount) {
     return {
       documentType: draft.documentType,
@@ -540,6 +625,14 @@ export class UserDirectoryService {
     throw error;
   }
 }
+
+const splitPersonName = (value: string): { firstName: string; paternalLastName: string } | null => {
+  const parts = value.normalize('NFKC').trim().split(/\s+/u).filter(Boolean);
+  const firstName = parts[0] ?? '';
+  const paternalLastName = parts.slice(1).join(' ') || firstName;
+  if (!/^[^<>]{1,100}$/u.test(firstName) || !/^[^<>]{1,100}$/u.test(paternalLastName)) return null;
+  return { firstName, paternalLastName };
+};
 
 const uniqueTarget = (error: object): string => {
   const chunks: string[] = [];

@@ -258,6 +258,7 @@ export type AreaWhereInput = {
   children?: Prisma.AreaListRelationFilter
   categories?: Prisma.TicketCategoryListRelationFilter
   tickets?: Prisma.TicketListRelationFilter
+  memberships?: Prisma.AreaMembershipListRelationFilter
 }
 
 export type AreaOrderByWithRelationInput = {
@@ -279,6 +280,7 @@ export type AreaOrderByWithRelationInput = {
   children?: Prisma.AreaOrderByRelationAggregateInput
   categories?: Prisma.TicketCategoryOrderByRelationAggregateInput
   tickets?: Prisma.TicketOrderByRelationAggregateInput
+  memberships?: Prisma.AreaMembershipOrderByRelationAggregateInput
 }
 
 export type AreaWhereUniqueInput = Prisma.AtLeast<{
@@ -303,6 +305,7 @@ export type AreaWhereUniqueInput = Prisma.AtLeast<{
   children?: Prisma.AreaListRelationFilter
   categories?: Prisma.TicketCategoryListRelationFilter
   tickets?: Prisma.TicketListRelationFilter
+  memberships?: Prisma.AreaMembershipListRelationFilter
 }, "id" | "code">
 
 export type AreaOrderByWithAggregationInput = {
@@ -363,6 +366,7 @@ export type AreaCreateInput = {
   children?: Prisma.AreaCreateNestedManyWithoutParentInput
   categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
   tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateInput = {
@@ -383,6 +387,7 @@ export type AreaUncheckedCreateInput = {
   children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
   categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUpdateInput = {
@@ -403,6 +408,7 @@ export type AreaUpdateInput = {
   children?: Prisma.AreaUpdateManyWithoutParentNestedInput
   categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateInput = {
@@ -423,6 +429,7 @@ export type AreaUncheckedUpdateInput = {
   children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
   categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateManyInput = {
@@ -634,6 +641,20 @@ export type AreaUpdateOneRequiredWithoutCategoriesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutCategoriesInput, Prisma.AreaUpdateWithoutCategoriesInput>, Prisma.AreaUncheckedUpdateWithoutCategoriesInput>
 }
 
+export type AreaCreateNestedOneWithoutMembershipsInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutMembershipsInput, Prisma.AreaUncheckedCreateWithoutMembershipsInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutMembershipsInput
+  connect?: Prisma.AreaWhereUniqueInput
+}
+
+export type AreaUpdateOneRequiredWithoutMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.AreaCreateWithoutMembershipsInput, Prisma.AreaUncheckedCreateWithoutMembershipsInput>
+  connectOrCreate?: Prisma.AreaCreateOrConnectWithoutMembershipsInput
+  upsert?: Prisma.AreaUpsertWithoutMembershipsInput
+  connect?: Prisma.AreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AreaUpdateToOneWithWhereWithoutMembershipsInput, Prisma.AreaUpdateWithoutMembershipsInput>, Prisma.AreaUncheckedUpdateWithoutMembershipsInput>
+}
+
 export type AreaCreateNestedOneWithoutTicketsInput = {
   create?: Prisma.XOR<Prisma.AreaCreateWithoutTicketsInput, Prisma.AreaUncheckedCreateWithoutTicketsInput>
   connectOrCreate?: Prisma.AreaCreateOrConnectWithoutTicketsInput
@@ -665,6 +686,7 @@ export type AreaCreateWithoutChildrenInput = {
   parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
   categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
   tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutChildrenInput = {
@@ -684,6 +706,7 @@ export type AreaUncheckedCreateWithoutChildrenInput = {
   updatedAt?: Date | string
   categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutChildrenInput = {
@@ -708,6 +731,7 @@ export type AreaCreateWithoutParentInput = {
   children?: Prisma.AreaCreateNestedManyWithoutParentInput
   categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
   tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutParentInput = {
@@ -727,6 +751,7 @@ export type AreaUncheckedCreateWithoutParentInput = {
   children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
   categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutParentInput = {
@@ -767,6 +792,7 @@ export type AreaUpdateWithoutChildrenInput = {
   parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
   categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutChildrenInput = {
@@ -786,6 +812,7 @@ export type AreaUncheckedUpdateWithoutChildrenInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUpsertWithWhereUniqueWithoutParentInput = {
@@ -841,6 +868,7 @@ export type AreaCreateWithoutCategoriesInput = {
   parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
   children?: Prisma.AreaCreateNestedManyWithoutParentInput
   tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutCategoriesInput = {
@@ -860,6 +888,7 @@ export type AreaUncheckedCreateWithoutCategoriesInput = {
   updatedAt?: Date | string
   children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
   tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutCategoriesInput = {
@@ -895,6 +924,7 @@ export type AreaUpdateWithoutCategoriesInput = {
   parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
   children?: Prisma.AreaUpdateManyWithoutParentNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutCategoriesInput = {
@@ -913,6 +943,103 @@ export type AreaUncheckedUpdateWithoutCategoriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
+  tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUncheckedUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaCreateWithoutMembershipsInput = {
+  id?: string
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
+  children?: Prisma.AreaCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketCreateNestedManyWithoutAreaInput
+}
+
+export type AreaUncheckedCreateWithoutMembershipsInput = {
+  id?: string
+  parentId?: string | null
+  code: string
+  name: string
+  responsibility: string
+  managerName: string
+  managerDocument: string
+  managerEmail: string
+  receivesTickets?: boolean
+  allowsInternal?: boolean
+  canCreateTickets?: boolean
+  enabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
+  categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
+  tickets?: Prisma.TicketUncheckedCreateNestedManyWithoutAreaInput
+}
+
+export type AreaCreateOrConnectWithoutMembershipsInput = {
+  where: Prisma.AreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.AreaCreateWithoutMembershipsInput, Prisma.AreaUncheckedCreateWithoutMembershipsInput>
+}
+
+export type AreaUpsertWithoutMembershipsInput = {
+  update: Prisma.XOR<Prisma.AreaUpdateWithoutMembershipsInput, Prisma.AreaUncheckedUpdateWithoutMembershipsInput>
+  create: Prisma.XOR<Prisma.AreaCreateWithoutMembershipsInput, Prisma.AreaUncheckedCreateWithoutMembershipsInput>
+  where?: Prisma.AreaWhereInput
+}
+
+export type AreaUpdateToOneWithWhereWithoutMembershipsInput = {
+  where?: Prisma.AreaWhereInput
+  data: Prisma.XOR<Prisma.AreaUpdateWithoutMembershipsInput, Prisma.AreaUncheckedUpdateWithoutMembershipsInput>
+}
+
+export type AreaUpdateWithoutMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
+  children?: Prisma.AreaUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
+  tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+}
+
+export type AreaUncheckedUpdateWithoutMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  managerName?: Prisma.StringFieldUpdateOperationsInput | string
+  managerDocument?: Prisma.StringFieldUpdateOperationsInput | string
+  managerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  receivesTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowsInternal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canCreateTickets?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
+  categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
 }
 
@@ -933,6 +1060,7 @@ export type AreaCreateWithoutTicketsInput = {
   parent?: Prisma.AreaCreateNestedOneWithoutChildrenInput
   children?: Prisma.AreaCreateNestedManyWithoutParentInput
   categories?: Prisma.TicketCategoryCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipCreateNestedManyWithoutAreaInput
 }
 
 export type AreaUncheckedCreateWithoutTicketsInput = {
@@ -952,6 +1080,7 @@ export type AreaUncheckedCreateWithoutTicketsInput = {
   updatedAt?: Date | string
   children?: Prisma.AreaUncheckedCreateNestedManyWithoutParentInput
   categories?: Prisma.TicketCategoryUncheckedCreateNestedManyWithoutAreaInput
+  memberships?: Prisma.AreaMembershipUncheckedCreateNestedManyWithoutAreaInput
 }
 
 export type AreaCreateOrConnectWithoutTicketsInput = {
@@ -987,6 +1116,7 @@ export type AreaUpdateWithoutTicketsInput = {
   parent?: Prisma.AreaUpdateOneWithoutChildrenNestedInput
   children?: Prisma.AreaUpdateManyWithoutParentNestedInput
   categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutTicketsInput = {
@@ -1006,6 +1136,7 @@ export type AreaUncheckedUpdateWithoutTicketsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
   categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaCreateManyParentInput = {
@@ -1041,6 +1172,7 @@ export type AreaUpdateWithoutParentInput = {
   children?: Prisma.AreaUpdateManyWithoutParentNestedInput
   categories?: Prisma.TicketCategoryUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateWithoutParentInput = {
@@ -1060,6 +1192,7 @@ export type AreaUncheckedUpdateWithoutParentInput = {
   children?: Prisma.AreaUncheckedUpdateManyWithoutParentNestedInput
   categories?: Prisma.TicketCategoryUncheckedUpdateManyWithoutAreaNestedInput
   tickets?: Prisma.TicketUncheckedUpdateManyWithoutAreaNestedInput
+  memberships?: Prisma.AreaMembershipUncheckedUpdateManyWithoutAreaNestedInput
 }
 
 export type AreaUncheckedUpdateManyWithoutParentInput = {
@@ -1087,12 +1220,14 @@ export type AreaCountOutputType = {
   children: number
   categories: number
   tickets: number
+  memberships: number
 }
 
 export type AreaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   children?: boolean | AreaCountOutputTypeCountChildrenArgs
   categories?: boolean | AreaCountOutputTypeCountCategoriesArgs
   tickets?: boolean | AreaCountOutputTypeCountTicketsArgs
+  memberships?: boolean | AreaCountOutputTypeCountMembershipsArgs
 }
 
 /**
@@ -1126,6 +1261,13 @@ export type AreaCountOutputTypeCountTicketsArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.TicketWhereInput
 }
 
+/**
+ * AreaCountOutputType without action
+ */
+export type AreaCountOutputTypeCountMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AreaMembershipWhereInput
+}
+
 
 export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1146,6 +1288,7 @@ export type AreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   children?: boolean | Prisma.Area$childrenArgs<ExtArgs>
   categories?: boolean | Prisma.Area$categoriesArgs<ExtArgs>
   tickets?: boolean | Prisma.Area$ticketsArgs<ExtArgs>
+  memberships?: boolean | Prisma.Area$membershipsArgs<ExtArgs>
   _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["area"]>
 
@@ -1208,6 +1351,7 @@ export type AreaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   children?: boolean | Prisma.Area$childrenArgs<ExtArgs>
   categories?: boolean | Prisma.Area$categoriesArgs<ExtArgs>
   tickets?: boolean | Prisma.Area$ticketsArgs<ExtArgs>
+  memberships?: boolean | Prisma.Area$membershipsArgs<ExtArgs>
   _count?: boolean | Prisma.AreaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AreaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1224,6 +1368,7 @@ export type $AreaPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     children: Prisma.$AreaPayload<ExtArgs>[]
     categories: Prisma.$TicketCategoryPayload<ExtArgs>[]
     tickets: Prisma.$TicketPayload<ExtArgs>[]
+    memberships: Prisma.$AreaMembershipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1638,6 +1783,7 @@ export interface Prisma__AreaClient<T, Null = never, ExtArgs extends runtime.Typ
   children<T extends Prisma.Area$childrenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AreaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   categories<T extends Prisma.Area$categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tickets<T extends Prisma.Area$ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  memberships<T extends Prisma.Area$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Area$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AreaMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2170,6 +2316,30 @@ export type Area$ticketsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.TicketScalarFieldEnum | Prisma.TicketScalarFieldEnum[]
+}
+
+/**
+ * Area.memberships
+ */
+export type Area$membershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AreaMembership
+   */
+  select?: Prisma.AreaMembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AreaMembership
+   */
+  omit?: Prisma.AreaMembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AreaMembershipInclude<ExtArgs> | null
+  where?: Prisma.AreaMembershipWhereInput
+  orderBy?: Prisma.AreaMembershipOrderByWithRelationInput | Prisma.AreaMembershipOrderByWithRelationInput[]
+  cursor?: Prisma.AreaMembershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AreaMembershipScalarFieldEnum | Prisma.AreaMembershipScalarFieldEnum[]
 }
 
 /**
