@@ -27,6 +27,11 @@ export class UserGrantDto {
   enabled!: boolean;
 }
 
+export class TicketsAssignmentDto {
+  @IsIn(['none', 'tickets.admin', 'tickets.area_manager', 'tickets.assistant', 'tickets.requester'])
+  role!: 'none' | 'tickets.admin' | 'tickets.area_manager' | 'tickets.assistant' | 'tickets.requester';
+}
+
 export class StudyPlansAssignmentDto {
   @IsIn(['faculty', 'teacher', 'none'])
   role!: 'faculty' | 'teacher' | 'none';
@@ -112,6 +117,11 @@ export class SaveUserDto {
   @ValidateNested()
   @Type(() => StudyPlansAssignmentDto)
   studyPlans?: StudyPlansAssignmentDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => TicketsAssignmentDto)
+  tickets?: TicketsAssignmentDto;
 }
 
 export class UpdateUserDto {
@@ -195,4 +205,9 @@ export class UpdateUserDto {
   @ValidateNested()
   @Type(() => StudyPlansAssignmentDto)
   studyPlans?: StudyPlansAssignmentDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => TicketsAssignmentDto)
+  tickets?: TicketsAssignmentDto;
 }

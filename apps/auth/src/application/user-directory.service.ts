@@ -32,8 +32,19 @@ export interface StudyPlansAssignment {
   readonly careerCodes: readonly string[];
 }
 
+export type TicketsRole = 'none' | 'tickets.admin' | 'tickets.area_manager' | 'tickets.assistant' | 'tickets.requester';
+
 type DirectoryInput = Parameters<typeof normalizeUserAccount>[0] & {
   readonly studyPlans?: StudyPlansAssignment;
+  readonly tickets?: { readonly role: TicketsRole };
+};
+
+const TICKETS_ROLES = new Set(['tickets.admin', 'tickets.area_manager', 'tickets.assistant', 'tickets.requester']);
+
+const ticketsOf = (dto: DirectoryInput): TicketsRole | undefined => {
+  const role = dto.tickets?.role;
+  if (role === 'none') return 'none';
+  return role && TICKETS_ROLES.has(role) ? role : undefined;
 };
 
 const studyPlansOf = (dto: DirectoryInput): StudyPlansAssignment | undefined => {
@@ -116,7 +127,7 @@ export class UserDirectoryService {
   async get(id: string) {
     const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null }, select: detailSelection });
     if (!user) throw new NotFoundException();
-    return { ...presentDetail(user), studyPlans: await this.readStudyPlans(id) };
+    return { ...presentDetail(user), studyPlans: await this.readStudyPlans(id), tickets: await this.readTickets(id) };
   }
 
   async createTeacher(input: {
@@ -177,13 +188,15 @@ export class UserDirectoryService {
 
   async create(dto: DirectoryInput, actorId?: string) {
     const assignment = studyPlansOf(dto);
+    const tickets = ticketsOf(dto);
     const hasStudyPlans = assignment?.role === 'faculty' || assignment?.role === 'teacher';
-    const draft = this.normalize(dto, true, { allowEmptyGrants: hasStudyPlans });
+    const hasTickets = Boolean(tickets && tickets !== 'none');
+    const draft = this.normalize(dto, true, { allowEmptyGrants: hasStudyPlans || hasTickets });
     await this.ensureAvailable(draft);
     const resolved = draft.grants.some((grant) => grant.enabled)
       ? await this.resolveGrants(draft.grants)
       : { grants: [], roles: [] as UserRoleName[] };
-    if (resolved.roles.length === 0 && !hasStudyPlans) throw new BadRequestException('Activa al menos una funcionalidad.');
+    if (resolved.roles.length === 0 && !hasStudyPlans && !hasTickets) throw new BadRequestException('Elige el sistema y el rol.');
     const passwordHash = await argon2.hash(draft.password ?? '', { type: argon2.argon2id });
     try {
       const created = await this.prisma.$transaction(async (tx) => {
@@ -195,13 +208,14 @@ export class UserDirectoryService {
             status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
             siteId: draft.siteId,
             profile: { create: this.profileData(draft) },
-            totpRequired: requiresMfa(resolved.roles) || assignment?.role === 'faculty',
+            totpRequired: requiresMfa(resolved.roles, privilegedApplicationRoles(assignment, tickets)),
             ...(resolved.roles.length > 0 ? { roles: { create: resolved.roles.map((role) => ({ role })) } } : {}),
             ...(resolved.grants.length > 0 ? { grants: { create: resolved.grants } } : {}),
           },
           select: detailSelection,
         });
         if (assignment) await this.applyStudyPlans(tx, user.id, assignment);
+        if (tickets) await this.applyTickets(tx, user.id, tickets);
         return user;
       });
       const detail = presentDetail(created);
@@ -214,6 +228,7 @@ export class UserDirectoryService {
 
   async update(id: string, dto: DirectoryInput, actorId: string) {
     const assignment = studyPlansOf(dto);
+    const tickets = ticketsOf(dto);
     const grantsProvided = dto.grants !== undefined;
     const draft = this.normalize(dto, false);
     await this.ensureAvailable(draft, id);
@@ -223,8 +238,9 @@ export class UserDirectoryService {
         : { grants: [], roles: [] as UserRoleName[] }
       : null;
     const keepsStudyPlans = assignment?.role === 'faculty' || assignment?.role === 'teacher';
-    if (resolved && resolved.roles.length === 0 && !keepsStudyPlans) {
-      throw new BadRequestException('Activa al menos una funcionalidad.');
+    const keepsTickets = Boolean(tickets && tickets !== 'none');
+    if (resolved && resolved.roles.length === 0 && !keepsStudyPlans && !keepsTickets) {
+      throw new BadRequestException('Elige el sistema y el rol.');
     }
     if (actorId === id && (!draft.enabled || (resolved !== null && !resolved.roles.includes(UserRoleName.ADMINISTRATOR)))) {
       throw new BadRequestException('No puedes quitar tu propio acceso de administrador.');
@@ -243,7 +259,7 @@ export class UserDirectoryService {
             status: draft.enabled ? 'ACTIVE' : 'SUSPENDED',
             siteId: draft.siteId || null,
             ...(passwordHash ? { passwordHash, passwordChangedAt: new Date() } : {}),
-            ...(resolved && requiresMfa(resolved.roles) || assignment?.role === 'faculty' ? { totpRequired: true } : {}),
+            ...(resolved && requiresMfa(resolved.roles, privilegedApplicationRoles(assignment, tickets)) ? { totpRequired: true } : {}),
             ...(cutAccess ? { sessionVersion: { increment: 1 } } : {}),
             profile: { upsert: { create: this.profileData(draft), update: this.profileData(draft) } },
             ...(resolved ? {
@@ -254,6 +270,7 @@ export class UserDirectoryService {
           select: { ...detailSelection, sessionVersion: true },
         });
         if (assignment) await this.applyStudyPlans(tx, id, assignment);
+        if (tickets) await this.applyTickets(tx, id, tickets);
         if (cutAccess) {
           await tx.authSession.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
         }
@@ -469,6 +486,32 @@ export class UserDirectoryService {
     const codes = links.map((link) => link.applicationRole.code);
     const role = codes.includes('study-plans.faculty') ? 'faculty' : codes.includes('study-plans.teacher') ? 'teacher' : 'none';
     return { role, careerCodes: scopes.map((scope) => scope.careerCode) };
+  }
+
+  private async readTickets(userId: string): Promise<{ role: TicketsRole }> {
+    const links = await this.prisma.userApplicationRole.findMany({
+      where: { userId, applicationRole: { enabled: true, application: { code: 'ci-tickets' } } },
+      select: { applicationRole: { select: { code: true } } },
+    });
+    const code = links.map((link) => link.applicationRole.code).find((item): item is Exclude<TicketsRole, 'none'> => TICKETS_ROLES.has(item));
+    return { role: code ?? 'none' };
+  }
+
+  private async applyTickets(
+    tx: Pick<AuthPrismaService, 'applicationRole' | 'userApplicationRole'>,
+    userId: string,
+    role: TicketsRole,
+  ): Promise<void> {
+    await tx.userApplicationRole.deleteMany({
+      where: { userId, applicationRole: { application: { code: 'ci-tickets' } } },
+    });
+    if (role === 'none') return;
+    const found = await tx.applicationRole.findFirst({
+      where: { code: role, enabled: true, application: { code: 'ci-tickets', enabled: true } },
+      select: { id: true },
+    });
+    if (!found) throw new BadRequestException('El rol de tickets no está registrado.');
+    await tx.userApplicationRole.create({ data: { userId, applicationRoleId: found.id } });
   }
 
   private async resolveGrants(grants: readonly NormalizedUserAccount['grants'][number][]) {
@@ -730,6 +773,11 @@ const present = (user: {
     totpRequired: user.totpRequired === true,
   };
 };
+
+const privilegedApplicationRoles = (assignment: StudyPlansAssignment | undefined, tickets: TicketsRole | undefined): string[] => [
+  ...(assignment?.role === 'faculty' ? ['study-plans.faculty'] : []),
+  ...(tickets && tickets !== 'none' ? [tickets] : []),
+];
 
 const personName = (firstName: string, paternalLastName: string): string =>
   `${firstName} ${paternalLastName}`.replace(/\s+/g, ' ').trim() || 'un usuario';
