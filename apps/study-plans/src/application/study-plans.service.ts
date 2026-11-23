@@ -14,22 +14,30 @@ export class StudyPlansService {
 
   async catalog(actor: StudyPlansActor) {
     if (actor.scopes.length === 0) return { modalities: [], areas: [], careers: [], offerings: [] };
-    const [modalityRows, careerRows] = await Promise.all([
-      this.db.modality.findMany({ where: { enabled: true }, select: { id: true, code: true, name: true } }),
-      this.db.career.findMany({
-        where: { enabled: true, code: { in: [...actor.scopes] }, area: { enabled: true } },
-        select: { id: true, code: true, name: true, areaId: true, area: { select: { id: true, code: true, name: true } } },
-      }),
-    ]);
-    const modalities = [...modalityRows].sort((left, right) => left.name.localeCompare(right.name, 'es'));
-    const careers = [...careerRows].sort((left, right) => left.name.localeCompare(right.name, 'es'));
+    const rows = await this.db.curriculum.findMany({
+      where: {
+        modality: { enabled: true },
+        career: { enabled: true, code: { in: [...actor.scopes] }, area: { enabled: true } },
+      },
+      select: {
+        modalityId: true,
+        careerId: true,
+        modality: { select: { id: true, code: true, name: true } },
+        career: { select: { id: true, code: true, name: true, areaId: true, area: { select: { id: true, code: true, name: true } } } },
+      },
+    });
+    const modalities = [...new Map(rows.map((row) => [row.modality.id, row.modality])).values()]
+      .sort((left, right) => left.name.localeCompare(right.name, 'es'));
+    const careers = [...new Map(rows.map((row) => [row.career.id, row.career])).values()]
+      .sort((left, right) => left.name.localeCompare(right.name, 'es'));
     const areas = [...new Map(careers.map((career) => [career.area.id, career.area])).values()]
       .sort((left, right) => left.name.localeCompare(right.name, 'es'));
+    const offerings = [...new Map(rows.map((row) => [`${row.modalityId}:${row.careerId}`, { modalityId: row.modalityId, careerId: row.careerId }])).values()];
     return {
       modalities,
       areas,
       careers: careers.map((career) => ({ id: career.id, code: career.code, name: career.name, areaId: career.areaId })),
-      offerings: modalities.flatMap((modality) => careers.map((career) => ({ modalityId: modality.id, careerId: career.id }))),
+      offerings,
     };
   }
 
