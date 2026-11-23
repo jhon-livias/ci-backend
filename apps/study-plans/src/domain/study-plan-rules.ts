@@ -10,6 +10,30 @@ export const isCreditValue = (value: number): boolean =>
 export const visibleCurriculum = (role: 'faculty' | 'teacher', status: 'ACTIVE' | 'INACTIVE'): boolean =>
   role === 'faculty' || status === 'ACTIVE';
 
+export const courseVisibleTo = (role: 'faculty' | 'teacher', syllabus: 'PUBLISHED' | 'PENDING'): boolean =>
+  role === 'faculty' || syllabus === 'PUBLISHED';
+
+export const AUDIT_ACTIONS = [
+  'curriculum.created',
+  'curriculum.activated',
+  'curriculum.deactivated',
+  'cycle.created',
+  'cycle.removed',
+  'course.created',
+  'course.updated',
+  'course.removed',
+  'syllabus.published',
+  'syllabus.retired',
+] as const;
+
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+
+export const cleanCorrelation = (value: unknown): string => {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  const cleaned = raw.replace(/[^A-Za-z0-9._:-]/gu, '').slice(0, 64);
+  return cleaned.length > 0 ? cleaned : 'local-request';
+};
+
 export const isPdfDocument = (bytes: Uint8Array): boolean =>
   bytes.length >= 5
   && bytes.length <= MAX_PDF_BYTES

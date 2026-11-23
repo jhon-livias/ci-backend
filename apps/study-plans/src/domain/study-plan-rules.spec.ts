@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { decodePdf, isCreditValue, isCurriculumYear, isCourseCode, visibleCurriculum } from './study-plan-rules.js';
+import { cleanCorrelation, courseVisibleTo, decodePdf, isCreditValue, isCurriculumYear, isCourseCode, visibleCurriculum } from './study-plan-rules.js';
 
 describe('reglas de planes de estudio', () => {
   it('acepta vigencia, código y créditos del prototipo', () => {
@@ -28,5 +28,17 @@ describe('reglas de planes de estudio', () => {
     expect(visibleCurriculum('teacher', 'INACTIVE')).toBe(false);
     expect(visibleCurriculum('teacher', 'ACTIVE')).toBe(true);
     expect(visibleCurriculum('faculty', 'INACTIVE')).toBe(true);
+  });
+
+  it('oculta al docente el curso cuyo sílabo sigue pendiente', () => {
+    expect(courseVisibleTo('teacher', 'PENDING')).toBe(false);
+    expect(courseVisibleTo('teacher', 'PUBLISHED')).toBe(true);
+    expect(courseVisibleTo('faculty', 'PENDING')).toBe(true);
+  });
+
+  it('guarda una correlación corta y descarta caracteres ajenos', () => {
+    expect(cleanCorrelation('req-9f3a.1')).toBe('req-9f3a.1');
+    expect(cleanCorrelation('  abc<script>  ')).toBe('abcscript');
+    expect(cleanCorrelation('')).toBe('local-request');
   });
 });

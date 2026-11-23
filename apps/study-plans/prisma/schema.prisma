@@ -102,3 +102,17 @@ model Syllabus {
   @@index([courseId, status])
   @@map("syllabi")
 }
+
+model AuditEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  actorId       String   @db.Uuid
+  action        String   @db.VarChar(40)
+  entityType    String   @db.VarChar(20)
+  entityId      String   @db.Uuid
+  correlationId String   @db.VarChar(64)
+  createdAt     DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_events")
+}

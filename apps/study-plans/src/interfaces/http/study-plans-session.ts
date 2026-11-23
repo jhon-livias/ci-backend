@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import type { FastifyRequest } from 'fastify';
 
 import { SessionAccess } from '../../../../../libs/common/src/session-access.js';
+import { cleanCorrelation } from '../../domain/study-plan-rules.js';
 
 export type StudyPlansRole = 'faculty' | 'teacher';
 
@@ -17,6 +18,7 @@ export interface StudyPlansActor {
   readonly id: string;
   readonly role: StudyPlansRole;
   readonly scopes: readonly string[];
+  readonly correlationId: string;
 }
 
 interface AccessTokenPayload {
@@ -76,7 +78,15 @@ export class StudyPlansSessionGuard implements CanActivate {
     const scopes = Array.isArray(payload.scopes)
       ? payload.scopes.filter((item): item is string => typeof item === 'string' && /^[A-Z]{2,8}$/u.test(item))
       : [];
-    request.studyPlansActor = { id: payload.sub, role, scopes };
+    const header = request.headers['x-correlation-id'];
+    const headerValue = Array.isArray(header) ? header[0] : header;
+    const requestId = request.id === undefined || request.id === null ? '' : String(request.id);
+    request.studyPlansActor = {
+      id: payload.sub,
+      role,
+      scopes,
+      correlationId: cleanCorrelation(typeof headerValue === 'string' && headerValue.trim() ? headerValue : requestId),
+    };
     return true;
   }
 }

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
-import { decodePdf, isCreditValue, visibleCurriculum } from '../domain/study-plan-rules.js';
+import { courseVisibleTo, decodePdf, isCreditValue, visibleCurriculum, type AuditAction } from '../domain/study-plan-rules.js';
 import { StudyPlansPrismaService } from '../infrastructure/persistence/study-plans-prisma.service.js';
 import type { StudyPlansActor } from '../interfaces/http/study-plans-session.js';
 
@@ -14,31 +14,22 @@ export class StudyPlansService {
 
   async catalog(actor: StudyPlansActor) {
     if (actor.scopes.length === 0) return { modalities: [], areas: [], careers: [], offerings: [] };
-    const rows = await this.db.curriculum.findMany({
-      where: {
-        career: { enabled: true, code: { in: [...actor.scopes] }, area: { enabled: true } },
-        modality: { enabled: true },
-        ...(actor.role === 'teacher' ? { status: 'ACTIVE' as const } : {}),
-      },
-      select: {
-        careerId: true,
-        modalityId: true,
-        career: { select: { id: true, code: true, name: true, areaId: true, area: { select: { id: true, code: true, name: true } } } },
-        modality: { select: { id: true, code: true, name: true } },
-      },
-    });
-    const modalities = [...new Map(rows.map((row) => [row.modality.id, row.modality])).values()]
-      .sort((left, right) => left.name.localeCompare(right.name, 'es'));
-    const careers = [...new Map(rows.map((row) => [row.career.id, row.career])).values()]
-      .sort((left, right) => left.name.localeCompare(right.name, 'es'));
+    const [modalityRows, careerRows] = await Promise.all([
+      this.db.modality.findMany({ where: { enabled: true }, select: { id: true, code: true, name: true } }),
+      this.db.career.findMany({
+        where: { enabled: true, code: { in: [...actor.scopes] }, area: { enabled: true } },
+        select: { id: true, code: true, name: true, areaId: true, area: { select: { id: true, code: true, name: true } } },
+      }),
+    ]);
+    const modalities = [...modalityRows].sort((left, right) => left.name.localeCompare(right.name, 'es'));
+    const careers = [...careerRows].sort((left, right) => left.name.localeCompare(right.name, 'es'));
     const areas = [...new Map(careers.map((career) => [career.area.id, career.area])).values()]
       .sort((left, right) => left.name.localeCompare(right.name, 'es'));
-    const offerings = [...new Map(rows.map((row) => [`${row.modalityId}:${row.careerId}`, { modalityId: row.modalityId, careerId: row.careerId }])).values()];
     return {
       modalities,
       areas,
       careers: careers.map((career) => ({ id: career.id, code: career.code, name: career.name, areaId: career.areaId })),
-      offerings,
+      offerings: modalities.flatMap((modality) => careers.map((career) => ({ modalityId: modality.id, careerId: career.id }))),
     };
   }
 
@@ -77,18 +68,20 @@ export class StudyPlansService {
       status: row.status,
       career: { id: row.career.id, code: row.career.code, name: row.career.name },
       modality: { id: row.modality.id, code: row.modality.code, name: row.modality.name },
-      cycles: row.cycles.map((cycle) => ({
-        id: cycle.id,
-        number: cycle.number,
-        courses: cycle.courses.map((course) => ({
-          id: course.id,
-          position: course.position,
-          code: course.code,
-          name: course.name,
-          credits: creditsOf(course.credits),
-          syllabus: course.syllabi.length > 0 ? 'PUBLISHED' as const : 'PENDING' as const,
-        })),
-      })),
+      cycles: row.cycles.flatMap((cycle) => {
+        const courses = cycle.courses
+          .filter((course) => courseVisibleTo(actor.role, course.syllabi.length > 0 ? 'PUBLISHED' : 'PENDING'))
+          .map((course) => ({
+            id: course.id,
+            position: course.position,
+            code: course.code,
+            name: course.name,
+            credits: creditsOf(course.credits),
+            syllabus: course.syllabi.length > 0 ? 'PUBLISHED' as const : 'PENDING' as const,
+          }));
+        if (actor.role === 'teacher' && courses.length === 0) return [];
+        return [{ id: cycle.id, number: cycle.number, courses }];
+      }),
     };
   }
 
@@ -98,8 +91,12 @@ export class StudyPlansService {
     const modality = await this.db.modality.findFirst({ where: { id: input.modalityId, enabled: true }, select: { id: true } });
     if (!modality) throw new BadRequestException('La modalidad no existe.');
     try {
-      const created = await this.db.curriculum.create({
-        data: { careerId: input.careerId, modalityId: input.modalityId, year: input.year, status: 'INACTIVE' },
+      const created = await this.db.$transaction(async (tx) => {
+        const row = await tx.curriculum.create({
+          data: { careerId: input.careerId, modalityId: input.modalityId, year: input.year, status: 'INACTIVE' },
+        });
+        await tx.auditEvent.create({ data: this.auditData(actor, 'curriculum.created', 'curriculum', row.id) });
+        return row;
       });
       return { id: created.id, year: created.year, status: created.status };
     } catch (error) {
@@ -113,12 +110,24 @@ export class StudyPlansService {
     if (!current || !actor.scopes.includes(current.career.code)) throw new NotFoundException();
     await this.db.$transaction(async (tx) => {
       if (status === 'ACTIVE') {
-        await tx.curriculum.updateMany({
+        const others = await tx.curriculum.findMany({
           where: { careerId: current.careerId, modalityId: current.modalityId, status: 'ACTIVE', id: { not: id } },
-          data: { status: 'INACTIVE' },
+          select: { id: true },
         });
+        if (others.length > 0) {
+          await tx.curriculum.updateMany({
+            where: { id: { in: others.map((row) => row.id) } },
+            data: { status: 'INACTIVE' },
+          });
+          for (const other of others) {
+            await tx.auditEvent.create({ data: this.auditData(actor, 'curriculum.deactivated', 'curriculum', other.id) });
+          }
+        }
       }
       await tx.curriculum.update({ where: { id }, data: { status } });
+      await tx.auditEvent.create({
+        data: this.auditData(actor, status === 'ACTIVE' ? 'curriculum.activated' : 'curriculum.deactivated', 'curriculum', id),
+      });
     });
     return { id, status };
   }
@@ -127,7 +136,11 @@ export class StudyPlansService {
     this.faculty(actor);
     await this.curriculum(actor, curriculumId);
     try {
-      const created = await this.db.cycle.create({ data: { curriculumId, number } });
+      const created = await this.db.$transaction(async (tx) => {
+        const row = await tx.cycle.create({ data: { curriculumId, number } });
+        await tx.auditEvent.create({ data: this.auditData(actor, 'cycle.created', 'cycle', row.id) });
+        return row;
+      });
       return { id: created.id, number: created.number };
     } catch (error) {
       this.rethrowConflict(error, 'Ese ciclo ya existe en el plan.');
@@ -139,7 +152,10 @@ export class StudyPlansService {
     const cycle = await this.db.cycle.findUnique({ where: { id: cycleId }, include: { curriculum: { include: { career: true } }, courses: { select: { id: true } } } });
     if (!cycle || !actor.scopes.includes(cycle.curriculum.career.code)) throw new NotFoundException();
     if (cycle.courses.length > 0) throw new BadRequestException('Quita los cursos antes de eliminar el ciclo.');
-    await this.db.cycle.delete({ where: { id: cycleId } });
+    await this.db.$transaction(async (tx) => {
+      await tx.cycle.delete({ where: { id: cycleId } });
+      await tx.auditEvent.create({ data: this.auditData(actor, 'cycle.removed', 'cycle', cycleId) });
+    });
   }
 
   async addCourse(actor: StudyPlansActor, cycleId: string, input: { position: number; code: string; name: string; credits: number }) {
@@ -148,8 +164,12 @@ export class StudyPlansService {
     this.credits(input.credits);
     await this.assertCourseCode(cycle.curriculumId, input.code);
     try {
-      const created = await this.db.course.create({
-        data: { cycleId, position: input.position, code: input.code, name: input.name.trim(), credits: input.credits.toFixed(1) },
+      const created = await this.db.$transaction(async (tx) => {
+        const row = await tx.course.create({
+          data: { cycleId, position: input.position, code: input.code, name: input.name.trim(), credits: input.credits.toFixed(1) },
+        });
+        await tx.auditEvent.create({ data: this.auditData(actor, 'course.created', 'course', row.id) });
+        return row;
       });
       return { id: created.id };
     } catch (error) {
@@ -163,9 +183,12 @@ export class StudyPlansService {
     this.credits(input.credits);
     await this.assertCourseCode(course.cycle.curriculumId, input.code, courseId);
     try {
-      await this.db.course.update({
-        where: { id: courseId },
-        data: { position: input.position, code: input.code, name: input.name.trim(), credits: input.credits.toFixed(1) },
+      await this.db.$transaction(async (tx) => {
+        await tx.course.update({
+          where: { id: courseId },
+          data: { position: input.position, code: input.code, name: input.name.trim(), credits: input.credits.toFixed(1) },
+        });
+        await tx.auditEvent.create({ data: this.auditData(actor, 'course.updated', 'course', courseId) });
       });
     } catch (error) {
       this.rethrowConflict(error, 'Ese orden ya está ocupado en el ciclo.');
@@ -175,18 +198,30 @@ export class StudyPlansService {
   async removeCourse(actor: StudyPlansActor, courseId: string) {
     this.faculty(actor);
     await this.ownedCourse(actor, courseId);
-    await this.db.course.delete({ where: { id: courseId } });
+    await this.db.$transaction(async (tx) => {
+      await tx.course.delete({ where: { id: courseId } });
+      await tx.auditEvent.create({ data: this.auditData(actor, 'course.removed', 'course', courseId) });
+    });
   }
 
+  // El archivo se publica al validar la firma %PDF. Queda para una entrega posterior
+  // el bucket privado, la cuarentena con análisis, la sesión recién emitida y la clave
+  // de idempotencia que evita otra versión si el cliente reintenta.
   async uploadSyllabus(actor: StudyPlansActor, courseId: string, contentBase64: string) {
     this.faculty(actor);
     const course = await this.ownedCourse(actor, courseId);
     const bytes = decodePdf(contentBase64);
     if (!bytes) throw new BadRequestException('El archivo debe ser un PDF de hasta 8 MB.');
-    const latest = await this.db.syllabus.findFirst({ where: { courseId }, orderBy: { version: 'desc' }, select: { version: true } });
     await this.db.$transaction(async (tx) => {
-      await tx.syllabus.updateMany({ where: { courseId, status: 'PUBLISHED' }, data: { status: 'RETIRED' } });
-      await tx.syllabus.create({
+      const previous = await tx.syllabus.findMany({ where: { courseId, status: 'PUBLISHED' }, select: { id: true } });
+      const latest = await tx.syllabus.findFirst({ where: { courseId }, orderBy: { version: 'desc' }, select: { version: true } });
+      if (previous.length > 0) {
+        await tx.syllabus.updateMany({ where: { id: { in: previous.map((row) => row.id) } }, data: { status: 'RETIRED' } });
+        for (const file of previous) {
+          await tx.auditEvent.create({ data: this.auditData(actor, 'syllabus.retired', 'syllabus', file.id) });
+        }
+      }
+      const created = await tx.syllabus.create({
         data: {
           courseId,
           version: (latest?.version ?? 0) + 1,
@@ -196,7 +231,9 @@ export class StudyPlansService {
           sizeBytes: bytes.length,
           uploadedBy: actor.id,
         },
+        select: { id: true },
       });
+      await tx.auditEvent.create({ data: this.auditData(actor, 'syllabus.published', 'syllabus', created.id) });
     });
     return { courseId, code: course.code };
   }
@@ -204,7 +241,14 @@ export class StudyPlansService {
   async retireSyllabus(actor: StudyPlansActor, courseId: string) {
     this.faculty(actor);
     await this.ownedCourse(actor, courseId);
-    await this.db.syllabus.updateMany({ where: { courseId, status: 'PUBLISHED' }, data: { status: 'RETIRED' } });
+    const current = await this.db.syllabus.findMany({ where: { courseId, status: 'PUBLISHED' }, select: { id: true } });
+    if (current.length === 0) return;
+    await this.db.$transaction(async (tx) => {
+      await tx.syllabus.updateMany({ where: { id: { in: current.map((row) => row.id) } }, data: { status: 'RETIRED' } });
+      for (const file of current) {
+        await tx.auditEvent.create({ data: this.auditData(actor, 'syllabus.retired', 'syllabus', file.id) });
+      }
+    });
   }
 
   async syllabusFile(actor: StudyPlansActor, courseId: string) {
@@ -225,6 +269,10 @@ export class StudyPlansService {
 
   private credits(value: number): void {
     if (!isCreditValue(value)) throw new BadRequestException('Los créditos van de 0.5 en 0.5.');
+  }
+
+  private auditData(actor: StudyPlansActor, action: AuditAction, entityType: 'curriculum' | 'cycle' | 'course' | 'syllabus', entityId: string) {
+    return { actorId: actor.id, action, entityType, entityId, correlationId: actor.correlationId };
   }
 
   private async ownedCareer(actor: StudyPlansActor, careerId: string) {
