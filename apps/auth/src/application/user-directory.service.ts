@@ -339,7 +339,12 @@ export class UserDirectoryService {
     if (!required && requiresMfa(user.roles.map(({ role }) => role), applicationRoles)) {
       throw new BadRequestException('Esta cuenta debe mantener la autenticación de dos pasos.');
     }
-    await this.prisma.user.update({ where: { id }, data: { totpRequired: required } });
+    await this.prisma.user.update({
+      where: { id },
+      data: required
+        ? { totpRequired: true }
+        : { totpRequired: false, totpEnabled: false, totpSecret: null },
+    });
     await this.endSessions(id);
     const name = personName(user.profile?.firstName ?? '', user.profile?.paternalLastName ?? '');
     await this.note(actorId, required
