@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
 import { createHealthController } from '../../../libs/common/src/index.js';
+import { DeletionProof } from './application/deletion-proof.js';
 import { StudyPlansService } from './application/study-plans.service.js';
 import { StudyPlansPrismaService } from './infrastructure/persistence/study-plans-prisma.service.js';
 import { StudyPlansController } from './interfaces/http/study-plans.controller.js';
@@ -23,6 +24,6 @@ if (!accessTokenSecret || accessTokenSecret.length < 32) {
     }),
   ],
   controllers: [HealthController, StudyPlansController],
-  providers: [StudyPlansPrismaService, StudyPlansService, StudyPlansSessionGuard],
+  providers: [StudyPlansPrismaService, StudyPlansService, StudyPlansSessionGuard, DeletionProof],
 })
 export class AppModule {}

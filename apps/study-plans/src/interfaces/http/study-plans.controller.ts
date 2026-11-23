@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Header,
+  Headers,
   HttpCode,
   Param,
   ParseUUIDPipe,
@@ -67,8 +68,12 @@ export class StudyPlansController {
 
   @Delete('cycles/:id')
   @HttpCode(204)
-  removeCycle(@CurrentActor() actor: StudyPlansActor, @Param('id', ParseUUIDPipe) id: string) {
-    return this.plans.removeCycle(actor, id);
+  removeCycle(
+    @CurrentActor() actor: StudyPlansActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Headers('x-totp-code') totpCode?: string | string[],
+  ) {
+    return this.plans.removeCycle(actor, id, firstHeader(totpCode));
   }
 
   @Post('cycles/:id/courses')
@@ -84,8 +89,12 @@ export class StudyPlansController {
 
   @Delete('courses/:id')
   @HttpCode(204)
-  removeCourse(@CurrentActor() actor: StudyPlansActor, @Param('id', ParseUUIDPipe) id: string) {
-    return this.plans.removeCourse(actor, id);
+  removeCourse(
+    @CurrentActor() actor: StudyPlansActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Headers('x-totp-code') totpCode?: string | string[],
+  ) {
+    return this.plans.removeCourse(actor, id, firstHeader(totpCode));
   }
 
   @Post('courses/:id/syllabus')
@@ -96,8 +105,12 @@ export class StudyPlansController {
 
   @Delete('courses/:id/syllabus')
   @HttpCode(204)
-  retire(@CurrentActor() actor: StudyPlansActor, @Param('id', ParseUUIDPipe) id: string) {
-    return this.plans.retireSyllabus(actor, id);
+  retire(
+    @CurrentActor() actor: StudyPlansActor,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Headers('x-totp-code') totpCode?: string | string[],
+  ) {
+    return this.plans.retireSyllabus(actor, id, firstHeader(totpCode));
   }
 
   @Get('courses/:id/syllabus')
@@ -111,3 +124,6 @@ export class StudyPlansController {
     });
   }
 }
+
+const firstHeader = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? value[0] : value;

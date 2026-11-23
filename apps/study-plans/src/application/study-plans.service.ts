@@ -5,12 +5,16 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { courseVisibleTo, decodePdf, isCreditValue, visibleCurriculum, type AuditAction } from '../domain/study-plan-rules.js';
 import { StudyPlansPrismaService } from '../infrastructure/persistence/study-plans-prisma.service.js';
 import type { StudyPlansActor } from '../interfaces/http/study-plans-session.js';
+import { DeletionProof } from './deletion-proof.js';
 
 const creditsOf = (value: { toString(): string }): number => Number(value.toString());
 
 @Injectable()
 export class StudyPlansService {
-  constructor(private readonly db: StudyPlansPrismaService) {}
+  constructor(
+    private readonly db: StudyPlansPrismaService,
+    private readonly deletion: DeletionProof,
+  ) {}
 
   async catalog(actor: StudyPlansActor) {
     if (actor.scopes.length === 0) return { modalities: [], areas: [], careers: [], offerings: [] };
@@ -155,8 +159,9 @@ export class StudyPlansService {
     }
   }
 
-  async removeCycle(actor: StudyPlansActor, cycleId: string) {
+  async removeCycle(actor: StudyPlansActor, cycleId: string, totpCode: string | undefined) {
     this.faculty(actor);
+    await this.deletion.assert(actor.id, totpCode);
     const cycle = await this.db.cycle.findUnique({ where: { id: cycleId }, include: { curriculum: { include: { career: true } }, courses: { select: { id: true } } } });
     if (!cycle || !actor.scopes.includes(cycle.curriculum.career.code)) throw new NotFoundException();
     if (cycle.courses.length > 0) throw new BadRequestException('Quita los cursos antes de eliminar el ciclo.');
@@ -203,8 +208,9 @@ export class StudyPlansService {
     }
   }
 
-  async removeCourse(actor: StudyPlansActor, courseId: string) {
+  async removeCourse(actor: StudyPlansActor, courseId: string, totpCode: string | undefined) {
     this.faculty(actor);
+    await this.deletion.assert(actor.id, totpCode);
     await this.ownedCourse(actor, courseId);
     await this.db.$transaction(async (tx) => {
       await tx.course.delete({ where: { id: courseId } });
@@ -246,8 +252,9 @@ export class StudyPlansService {
     return { courseId, code: course.code };
   }
 
-  async retireSyllabus(actor: StudyPlansActor, courseId: string) {
+  async retireSyllabus(actor: StudyPlansActor, courseId: string, totpCode: string | undefined) {
     this.faculty(actor);
+    await this.deletion.assert(actor.id, totpCode);
     await this.ownedCourse(actor, courseId);
     const current = await this.db.syllabus.findMany({ where: { courseId, status: 'PUBLISHED' }, select: { id: true } });
     if (current.length === 0) return;
