@@ -44,6 +44,14 @@ export class UserDirectoryController {
     return this.directory.resetPassword(id, await this.actorId(request));
   }
 
+  @Post(':id/mfa-reset')
+  @UseGuards(UsersUpdateGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Header('Cache-Control', 'no-store')
+  async resetTotp(@Req() request: FastifyRequest, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.directory.resetTotp(id, await this.actorId(request));
+  }
+
   @Patch(':id/mfa')
   @UseGuards(UsersUpdateGuard)
   @HttpCode(HttpStatus.NO_CONTENT)

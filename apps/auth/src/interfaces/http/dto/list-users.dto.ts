@@ -5,7 +5,8 @@ import { FIXED_ROLES } from '../../../domain/access-policy.js';
 
 const ROLE_CODES = FIXED_ROLES.map((role) => role.code);
 const STATUS_CODES = ['ACTIVE', 'INVITED', 'SUSPENDED', 'LOCKED'] as const;
-const SORT_FIELDS = ['document', 'firstName', 'paternalLastName', 'maternalLastName', 'type'] as const;
+const SORT_FIELDS = ['document', 'firstName', 'paternalLastName', 'maternalLastName', 'type', 'system'] as const;
+const SYSTEMS = ['idiomas', 'study-plans', 'tickets'] as const;
 const trimText = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
 export class ListUsersDto {
@@ -27,6 +28,10 @@ export class ListUsersDto {
   @IsOptional()
   @IsUUID('all')
   siteId?: string;
+
+  @IsOptional()
+  @IsIn(SYSTEMS)
+  system?: (typeof SYSTEMS)[number];
 
   @Type(() => Number)
   @IsInt()

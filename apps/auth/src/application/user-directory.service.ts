@@ -81,9 +81,10 @@ export interface UserDirectoryQuery {
   readonly role?: FixedRole;
   readonly status?: (typeof STATUSES)[number]['code'];
   readonly siteId?: string;
+  readonly system?: 'idiomas' | 'study-plans' | 'tickets';
   readonly page: number;
   readonly pageSize: number;
-  readonly sort?: 'document' | 'firstName' | 'paternalLastName' | 'maternalLastName' | 'type';
+  readonly sort?: 'document' | 'firstName' | 'paternalLastName' | 'maternalLastName' | 'type' | 'system';
   readonly direction?: 'asc' | 'desc';
 }
 
@@ -111,6 +112,7 @@ export class UserDirectoryService {
     const direction = query.direction === 'desc' ? 'desc' as const : 'asc' as const;
     const skip = (query.page - 1) * query.pageSize;
     if (query.sort === 'type') return this.listByType(where, query, direction, skip);
+    if (query.sort === 'system') return this.listBySystem(where, query, direction, skip);
     const [total, users] = await Promise.all([
       this.prisma.user.count({ where }),
       this.prisma.user.findMany({
@@ -345,6 +347,25 @@ export class UserDirectoryService {
       : `Quitó la obligación de autenticación de dos pasos a ${name}.`);
   }
 
+  async resetTotp(id: string, actorId?: string): Promise<void> {
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+      select: {
+        totpEnabled: true,
+        profile: { select: { firstName: true, paternalLastName: true } },
+      },
+    });
+    if (!user) throw new NotFoundException();
+    if (!user.totpEnabled) throw new BadRequestException('La autenticación de dos pasos no está activa.');
+    await this.prisma.user.update({
+      where: { id },
+      data: { totpEnabled: false, totpSecret: null, totpRequired: true },
+    });
+    await this.endSessions(id);
+    const name = personName(user.profile?.firstName ?? '', user.profile?.paternalLastName ?? '');
+    await this.note(actorId, `Reinició el autenticador de ${name}.`);
+  }
+
   async requirePasswordChange(id: string, mustChangePassword: boolean, actorId?: string): Promise<void> {
     const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null }, select: { username: true } });
     if (!user) throw new NotFoundException();
@@ -365,6 +386,15 @@ export class UserDirectoryService {
 
   private async note(actorId: string | undefined, action: string): Promise<void> {
     if (actorId) await this.audit?.recordFor(actorId, 'Usuarios', action);
+  }
+
+  private async listBySystem(where: ReturnType<UserDirectoryService['where']>, query: UserDirectoryQuery, direction: 'asc' | 'desc', skip: number) {
+    const matched = await this.prisma.user.findMany({ where, select: selection });
+    const ordered = [...matched].sort((left, right) => {
+      const compared = systemLabel(left).localeCompare(systemLabel(right), 'es');
+      return direction === 'desc' ? -compared : compared;
+    });
+    return this.page(query, ordered.length, ordered.slice(skip, skip + query.pageSize));
   }
 
   private async listByType(where: ReturnType<UserDirectoryService['where']>, query: UserDirectoryQuery, direction: 'asc' | 'desc', skip: number) {
@@ -396,6 +426,9 @@ export class UserDirectoryService {
       ...(query.status ? { status: query.status } : {}),
       ...(query.siteId ? { siteId: query.siteId } : {}),
       ...(query.role ? { roles: { some: { role: query.role } } } : {}),
+      ...(query.system === 'idiomas' ? { roles: { some: {} } } : {}),
+      ...(query.system === 'study-plans' ? { applicationRoles: { some: { applicationRole: { application: { code: 'study-plans' } } } } } : {}),
+      ...(query.system === 'tickets' ? { applicationRoles: { some: { applicationRole: { application: { code: 'ci-tickets' } } } } } : {}),
       ...(search
         ? {
             OR: [
@@ -753,13 +786,7 @@ const present = (user: {
   applicationRoles?: readonly { applicationRole: { enabled: boolean; application: { name: string; enabled: boolean } } }[];
 }) => {
   const roles = [...user.roles].sort((left, right) => (ROLE_ORDER.get(left.role) ?? 0) - (ROLE_ORDER.get(right.role) ?? 0));
-  const systems = new Set<string>();
-  if (roles.length > 0) systems.add(ACADEMIC_SYSTEM);
-  for (const assignment of user.applicationRoles ?? []) {
-    if (assignment.applicationRole.enabled && assignment.applicationRole.application.enabled) {
-      systems.add(assignment.applicationRole.application.name);
-    }
-  }
+  const systems = systemNames(user);
   return {
     id: user.id,
     documentNumber: user.profile?.documentNumber ?? '',
@@ -778,6 +805,25 @@ const privilegedApplicationRoles = (assignment: StudyPlansAssignment | undefined
   ...(assignment?.role === 'faculty' ? ['study-plans.faculty'] : []),
   ...(tickets && tickets !== 'none' ? [tickets] : []),
 ];
+
+const systemNames = (user: {
+  roles: readonly { role: string }[];
+  applicationRoles?: readonly { applicationRole: { enabled: boolean; application: { name: string; enabled: boolean } } }[];
+}): string[] => {
+  const names: string[] = [];
+  if (user.roles.length > 0) names.push(ACADEMIC_SYSTEM);
+  for (const assignment of user.applicationRoles ?? []) {
+    if (assignment.applicationRole.enabled && assignment.applicationRole.application.enabled) {
+      names.push(assignment.applicationRole.application.name);
+    }
+  }
+  return [...new Set(names)];
+};
+
+const systemLabel = (user: Parameters<typeof systemNames>[0]): string => {
+  const names = systemNames(user);
+  return names.length > 0 ? names.join(' · ') : 'Sin sistema';
+};
 
 const personName = (firstName: string, paternalLastName: string): string =>
   `${firstName} ${paternalLastName}`.replace(/\s+/g, ' ').trim() || 'un usuario';
